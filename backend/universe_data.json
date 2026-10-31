@@ -1,0 +1,323 @@
+[
+  {
+    "id": "sun",
+    "tier": 1,
+    "name": "The Sun (Sol)",
+    "scale_order": "10^9 m (1.39M km)",
+    "distance": "0 ly (System Origin)",
+    "type": "G-type Main-Sequence Star (G2V)",
+    "position": [0, 0, 0],
+    "color": "#facc15",
+    "size": 1.4,
+    "summary": "The gravitational center of our planetary system, fusing 600 million tons of hydrogen into helium every second in its core.",
+    "scientific_details": {
+      "surface_temp": "5,778 K",
+      "luminosity": "3.828 × 10^26 Watts",
+      "spectral_class": "G2V"
+    }
+  },
+  {
+    "id": "mercury",
+    "tier": 1,
+    "name": "Mercury",
+    "scale_order": "10^9 m (0.39 AU)",
+    "distance": "0.39 AU from Sun",
+    "type": "Terrestrial Planet",
+    "position": [2.2, 0, 0],
+    "color": "#9ca3af",
+    "size": 0.25,
+    "summary": "The smallest and innermost planet, characterized by a cratered silicate crust and an unusually large metallic iron core.",
+    "scientific_details": {
+      "orbital_period": "88 Earth days",
+      "surface_gravity": "3.7 m/s²"
+    }
+  },
+  {
+    "id": "venus",
+    "tier": 1,
+    "name": "Venus",
+    "scale_order": "10^9 m (0.72 AU)",
+    "distance": "0.72 AU from Sun",
+    "type": "Terrestrial Planet",
+    "position": [3.5, 0, 0],
+    "color": "#fde047",
+    "size": 0.38,
+    "summary": "Earth's sister world under a runaway greenhouse effect, blanketed by opaque sulfuric acid clouds and extreme atmospheric pressures.",
+    "scientific_details": {
+      "surface_temp": "737 K (464 °C)",
+      "surface_pressure": "92 bar (9.2 MPa)"
+    }
+  },
+  {
+    "id": "earth",
+    "tier": 1,
+    "name": "Earth & Moon",
+    "scale_order": "10^9 m (1.00 AU)",
+    "distance": "1.00 AU (8.3 light-minutes)",
+    "type": "Habitable Terrestrial Planet",
+    "position": [5.2, 0, 0],
+    "color": "#38bdf8",
+    "size": 0.42,
+    "summary": "Only known celestial body hosting surface liquid water and an active nitrogen-oxygen biosphere, stabilized by its large lunar companion.",
+    "scientific_details": {
+      "orbital_velocity": "29.78 km/s",
+      "atmosphere": "78% N2, 21% O2, 0.93% Ar"
+    }
+  },
+  {
+    "id": "mars",
+    "tier": 1,
+    "name": "Mars",
+    "scale_order": "10^9 m (1.52 AU)",
+    "distance": "1.52 AU from Sun",
+    "type": "Terrestrial Desert Planet",
+    "position": [7.0, 0, 0],
+    "color": "#f87171",
+    "size": 0.32,
+    "summary": "A cold, iron oxide-rich desert world possessing the solar system's largest volcano (Olympus Mons) and evidence of ancient lacustrine environments.",
+    "scientific_details": {
+      "atmospheric_pressure": "0.6 kPa (0.006 bar)",
+      "natural_satellites": "Phobos and Deimos"
+    }
+  },
+  {
+    "id": "jupiter",
+    "tier": 1,
+    "name": "Jupiter",
+    "scale_order": "10^10 m (5.20 AU)",
+    "distance": "5.20 AU from Sun",
+    "type": "Gas Giant",
+    "position": [11.5, 0, 0],
+    "color": "#ea580c",
+    "size": 0.85,
+    "summary": "The dominant planetary mass of the solar system, featuring alternating ammonia cloud bands, persistent anticyclones, and 95 known moons.",
+    "scientific_details": {
+      "mass": "317.8 Earth masses",
+      "major_moons": "Io, Europa, Ganymede, Callisto"
+    }
+  },
+  {
+    "id": "saturn",
+    "tier": 1,
+    "name": "Saturn",
+    "scale_order": "10^10 m (9.58 AU)",
+    "distance": "9.58 AU from Sun",
+    "type": "Ringed Gas Giant",
+    "position": [16.2, 0, 0],
+    "color": "#fcd34d",
+    "size": 0.72,
+    "summary": "Distinguished by an expansive, highly reflective ring system of water ice particles and shepherd moons spanning up to 282,000 km.",
+    "scientific_details": {
+      "ring_thickness": "~10 meters to 1 km",
+      "major_moons": "Titan, Enceladus, Mimas"
+    }
+  },
+  {
+    "id": "uranus",
+    "tier": 1,
+    "name": "Uranus",
+    "scale_order": "10^10 m (19.2 AU)",
+    "distance": "19.2 AU from Sun",
+    "type": "Ice Giant",
+    "position": [21.5, 0, 0],
+    "color": "#67e8f9",
+    "size": 0.55,
+    "summary": "An ice giant world with a dynamic methane atmosphere and an extreme 97.8° axial tilt that causes retrograde, on-its-side rotation.",
+    "scientific_details": {
+      "axial_tilt": "97.77°",
+      "cloud_deck_temp": "49 K (-224 °C)"
+    }
+  },
+  {
+    "id": "neptune",
+    "tier": 1,
+    "name": "Neptune",
+    "scale_order": "10^10 m (30.1 AU)",
+    "distance": "30.1 AU from Sun",
+    "type": "Ice Giant",
+    "position": [26.5, 0, 0],
+    "color": "#3b82f6",
+    "size": 0.52,
+    "summary": "The outermost major planet, driven by supersonic atmospheric zonal winds reaching up to 2,100 km/h and high-altitude methane cirrus clouds.",
+    "scientific_details": {
+      "wind_speeds": "Up to 600 m/s",
+      "major_moon": "Triton (retrograde orbit)"
+    }
+  },
+  {
+    "id": "oort-cloud",
+    "tier": 1,
+    "name": "Oort Cloud Reservoir",
+    "scale_order": "10^15 m (~0.8 ly)",
+    "distance": "0.03 – 1.5 ly",
+    "type": "Circumstellar Cometary Swarm",
+    "position": [45, 0, 0],
+    "color": "#94a3b8",
+    "size": 1.2,
+    "summary": "A vast spherical swarm of volatile-rich icy planetesimals marking the outer gravitational frontier of Sol.",
+    "scientific_details": {
+      "outer_boundary": "~100,000 AU",
+      "composition": "Water ice, methane, ammonia, carbon monoxide"
+    }
+  },
+  {
+    "id": "alpha-centauri",
+    "tier": 2,
+    "name": "Alpha Centauri System",
+    "scale_order": "10^16 m (~4.37 ly)",
+    "distance": "4.37 ly",
+    "type": "Triple Star System",
+    "position": [65, 8, 35],
+    "color": "#fbbf24",
+    "size": 1.4,
+    "summary": "Our nearest stellar neighbors, consisting of binary pair Rigil Kentaurus (G2V) and Toliman (K1V), orbited distantly by Proxima Centauri.",
+    "scientific_details": {
+      "stellar_count": "3 (Rigil Kentaurus, Toliman, Proxima)",
+      "exoplanets": "Proxima b, Proxima c, Proxima d"
+    }
+  },
+  {
+    "id": "sirius",
+    "tier": 2,
+    "name": "Sirius (The Dog Star)",
+    "scale_order": "10^17 m (~8.6 ly)",
+    "distance": "8.60 ly",
+    "type": "Binary Star (A1V + White Dwarf DA2)",
+    "position": [-55, -15, 60],
+    "color": "#e0f2fe",
+    "size": 1.6,
+    "summary": "The brightest apparent star in Earth's night sky, paired with 'the Pup', a dense degenerate carbon-oxygen white dwarf.",
+    "scientific_details": {
+      "apparent_magnitude": "-1.46",
+      "companion_density": "~1.7 × 10^9 kg/m³"
+    }
+  },
+  {
+    "id": "vega",
+    "tier": 2,
+    "name": "Vega (Alpha Lyrae)",
+    "scale_order": "10^17 m (~25.0 ly)",
+    "distance": "25.04 ly",
+    "type": "Rapidly Rotating A-type Star (A0V)",
+    "position": [85, 42, -50],
+    "color": "#bae6fd",
+    "size": 1.5,
+    "summary": "A luminous, rapid rotator bulging significantly at its equator, surrounded by a warm circumstellar dust debris ring.",
+    "scientific_details": {
+      "rotation_velocity": "236 km/s at equator",
+      "circumstellar_disk": "Infrared excess detected by IRAS/Spitzer"
+    }
+  },
+  {
+    "id": "betelgeuse",
+    "tier": 2,
+    "name": "Betelgeuse (Alpha Orionis)",
+    "scale_order": "10^19 m (~640 ly)",
+    "distance": "642.5 ly",
+    "type": "Red Supergiant (M1-2 Ia-ab)",
+    "position": [-110, 35, -95],
+    "color": "#ef4444",
+    "size": 2.6,
+    "summary": "A pulsating red supergiant near the end of its stellar evolution, destined to undergo core-collapse into a Type II supernova.",
+    "scientific_details": {
+      "radius": "~764 Solar Radii (larger than Jupiter's orbit)",
+      "luminosity": "~126,000 Solar Luminosities"
+    }
+  },
+  {
+    "id": "pleiades",
+    "tier": 2,
+    "name": "Pleiades (Seven Sisters)",
+    "scale_order": "10^18 m (~444 ly)",
+    "distance": "444 ly",
+    "type": "Open Star Cluster & Reflection Nebula",
+    "position": [-90, -25, 120],
+    "color": "#38bdf8",
+    "size": 2.0,
+    "summary": "An open cluster of mid-B type hot blue stars moving through an interstellar dust cloud, illuminating a faint reflection nebulosity.",
+    "scientific_details": {
+      "cluster_age": "~100 Million Years",
+      "core_diameter": "~8 ly"
+    }
+  },
+  {
+    "id": "sagittarius-a-star",
+    "tier": 2,
+    "name": "Sagittarius A*",
+    "scale_order": "10^20 m (~26,000 ly)",
+    "distance": "26,673 ly (Galactic Center)",
+    "type": "Supermassive Black Hole",
+    "position": [0, -2, -180],
+    "color": "#ec4899",
+    "size": 2.4,
+    "summary": "The 4-million-solar-mass gravitational anchor at the nucleus of the Milky Way, shadowed by an intensely sheared synchrotron accretion flow.",
+    "scientific_details": {
+      "mass": "4.154 × 10^6 Solar Masses",
+      "schwarzschild_radius": "1.2 × 10^7 km (0.08 AU)"
+    }
+  },
+  {
+    "id": "andromeda-galaxy",
+    "tier": 3,
+    "name": "Andromeda Galaxy (M31)",
+    "scale_order": "10^22 m (~2.5 Mly)",
+    "distance": "2.537 Million ly",
+    "type": "Barred Spiral Galaxy",
+    "position": [240, 65, -160],
+    "color": "#a855f7",
+    "size": 3.4,
+    "summary": "The largest galaxy in our Local Group, containing roughly one trillion stars and currently approaching the Milky Way at 110 km/s.",
+    "scientific_details": {
+      "diameter": "~220,000 ly",
+      "redshift": "z = -0.001 (Blueshifted / Approaching)"
+    }
+  },
+  {
+    "id": "virgo-supercluster",
+    "tier": 3,
+    "name": "Virgo Supercluster Hub",
+    "scale_order": "10^24 m (~54 Mly)",
+    "distance": "53.8 Million ly",
+    "type": "Galaxy Supercluster",
+    "position": [-320, 140, 110],
+    "color": "#06b6d4",
+    "size": 4.0,
+    "summary": "A massive gravitational gathering of thousands of galaxies, within which the Local Group occupies a small outer filament.",
+    "scientific_details": {
+      "mass": "~1.48 × 10^15 Solar Masses",
+      "extent": "~110 Million ly diameter"
+    }
+  },
+  {
+    "id": "smacs-0723",
+    "tier": 4,
+    "name": "SMACS J0723.3-7327",
+    "scale_order": "10^25 m (~4.6 Gly)",
+    "distance": "4.6 Billion ly",
+    "type": "Massive Galaxy Cluster & Gravitational Lens",
+    "position": [520, -220, -380],
+    "color": "#f97316",
+    "size": 4.5,
+    "summary": "A colossal foreground galaxy cluster that acts as a natural cosmic telescope, bending and magnifying light from galaxies over 13 billion light years away.",
+    "scientific_details": {
+      "lens_phenomenon": "Relativistic Einstein rings and tangential arcs",
+      "jwst_significance": "First Deep Field optical target"
+    }
+  },
+  {
+    "id": "cmb-horizon",
+    "tier": 4,
+    "name": "Cosmic Microwave Background (CMB)",
+    "scale_order": "10^26 m (~46.5 Gly)",
+    "distance": "46.5 Billion ly (Comoving Horizon)",
+    "type": "Primordial Radiation Boundary",
+    "position": [0, 0, 950],
+    "color": "#ef4444",
+    "size": 5.5,
+    "summary": "The surface of last scattering: relic thermal radiation emitted 380,000 years after the Big Bang, marking the absolute visual edge of the observable universe.",
+    "scientific_details": {
+      "temperature": "2.7255 Kelvin",
+      "redshift": "z ≈ 1100"
+    }
+  }
+]
