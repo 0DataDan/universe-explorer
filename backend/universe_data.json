@@ -81,13 +81,29 @@
     }
   },
   {
+    "id": "ceres",
+    "tier": 1,
+    "name": "Ceres",
+    "scale_order": "10^9 m (2.77 AU)",
+    "distance": "2.77 AU from Sun",
+    "type": "Dwarf Planet (Asteroid Belt Anchor)",
+    "position": [9.6, 0, 0],
+    "color": "#cbd5e1",
+    "size": 0.22,
+    "summary": "The largest object in the main asteroid belt, containing roughly one-third of its total mass, featuring subsurface water ice and bright sodium carbonate salt deposits in Occator Crater.",
+    "scientific_details": {
+      "orbital_period": "4.6 Earth years",
+      "composition": "Rocky core with ice-rich mantle"
+    }
+  },
+  {
     "id": "jupiter",
     "tier": 1,
     "name": "Jupiter",
     "scale_order": "10^10 m (5.20 AU)",
     "distance": "5.20 AU from Sun",
     "type": "Gas Giant",
-    "position": [11.5, 0, 0],
+    "position": [12.0, 0, 0],
     "color": "#ea580c",
     "size": 0.85,
     "summary": "The dominant planetary mass of the solar system, featuring alternating ammonia cloud bands, persistent anticyclones, and 95 known moons.",
@@ -103,7 +119,7 @@
     "scale_order": "10^10 m (9.58 AU)",
     "distance": "9.58 AU from Sun",
     "type": "Ringed Gas Giant",
-    "position": [16.2, 0, 0],
+    "position": [16.8, 0, 0],
     "color": "#fcd34d",
     "size": 0.72,
     "summary": "Distinguished by an expansive, highly reflective ring system of water ice particles and shepherd moons spanning up to 282,000 km.",
@@ -145,13 +161,77 @@
     }
   },
   {
+    "id": "pluto",
+    "tier": 1,
+    "name": "Pluto & Charon",
+    "scale_order": "10^10 m (39.5 AU)",
+    "distance": "39.48 AU from Sun",
+    "type": "Kuiper Belt Dwarf Planet",
+    "position": [31.5, 0, 0],
+    "color": "#e2e8f0",
+    "size": 0.24,
+    "summary": "A complex frozen world in an eccentric 2:3 orbital resonance with Neptune, featuring a vast nitrogen-ice glacier basin (Sputnik Planitia) and mountains of water ice.",
+    "scientific_details": {
+      "orbital_period": "248 Earth years",
+      "binary_partner": "Charon (mutually tidally locked)"
+    }
+  },
+  {
+    "id": "halley-comet",
+    "tier": 1,
+    "name": "Halley's Comet (1P/Halley)",
+    "scale_order": "10^10 m (0.59 – 35.1 AU)",
+    "distance": "Eccentric Orbit (~17.8 AU Semi-Major Axis)",
+    "type": "Periodic Comet",
+    "position": [24.0, 3.5, 12.0],
+    "color": "#a5f3fc",
+    "size": 0.18,
+    "summary": "The most famous periodic retrograde comet, originating from the Kuiper/Oort reservoir and returning to perihelion every 75–76 years.",
+    "scientific_details": {
+      "orbital_inclination": "162.3° (Retrograde)",
+      "nucleus_composition": "Water ice, volatiles, dark hydrocarbons"
+    }
+  },
+  {
+    "id": "voyager-1",
+    "tier": 1,
+    "name": "Voyager 1 Interstellar Probe",
+    "scale_order": "10^11 m (~163 AU)",
+    "distance": "163.2 AU (Interstellar Space)",
+    "type": "Human Deep-Space Robotic Artifact",
+    "position": [38.5, 12.0, -18.0],
+    "color": "#f43f5e",
+    "size": 0.16,
+    "summary": "Launched in 1977, it became the first human-made object to cross the heliopause (August 2012) and directly sample the local interstellar medium.",
+    "scientific_details": {
+      "heliocentric_speed": "17 km/s (~3.6 AU/year)",
+      "payload": "The Golden Record, magnetometer, cosmic ray sensors"
+    }
+  },
+  {
+    "id": "sedna",
+    "tier": 1,
+    "name": "Sedna (90377 Sedna)",
+    "scale_order": "10^12 m (76 – 937 AU)",
+    "distance": "~84 AU (Currently Approaching Perihelion)",
+    "type": "Sednoid / Inner Oort Cloud Body",
+    "position": [46.0, -8.0, 22.0],
+    "color": "#f97316",
+    "size": 0.22,
+    "summary": "An extremely distant, reddened planetoid with an orbital period of roughly 11,400 years, providing critical kinematic clues about potential undiscovered outer solar system masses.",
+    "scientific_details": {
+      "aphelion": "~937 AU",
+      "surface_composition": "Tholins, water ice, methane"
+    }
+  },
+  {
     "id": "oort-cloud",
     "tier": 1,
     "name": "Oort Cloud Reservoir",
     "scale_order": "10^15 m (~0.8 ly)",
     "distance": "0.03 – 1.5 ly",
     "type": "Circumstellar Cometary Swarm",
-    "position": [45, 0, 0],
+    "position": [58.0, 0, 0],
     "color": "#94a3b8",
     "size": 1.2,
     "summary": "A vast spherical swarm of volatile-rich icy planetesimals marking the outer gravitational frontier of Sol.",
@@ -177,6 +257,23 @@
     }
   },
   {
+    "id": "barnards-star",
+    "tier": 2,
+    "name": "Barnard's Star",
+    "scale_order": "10^16 m (~5.96 ly)",
+    "distance": "5.96 ly",
+    "type": "Red Dwarf Star (M4.0V)",
+    "position": [-48, 14, 25],
+    "color": "#ef4444",
+    "size": 0.8,
+    "summary": "An ancient, low-mass red dwarf exhibiting the largest known proper motion of any star relative to the Sun (10.3 arcseconds per year).",
+    "scientific_details": {
+      "spectral_class": "M4.0V",
+      "mass": "0.144 Solar Masses",
+      "proper_motion": "10.36 arcsec/yr"
+    }
+  },
+  {
     "id": "sirius",
     "tier": 2,
     "name": "Sirius (The Dog Star)",
@@ -190,6 +287,22 @@
     "scientific_details": {
       "apparent_magnitude": "-1.46",
       "companion_density": "~1.7 × 10^9 kg/m³"
+    }
+  },
+  {
+    "id": "trappist-1",
+    "tier": 2,
+    "name": "TRAPPIST-1 System",
+    "scale_order": "10^17 m (~39.6 ly)",
+    "distance": "39.6 ly",
+    "type": "Ultra-Cool Red Dwarf Exoplanet Host (M8V)",
+    "position": [45, -28, -65],
+    "color": "#f87171",
+    "size": 0.75,
+    "summary": "An ultra-cool red dwarf harboring seven temperate, Earth-sized terrestrial planets in tight Laplace orbital resonance, three of which lie inside the liquid water habitable zone.",
+    "scientific_details": {
+      "confirmed_planets": "7 (b, c, d, e, f, g, h)",
+      "habitable_zone_worlds": "TRAPPIST-1e, 1f, 1g"
     }
   },
   {
@@ -209,19 +322,19 @@
     }
   },
   {
-    "id": "betelgeuse",
+    "id": "polaris",
     "tier": 2,
-    "name": "Betelgeuse (Alpha Orionis)",
-    "scale_order": "10^19 m (~640 ly)",
-    "distance": "642.5 ly",
-    "type": "Red Supergiant (M1-2 Ia-ab)",
-    "position": [-110, 35, -95],
-    "color": "#ef4444",
-    "size": 2.6,
-    "summary": "A pulsating red supergiant near the end of its stellar evolution, destined to undergo core-collapse into a Type II supernova.",
+    "name": "Polaris (North Star)",
+    "scale_order": "10^18 m (~433 ly)",
+    "distance": "433 ly",
+    "type": "Classical Cepheid Variable (F7Ib)",
+    "position": [15, 75, -80],
+    "color": "#fef08a",
+    "size": 2.1,
+    "summary": "The Northern Celestial Pole star, an evolved yellow supergiant pulsating with a 4-day period that serves as an essential cosmic distance ladder benchmark.",
     "scientific_details": {
-      "radius": "~764 Solar Radii (larger than Jupiter's orbit)",
-      "luminosity": "~126,000 Solar Luminosities"
+      "pulsation_period": "3.97 days",
+      "luminosity": "1,260 Solar Luminosities"
     }
   },
   {
@@ -241,6 +354,54 @@
     }
   },
   {
+    "id": "betelgeuse",
+    "tier": 2,
+    "name": "Betelgeuse (Alpha Orionis)",
+    "scale_order": "10^19 m (~640 ly)",
+    "distance": "642.5 ly",
+    "type": "Red Supergiant (M1-2 Ia-ab)",
+    "position": [-110, 35, -95],
+    "color": "#ef4444",
+    "size": 2.6,
+    "summary": "A pulsating red supergiant near the end of its stellar evolution, destined to undergo core-collapse into a Type II supernova.",
+    "scientific_details": {
+      "radius": "~764 Solar Radii (larger than Jupiter's orbit)",
+      "luminosity": "~126,000 Solar Luminosities"
+    }
+  },
+  {
+    "id": "orion-nebula",
+    "tier": 2,
+    "name": "Orion Nebula (M42 / NGC 1976)",
+    "scale_order": "10^19 m (~1,344 ly)",
+    "distance": "1,344 ly",
+    "type": "Diffuse Ionization Nebula & Stellar Nursery",
+    "position": [-125, -18, -130],
+    "color": "#ec4899",
+    "size": 2.8,
+    "summary": "The nearest massive star-forming region to Earth, energized by extreme ultraviolet radiation from the nascent O and B stars of the Trapezium Cluster.",
+    "scientific_details": {
+      "diameter": "~24 ly",
+      "total_mass": "~2,000 Solar Masses"
+    }
+  },
+  {
+    "id": "crab-nebula",
+    "tier": 2,
+    "name": "Crab Nebula & Pulsar (M1)",
+    "scale_order": "10^20 m (~6,500 ly)",
+    "distance": "6,500 ly",
+    "type": "Supernova Remnant & Pulsar Wind Nebula",
+    "position": [70, 45, 145],
+    "color": "#a855f7",
+    "size": 2.3,
+    "summary": "The expanding gaseous debris of the core-collapse supernova observed in 1054 CE, energized by a central neutron star spinning 30 times per second.",
+    "scientific_details": {
+      "spin_rate": "30.2 Hz (33 ms period)",
+      "magnetic_field": "~10^12 Gauss"
+    }
+  },
+  {
     "id": "sagittarius-a-star",
     "tier": 2,
     "name": "Sagittarius A*",
@@ -254,6 +415,38 @@
     "scientific_details": {
       "mass": "4.154 × 10^6 Solar Masses",
       "schwarzschild_radius": "1.2 × 10^7 km (0.08 AU)"
+    }
+  },
+  {
+    "id": "lmc",
+    "tier": 3,
+    "name": "Large Magellanic Cloud (LMC)",
+    "scale_order": "10^21 m (~163,000 ly)",
+    "distance": "163,000 ly",
+    "type": "Magellanic Spiral / Dwarf Satellite Galaxy",
+    "position": [75, -55, -120],
+    "color": "#38bdf8",
+    "size": 2.2,
+    "summary": "The most massive satellite galaxy orbiting the Milky Way, housing the Tarantula Nebula (30 Doradus)—the most active starburst nursery in the entire Local Group.",
+    "scientific_details": {
+      "mass": "~1.38 × 10^10 Solar Masses",
+      "morphology": "SB(s)m"
+    }
+  },
+  {
+    "id": "smc",
+    "tier": 3,
+    "name": "Small Magellanic Cloud (SMC)",
+    "scale_order": "10^21 m (~204,000 ly)",
+    "distance": "204,000 ly",
+    "type": "Dwarf Irregular Galaxy (dIrr)",
+    "position": [95, -70, -95],
+    "color": "#818cf8",
+    "size": 1.7,
+    "summary": "A dwarf irregular satellite companion linked to the LMC by the Magellanic Bridge, displaying low metallicity and tidal distortion.",
+    "scientific_details": {
+      "mass": "~6.5 × 10^9 Solar Masses",
+      "gas_fraction": "Extremely high neutral hydrogen (H I) content"
     }
   },
   {
@@ -273,6 +466,38 @@
     }
   },
   {
+    "id": "triangulum-galaxy",
+    "tier": 3,
+    "name": "Triangulum Galaxy (M33)",
+    "scale_order": "10^22 m (~2.73 Mly)",
+    "distance": "2.73 Million ly",
+    "type": "Unbarred Spiral Galaxy (SA(s)cd)",
+    "position": [285, 30, -210],
+    "color": "#06b6d4",
+    "size": 2.6,
+    "summary": "The third-largest member of the Local Group, possessing pristine, unbarred spiral arms and an intense giant H II starburst complex (NGC 604).",
+    "scientific_details": {
+      "stellar_count": "~40 Billion Stars",
+      "orbital_status": "Gravitationally bound companion to Andromeda"
+    }
+  },
+  {
+    "id": "centaurus-a",
+    "tier": 3,
+    "name": "Centaurus A (NGC 5128)",
+    "scale_order": "10^23 m (~13.05 Mly)",
+    "distance": "13.05 Million ly",
+    "type": "Active Starburst Lenticular Galaxy / Radio Galaxy",
+    "position": [-180, -90, 85],
+    "color": "#f97316",
+    "size": 3.2,
+    "summary": "One of the closest radio galaxies to Earth, bisected by a chaotic dust lane resulting from a past galactic merger and venting relativistic plasma jets.",
+    "scientific_details": {
+      "central_black_hole": "55 Million Solar Masses",
+      "emission": "Intense synchrotron radio and gamma-ray lobes"
+    }
+  },
+  {
     "id": "virgo-supercluster",
     "tier": 3,
     "name": "Virgo Supercluster Hub",
@@ -289,6 +514,70 @@
     }
   },
   {
+    "id": "great-attractor",
+    "tier": 3,
+    "name": "The Great Attractor (Norma Cluster Core)",
+    "scale_order": "10^24 m (~250 Mly)",
+    "distance": "250 Million ly",
+    "type": "Gravitational Basal Anomaly",
+    "position": [-420, -110, -280],
+    "color": "#e11d48",
+    "size": 4.2,
+    "summary": "A massive gravitational overdensity at the center of the Laniakea Supercluster, pulling the Milky Way and hundreds of thousands of galaxies at millions of km/h.",
+    "scientific_details": {
+      "peculiar_velocity": "~600 km/s toward attractor",
+      "location": "Zone of Avoidance (obscured by Milky Way plane)"
+    }
+  },
+  {
+    "id": "bootes-void",
+    "tier": 4,
+    "name": "The Boötes Supervoid",
+    "scale_order": "10^24 m (~700 Mly)",
+    "distance": "700 Million ly",
+    "type": "Macro Cosmic Supervoid",
+    "position": [180, 310, -320],
+    "color": "#090d16",
+    "size": 4.8,
+    "summary": "An enormous, nearly empty spherical expanse of space spanning 330 million light-years across. Where a region this size would normally contain 10,000 galaxies, fewer than 60 exist here.",
+    "scientific_details": {
+      "void_diameter": "~330 Million ly (~100 Mpc)",
+      "density_contrast": "Underdensity delta ≈ -0.85"
+    }
+  },
+  {
+    "id": "shapley-supercluster",
+    "tier": 4,
+    "name": "Shapley Supercluster Concentration",
+    "scale_order": "10^25 m (~650 Mly)",
+    "distance": "650 Million ly",
+    "type": "Colossal Hypercluster Complex",
+    "position": [-490, 160, -310],
+    "color": "#38bdf8",
+    "size": 4.6,
+    "summary": "The most massive gravitationally bound concentration of galaxy clusters in our local universe, creating a major gravitational tug pulling our cosmic region beyond the Great Attractor.",
+    "scientific_details": {
+      "total_mass": "~10^16 Solar Masses",
+      "cluster_count": "> 25 massive Abell clusters"
+    }
+  },
+  {
+    "id": "el-gordo",
+    "tier": 4,
+    "name": "El Gordo (ACT-CL J0102-4915)",
+    "scale_order": "10^25 m (~7.3 Gly)",
+    "distance": "7.3 Billion ly (z = 0.87)",
+    "type": "Relativistic Colliding Galaxy Cluster",
+    "position": [-380, -340, 410],
+    "color": "#eab308",
+    "size": 4.4,
+    "summary": "The largest, hottest, and most massive merging galaxy cluster observed in the distant universe, consisting of two subclusters colliding at millions of kilometers per hour.",
+    "scientific_details": {
+      "mass": "~3 × 10^15 Solar Masses",
+      "xray_temperature": "~170 Million K (14.5 keV)"
+    }
+  },
+  {
     "id": "smacs-0723",
     "tier": 4,
     "name": "SMACS J0723.3-7327",
@@ -302,6 +591,22 @@
     "scientific_details": {
       "lens_phenomenon": "Relativistic Einstein rings and tangential arcs",
       "jwst_significance": "First Deep Field optical target"
+    }
+  },
+  {
+    "id": "gn-z11",
+    "tier": 4,
+    "name": "GN-z11 Primordial Galaxy",
+    "scale_order": "10^26 m (~13.4 Gly Lookback / 32 Gly Comoving)",
+    "distance": "13.4 Billion ly Lookback (z = 10.60)",
+    "type": "High-Redshift Primordial Starburst Galaxy",
+    "position": [290, 460, 620],
+    "color": "#dc2626",
+    "size": 3.8,
+    "summary": "One of the most distant known galaxies, observed just 400 million years after the Big Bang. Intensely luminous and compact, its light is heavily redshifted into the infrared spectrum.",
+    "scientific_details": {
+      "spectroscopic_redshift": "z = 10.603",
+      "cosmic_age_at_emission": "~400 Million Years after Big Bang"
     }
   },
   {
