@@ -1,8 +1,15 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+import os
+from fastapi.responses import FileResponse
 
 app = FastAPI()
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    favicon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static", "favicon.ico"))
+    return FileResponse(favicon_path)
 
 catalog_data = [
     # Tier 1: Solar System & Interplanetary Boundary (Proportionally Spaced for Zero Orbital Collisions)
