@@ -30,7 +30,7 @@
       to { transform: rotate(360deg); }
     }
     #orbit-spinner-svg {
-      animation: orbit-spin 8s linear infinite;
+      animation: orbit-spin 8s linear infinite reverse;
     }
     #orbit-spinner-svg.orbit-paused {
       animation-play-state: paused;
@@ -239,45 +239,65 @@
     </div>
   </aside>
 
-  <!-- Bottom HUD Bar -->
+<!-- Bottom HUD Bar -->
   <footer id="bottom-hud" class="fixed bottom-4 left-4 right-4 z-20 bg-slate-900/40 border border-slate-700/50 px-5 py-3 rounded-2xl backdrop-blur-md flex items-center justify-between pointer-events-auto shadow-2xl">
-    <div class="flex items-center space-x-3.5">
+    <div class="flex items-center space-x-4">
       <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400 whitespace-nowrap">Cosmic Scale:</span>
       <input id="scale-slider" type="range" min="1.0" max="4.0" step="0.01" value="1.0" class="w-44 accent-emerald-400 cursor-pointer" />
 
-      <!-- Sol System Core Reset Button -->
-      <button onclick="resetToSolCore()" title="Return to Sun (Sol Core)" class="w-6 h-6 rounded-full bg-amber-400 hover:bg-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.75)] transition transform hover:scale-110 shrink-0 cursor-pointer"></button>
+      <!-- Sol System Core Reset Button (Uniform w-8 h-8) -->
+      <button onclick="resetToSolCore()" title="Return to Sun (Sol Core)" class="w-7 h-7 rounded-full bg-amber-400 hover:bg-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.75)] transition transform hover:scale-110 shrink-0 cursor-pointer"></button>
 
-      <!-- Cosmic Web Toggle Button -->
-      <button id="btn-cosmic-web" onclick="toggleCosmicWeb()" title="Toggle Cosmic Web Filaments" class="relative w-6 h-6 rounded-full bg-fuchsia-950/40 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shrink-0">
-        <span id="filament-ring-outer" class="absolute inset-0 rounded-full border border-dashed border-fuchsia-400/80 animate-mycelial shadow-[0_0_10px_rgba(232,121,249,0.55)]"></span>
-        <span id="filament-ring-core" class="w-3 h-3 rounded-full bg-fuchsia-500/70 shadow-[0_0_8px_#e879f9] transition-all duration-300"></span>
+      <!-- Cosmic Web Filament Button (True 8-Spoke Scalloped Spider-Web with Electric Pulses) -->
+      <button id="btn-cosmic-web" onclick="toggleCosmicWeb()" title="Toggle Cosmic Web Filaments"
+        class="relative w-7 h-7 rounded-full bg-fuchsia-950/60 border border-fuchsia-400/70 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_14px_rgba(232,121,249,0.55)] shrink-0">
+        <svg id="cosmic-web-svg" class="w-6 h-6 text-fuchsia-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(232,121,249,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <!-- 8 Radial Spokes extending to tips -->
+          <g stroke-width="1.15" stroke-opacity="0.85">
+            <path d="M12 1.2v21.6M1.2 12h21.6M4.4 4.4l15.2 15.2M4.4 19.6L19.6 4.4"/>
+          </g>
+          <!-- 3 Concentric Scalloped Web Rings (Dipping inward between all 8 spokes) -->
+          <g stroke-width="1.0" stroke-opacity="0.75">
+            <!-- Outer Scalloped Ring -->
+            <path d="M12 2.5 Q14.3 5.7 18.7 5.3 Q18.3 9.7 21.5 12 Q18.3 14.3 18.7 18.7 Q14.3 18.3 12 21.5 Q9.7 18.3 5.3 18.7 Q5.7 14.3 2.5 12 Q5.7 9.7 5.3 5.3 Q9.7 5.7 12 2.5Z"/>
+            <!-- Middle Scalloped Ring -->
+            <path d="M12 5.6 Q13.5 7.8 16.5 7.5 Q16.2 10.5 18.4 12 Q16.2 13.5 16.5 16.5 Q13.5 16.2 12 18.4 Q10.5 16.2 7.5 16.5 Q7.8 13.5 5.6 12 Q7.8 10.5 7.5 7.5 Q10.5 7.8 12 5.6Z"/>
+            <!-- Inner Scalloped Ring -->
+            <path d="M12 8.6 Q12.8 9.8 14.4 9.6 Q14.2 11.2 15.4 12 Q14.2 12.8 14.4 14.4 Q12.8 14.2 12 15.4 Q11.2 14.2 9.6 14.4 Q9.8 12.8 8.6 12 Q9.8 11.2 9.6 9.6 Q11.2 9.8 12 8.6Z"/>
+          </g>
+          <!-- Active Electric Surge Pulses traveling along the web -->
+          <g id="web-electric-pulse" stroke="#ffffff" stroke-width="1.4" class="drop-shadow-[0_0_6px_#f0abfc]">
+            <path d="M12 1.2v21.6M4.4 4.4l15.2 15.2" stroke-dasharray="4 10">
+              <animate attributeName="stroke-dashoffset" values="28;0" dur="0.9s" repeatCount="indefinite"/>
+            </path>
+            <path d="M12 5.6 Q13.5 7.8 16.5 7.5 Q16.2 10.5 18.4 12 Q16.2 13.5 16.5 16.5 Q13.5 16.2 12 18.4 Q10.5 16.2 7.5 16.5 Q7.8 13.5 5.6 12 Q7.8 10.5 7.5 7.5 Q10.5 7.8 12 5.6Z" stroke="#f0abfc" stroke-dasharray="5 12">
+              <animate attributeName="stroke-dashoffset" values="0;34" dur="1.1s" repeatCount="indefinite"/>
+            </path>
+          </g>
+        </svg>
       </button>
 
-      <!-- Pause/Resume Orbital Motion Button -->
-      <button id="btn-orbits" onclick="toggleOrbitPause()" title="Toggle Orbital Motion" class="relative w-6 h-6 rounded-full bg-emerald-950/50 border border-emerald-500/40 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(16,185,129,0.3)] shrink-0">
-        <svg id="orbit-spinner-svg" class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 12a8 8 0 018-8m8 8a8 8 0 01-8 8" />
+      <!-- Pause/Resume Orbital Motion Button (Uniform w-6 h-6) -->
+      <button id="btn-orbits" onclick="toggleOrbitPause()" title="Toggle Orbital Motion" class="relative w-8 h-8 rounded-full bg-emerald-950/50 border border-emerald-500/40 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(16,185,129,0.3)] shrink-0">
+        <svg id="orbit-spinner-svg" class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none">
+          <!-- Counter-clockwise arc from 1:30 (45 deg top-right) around to 4:30 (45 deg bottom-right) -->
+          <path d="M 18.36 5.64 A 9 9 0 1 0 18.36 18.36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+          <!-- Crisp, stroke-free triangular arrowhead tilted at the exact 45-degree counter-clockwise tangent -->
+          <polygon points="21.2,14.2 14.5,16.5 19.5,21.5" fill="currentColor" />
         </svg>
         <span id="orbit-core-dot" class="absolute w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
       </button>
 
-      <!-- Guided Cosmic Tour Button -->
-      <button id="btn-cosmic-tour" onclick="toggleCosmicTour()" title="Start Guided Cosmic Tour (All Tiers & Objects)" class="relative w-6 h-6 rounded-full bg-cyan-950/50 border border-cyan-500/40 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)] shrink-0">
-        <span id="tour-ring-outer" class="absolute inset-0 rounded-full border border-dashed border-cyan-400/40 transition-all duration-300"></span>
-        <svg id="tour-compass-svg" class="w-3.5 h-3.5 text-cyan-400 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+      <!-- Guided Cosmic Tour Button (Uniform w-6 h-6) -->
+      <button id="btn-cosmic-tour" onclick="toggleCosmicTour()" title="Start Guided Cosmic Tour (All Tiers & Objects)" class="relative w-8 h-8 rounded-full bg-cyan-950/50 border border-cyan-500/40 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)] shrink-0">
+        <span id="tour-ring-outer" class="hidden"></span>
+        <svg id="tour-compass-svg" class="w-6 h-6 text-cyan-400 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z" />
-        </svg>
-      </button>
-
-      <!-- Zen Fullscreen Mode Button -->
-      <button onclick="toggleFullscreenZen()" title="Toggle Zen Fullscreen" class="w-6 h-6 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer">
-        <svg id="fullscreen-icon" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
         </svg>
       </button>
     </div>
 
+    <!-- Center/Right Odometers & Far-Right Fullscreen Button -->
     <div id="odometer-group" class="flex items-center space-x-8 text-xs font-mono">
       <div>
         <span class="text-slate-500 block text-[9px] uppercase tracking-wider whitespace-nowrap">Scale Metric</span>
@@ -287,10 +307,15 @@
         <span class="text-slate-500 block text-[9px] uppercase tracking-wider whitespace-nowrap">Effective Baseline</span>
         <span id="odo-dist" class="text-cyan-300 font-semibold whitespace-nowrap block mt-0.5">1.50 AU (Heliosphere)</span>
       </div>
-      <div>
-        <span class="text-slate-500 block text-[9px] uppercase tracking-wider whitespace-nowrap">Active Tier</span>
-        <span id="odo-tier" class="text-amber-300 font-semibold whitespace-nowrap block mt-0.5">Tier 1: Solar System</span>
-      </div>
+      <!-- Hidden span keeps JS zoom loop error-free while removing Active Tier from UI -->
+      <span id="odo-tier" class="hidden"></span>
+
+      <!-- Zen Fullscreen Mode Button Relocated to Far Right (Uniform w-8 h-8) -->
+      <button onclick="toggleFullscreenZen()" title="Toggle Zen Fullscreen" class="w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
+        <svg id="fullscreen-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
+        </svg>
+      </button>
     </div>
   </footer>
 
@@ -495,17 +520,22 @@
 
     window.toggleCosmicWeb = function() {
       isCosmicWebVisible = !isCosmicWebVisible;
-      const outer = document.getElementById("filament-ring-outer");
-      const core = document.getElementById("filament-ring-core");
+      const btn = document.getElementById("btn-cosmic-web");
+      const svg = document.getElementById("cosmic-web-svg");
+      const pulse = document.getElementById("web-electric-pulse");
+
       if (isCosmicWebVisible) {
-        outer.className = "absolute inset-0 rounded-full border border-dashed border-fuchsia-400/80 animate-mycelial shadow-[0_0_10px_rgba(232,121,249,0.55)]";
-        core.className = "w-3 h-3 rounded-full bg-fuchsia-500/70 shadow-[0_0_8px_#e879f9] transition-all duration-300";
+        if (btn) btn.className = "relative w-8 h-8 rounded-full bg-fuchsia-950/60 border border-fuchsia-400/70 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_14px_rgba(232,121,249,0.55)] shrink-0";
+        if (svg) svg.className.baseVal = "w-6 h-6 text-fuchsia-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(232,121,249,0.8)]";
+        if (pulse) pulse.classList.remove("hidden");
       } else {
-        outer.className = "absolute inset-0 rounded-full border border-fuchsia-500/25 opacity-40 transition-all duration-300";
-        core.className = "w-2 h-2 rounded-full bg-slate-600/50 transition-all duration-300";
+        if (btn) btn.className = "relative w-8 h-8 rounded-full bg-slate-900/60 border border-fuchsia-500/25 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 opacity-50 shrink-0";
+        if (svg) svg.className.baseVal = "w-6 h-6 text-fuchsia-400/50 transition-all duration-300";
+        if (pulse) pulse.classList.add("hidden");
       }
+
       if (cosmicWebGroup) {
-        cosmicWebGroup.visible = (manualTierLock === 0 || manualTierLock === 4) && isCosmicWebVisible;
+        cosmicWebGroup.visible = isCosmicWebVisible;
       }
     };
 
@@ -516,15 +546,17 @@
       const dot = document.getElementById("orbit-core-dot");
       if (btn && svg && dot) {
         if (!isOrbitPaused) {
-          btn.className = "relative w-6 h-6 rounded-full bg-emerald-950/50 border border-emerald-500/40 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(16,185,129,0.3)] shrink-0";
-          svg.classList.remove("orbit-paused", "text-amber-400/70");
+          btn.className = "relative w-8 h-8 rounded-full bg-emerald-950/50 border border-emerald-500/40 " +
+            "flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(16,185,129,0.3)] shrink-0";
+          svg.classList.remove("orbit-paused", "text-emerald-400/50", "text-amber-400/70");
           svg.classList.add("text-emerald-400");
-          dot.className = "absolute w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]";
+          dot.className = "absolute w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] transition-all duration-300";
         } else {
-          btn.className = "relative w-6 h-6 rounded-full bg-amber-950/40 border border-amber-500/40 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shrink-0";
-          svg.classList.add("orbit-paused", "text-amber-400/70");
-          svg.classList.remove("text-emerald-400");
-          dot.className = "absolute w-1.5 h-1.5 rounded-full bg-amber-400/80";
+          btn.className = "relative w-8 h-8 rounded-full bg-slate-900/60 border border-emerald-500/25 " +
+            "flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 opacity-50 shrink-0";
+          svg.classList.remove("text-emerald-400", "text-amber-400/70");
+          svg.classList.add("orbit-paused", "text-emerald-400/50");
+          dot.className = "absolute w-1.5 h-1.5 rounded-full bg-emerald-500/40 transition-all duration-300";
         }
       }
     };
@@ -957,17 +989,17 @@
         return (seed - 1) / 2147483646;
       }
 
-      // 1. Generate Supercluster Attractor Nodes in flattened triaxial shell
-      const nodeCount = 52;
+      // 1. Expanded Supercluster Attractor Nodes across a much wider cosmic volume
+      const nodeCount = 88; // Increased density from 52
       const nodes = [];
       for (let i = 0; i < nodeCount; i++) {
         const u = fRand(), v = fRand();
         const theta = u * 2.0 * Math.PI;
         const phi = Math.acos(2.0 * v - 1.0);
-        const r = 260 + fRand() * 620;
+        const r = 400 + fRand() * 1350; // Stretches much further out (up to ~1750 units)
         nodes.push(new THREE.Vector3(
           r * Math.sin(phi) * Math.cos(theta),
-          r * Math.sin(phi) * Math.sin(theta) * 0.58,
+          r * Math.sin(phi) * Math.sin(theta) * 0.62,
           r * Math.cos(phi)
         ));
       }
@@ -1018,6 +1050,12 @@
         depthWrite: false
       });
 
+window._cosmicMaterials = { 
+        core: coreFilamentMat, 
+        outer: outerFilamentMat, 
+        branch: branchFilamentMat 
+      };
+
       const pulseCoreGeo = new THREE.SphereGeometry(0.85, 8, 8);
       const pulseCoreMat = new THREE.MeshBasicMaterial({
         color: 0xfce7f3,
@@ -1036,11 +1074,11 @@
         depthWrite: false
       });
 
-      // 4. Connect Supercluster Nodes with Main Conduits + Subtle Fractal Sub-Branches
+      // 4. Connect Supercluster Nodes with Long-Range Conduits & Fractal Sub-Branches
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const dist = nodes[i].distanceTo(nodes[j]);
-          if (dist > 155 && dist < 335) {
+          if (dist > 240 && dist < 620) { // Wider span for massive, far-reaching cosmic filaments
             const boltPts = generateFractalBolt(nodes[i], nodes[j], 4, dist * 0.22);
             const boltGeom = new THREE.BufferGeometry().setFromPoints(boltPts);
 
@@ -1074,19 +1112,38 @@
             if (fRand() > 0.45) {
               const boltCurve = new THREE.CatmullRomCurve3(boltPts);
               const pulseGroup = new THREE.Group();
-              const pCore = new THREE.Mesh(pulseCoreGeo, pulseCoreMat);
+// --- Longer, translucent 3D electric spark zigzag ---
+              const sparkPts = [
+                new THREE.Vector3(0, 0, -4.5),
+                new THREE.Vector3(1.0, 0.8, -2.0),
+                new THREE.Vector3(-0.8, -0.7, 0.0),
+                new THREE.Vector3(0.6, 0.5, 2.0),
+                new THREE.Vector3(0, 0, 4.5)
+              ];
+              const sparkGeo = new THREE.BufferGeometry().setFromPoints(sparkPts);
+              const sparkMat = new THREE.LineBasicMaterial({
+                color: 0xff33bb,
+                transparent: true,
+                opacity: 0.325,
+                blending: THREE.AdditiveBlending
+              });
+              const sparkLine = new THREE.Line(sparkGeo, sparkMat);
+              sparkLine.raycast = () => {};
+              pulseGroup.add(sparkLine);
+              // -------------------------------------------------------------
+
               const pHalo = new THREE.Mesh(pulseHaloGeo, pulseHaloMat);
-              pCore.raycast = () => {};
               pHalo.raycast = () => {};
-              pulseGroup.add(pCore);
               pulseGroup.add(pHalo);
               cosmicWebGroup.add(pulseGroup);
 
-              const pulseItem = {
+const pulseItem = {
                 mesh: pulseGroup,
                 curve: boltCurve,
                 progress: fRand(),
-                speed: 0.0016 + fRand() * 0.0024
+                speed: 0.0016 + fRand() * 0.0024,
+                sparkMat: sparkMat,       // <-- Add this reference
+                haloMat: pulseHaloMat     // <-- Add this reference
               };
               filamentFlowParticles.push(pulseItem);
               window._filamentPulses.push(pulseItem);
@@ -2280,8 +2337,8 @@
 
     const TIER_INTROS = {
       1: {
-        badge: "TIER 1 • 10^9 TO 10^13 M",
-        title: "Tier 1: The Solar System & Heliosphere",
+        badge: "10^9 TO 10^13 M",
+        title: "The Solar System",
         type: "Gravity-Dominated Planetary Regime • 0.05 AU to 120 AU",
         distance: "0.00 to 160 AU (Heliospheric Boundary)",
         scale_order: "10^9 m to 10^13 m",
@@ -2294,11 +2351,11 @@
         ],
         camPos: { x: -45, y: 58, z: 62 },
         targetPos: { x: 0, y: 0, z: 0 },
-        dwellMs: 16000
+        dwellMs: 25000
       },
       2: {
-        badge: "TIER 2 • 10^16 TO 10^21 M",
-        title: "Tier 2: Stellar Neighborhood & Orion Arm",
+        badge: "10^16 TO 10^21 M",
+        title: "The Stellar Neighborhood",
         type: "Interstellar & Galactic Core Regime • 4.2 ly to 26,670 ly",
         distance: "4.24 ly to 26,670 ly (Milky Way Disk & Core)",
         scale_order: "10^16 m to 10^21 m",
@@ -2311,11 +2368,11 @@
         ],
         camPos: { x: 0, y: 95, z: 260 },
         targetPos: { x: 0, y: 0, z: -60 },
-        dwellMs: 16500
+        dwellMs: 25000
       },
       3: {
-        badge: "TIER 3 • 10^22 TO 10^24 M",
-        title: "Tier 3: Galaxies & The Local Group",
+        badge: "10^22 TO 10^24 M",
+        title: "Galaxies & The Local Group",
         type: "Extragalactic & Supercluster Regime • 160 kly to 250 Mly",
         distance: "0.16 Mly to 220 Mly (Laniakea Supercluster)",
         scale_order: "10^22 m to 10^24 m",
@@ -2328,11 +2385,11 @@
         ],
         camPos: { x: 180, y: 180, z: 520 },
         targetPos: { x: 120, y: 20, z: -180 },
-        dwellMs: 16500
+        dwellMs: 25000
       },
       4: {
-        badge: "TIER 4 • 10^25 TO 10^26 M",
-        title: "Tier 4: Deep Cosmic Web & Observable Horizon",
+        badge: "",
+        title: "Deep Space & Observable Horizon",
         type: "Large-Scale Structure & Early Universe • 650 Mly to 46.5 Gly",
         distance: "650 Mly to 46.5 Gly (Comoving Horizon)",
         scale_order: "10^25 m to 8.8 × 10^26 m",
@@ -2345,7 +2402,7 @@
         ],
         camPos: { x: 0, y: 360, z: 1350 },
         targetPos: { x: 0, y: 0, z: 0 },
-        dwellMs: 17500
+        dwellMs: 25000
       }
     };
 
@@ -2427,17 +2484,21 @@
       const startTargetPos = controls.target.clone();
 
       const objRadius = (activeTarget && activeTarget.size) ? activeTarget.size : 1.0;
-      const offsetDist = Math.max(objRadius * 3.2, 3.8);
+      
+      // Give massive structures a much wider framing distance so background space is always visible
+      const baseDist = Math.max(objRadius * 7.5, 25.0);
+      const offsetDist = baseDist;
 
       const viewDir = startCamPos.clone().sub(startTargetPos);
-      if (viewDir.lengthSq() < 0.001) viewDir.set(0.6, 0.35, 0.8);
+      if (viewDir.lengthSq() < 0.001) viewDir.set(0.6, 0.4, 0.8);
       viewDir.normalize();
 
+      // Elevated overhead and lateral framing to keep the surrounding universe in view
       const offsetVec = new THREE.Vector3(
         viewDir.x * offsetDist,
-        Math.max(viewDir.y * offsetDist, offsetDist * 0.25),
+        Math.max(offsetDist * 0.5, 12.0),
         viewDir.z * offsetDist
-      ).normalize().multiplyScalar(offsetDist);
+      );
 
       const tweenObj = { t: 0 };
       new TWEEN.Tween(tweenObj)
@@ -2491,7 +2552,7 @@
       if (triangulumGroup) triangulumGroup.visible = (tier === 0 || tier === 3);
 
       if (cosmicWebGroup) {
-        cosmicWebGroup.visible = (tier === 0 || tier === 4) && isCosmicWebVisible;
+        cosmicWebGroup.visible = isCosmicWebVisible;
       }
 
       if (!isTourActive && activeTarget && activeTargetMesh && !isNodeVisible(activeTargetMesh)) {
@@ -2506,9 +2567,9 @@
       if (sliderVal <= 2.0) {
         targetDist = 5.0 + (sliderVal - 1.0) * 115.0;
       } else if (sliderVal <= 3.0) {
-        targetDist = 120.0 + (sliderVal - 2.0) * 430.0;
+        targetDist = 120.0 + (sliderVal - 2.0) * 480.0;
       } else {
-        targetDist = 550.0 + (sliderVal - 3.0) * 2050.0;
+        targetDist = 600.0 + (sliderVal - 3.0) * 5200.0;
       }
 
       const diff = camera.position.clone().sub(controls.target);
@@ -2692,7 +2753,7 @@
       }
 
       if (cosmicWebGroup) {
-        cosmicWebGroup.visible = (manualTierLock === 0 || manualTierLock === 4) && isCosmicWebVisible;
+        cosmicWebGroup.visible = isCosmicWebVisible;
       }
     }
 
@@ -3218,11 +3279,29 @@
         }
       }
 
-      if (isCosmicWebVisible) {
+if (isCosmicWebVisible && window._cosmicMaterials) {
+        const t = performance.now() * 0.001;
+        // Breathing glow factor for both filaments and electric signals
+        const pulseFactor = 0.6 + 0.15 * Math.sin(t * 0.8) + 0.08 * Math.sin(t * 2.0);
+        
+        window._cosmicMaterials.core.opacity = 0.55 * pulseFactor;
+        window._cosmicMaterials.outer.opacity = 0.35 * pulseFactor;
+        window._cosmicMaterials.branch.opacity = 0.25 * pulseFactor;
+
         filamentFlowParticles.forEach(item => {
           item.progress = (item.progress + item.speed) % 1.0;
           const pt = item.curve.getPoint(item.progress);
           item.mesh.position.set(pt.x, pt.y, pt.z);
+          
+          // --- Sync electrical pulse opacity with the breathing web ---
+          if (item.sparkMat) item.sparkMat.opacity = 0.325 * pulseFactor;
+          if (item.haloMat) item.haloMat.opacity = 0.18 * pulseFactor;
+          // -----------------------------------------------------------
+
+          if (item.progress < 0.99) {
+            const lookPt = item.curve.getPoint(item.progress + 0.01);
+            item.mesh.lookAt(lookPt);
+          }
         });
       }
 
@@ -3289,10 +3368,10 @@
     let tourStepDuration = 16000;
 
     const TIER_LABELS = {
-      1: "TIER 1 • SOLAR SYSTEM",
-      2: "TIER 2 • STELLAR NEIGHBORHOOD",
-      3: "TIER 3 • GALAXIES & LOCAL GROUP",
-      4: "TIER 4 • DEEP COSMIC WEB"
+      1: "",
+      2: "",
+      3: "",
+      4: ""
     };
 
     // Explicit Solar System heliocentric order so Earth -> Moon -> Mars -> Ceres -> Jupiter is always natural
@@ -3324,11 +3403,11 @@
         list.push({
           kind: "tier-intro",
           tier: t,
-          badge: intro.badge,
+          badge: "",
           data: intro,
           camPos: intro.camPos,
           targetPos: intro.targetPos,
-          dwellMs: intro.dwellMs
+          dwellMs: Math.max(intro.dwellMs || 0, 22000) // Ensures intros get at least 22 seconds
         });
 
         tierMeshes.forEach((mesh, idx) => {
@@ -3339,7 +3418,7 @@
             mesh: mesh,
             data: d,
             badge: TIER_LABELS[t],
-            dwellMs: 16000
+            dwellMs: 19000
           });
         });
       }
@@ -3414,15 +3493,27 @@
     }
 
     let isTourVoiceMuted = false;
+    let currentTourAudio = null;
+
+    function stopTourAudio() {
+      if (currentTourAudio) {
+        currentTourAudio.pause();
+        currentTourAudio.currentTime = 0;
+        currentTourAudio = null;
+      }
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
 
     function speakTourNarration(textToSpeak) {
-      if (isTourVoiceMuted || !('speechSynthesis' in window)) return;
-      window.speechSynthesis.cancel();
-      const cleanText = textToSpeak.replace(/\^\d+/g, "").replace(/\*/g, "").replace(/~/g, "");
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-      window.speechSynthesis.speak(utterance);
+      stopTourAudio();
+      if (isTourVoiceMuted || !textToSpeak) return;
+      const cleanText = textToSpeak
+        .replace(/\^\d+/g, "")
+        .replace(/\*/g, "")
+        .replace(/’/g, "'")
+        .trim();
+      currentTourAudio = new Audio(`/api/tts?text=${encodeURIComponent(cleanText)}`);
+      currentTourAudio.play().catch(err => console.warn("Audio play blocked:", err));
     }
 
     window.toggleTourVoice = function(e) {
@@ -3431,7 +3522,7 @@
       const btn = document.getElementById("btn-tour-voice");
       const icon = document.getElementById("icon-tour-voice");
       if (isTourVoiceMuted) {
-        window.speechSynthesis.cancel();
+        stopTourAudio();
         if (btn) btn.className = "relative w-6 h-6 rounded-full bg-slate-900/60 border border-slate-600 hover:border-slate-400 flex items-center justify-center text-slate-400 hover:text-slate-200 transition transform hover:scale-110 cursor-pointer";
         if (icon) icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />';
       } else {
@@ -3522,7 +3613,7 @@
 
     window.stopCosmicTour = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      stopTourAudio();
       isTourActive = false;
       isTourPaused = false;
       clearTourTimers();
