@@ -103,6 +103,67 @@
       color: #fcd34d;
     }
 
+
+    /* Heavy Hydraulic Spaceship Door Slide Effect (2.2s both in & out) */
+    #inspector,
+    #map-key-drawer {
+      transition: transform 2200ms cubic-bezier(0.22, 0.95, 0.32, 1) !important;
+      will-change: transform;
+    }
+    #inspector-edge-tab,
+    #map-key-summon-btn {
+      transition: transform 2000ms cubic-bezier(0.22, 0.95, 0.32, 1), opacity 1600ms ease, background-color 300ms ease, border-color 300ms ease !important;
+      will-change: transform, opacity;
+    }
+  
+    /* Minimalist Transparent Scale Slider */
+    input[type="range"]#scale-slider,
+    input[type="range"].scale-slider,
+    div[class*="bottom-"] input[type="range"] {
+      -webkit-appearance: none !important;
+      appearance: none !important;
+      background: rgba(34, 211, 238, 0.14) !important;
+      height: 3px !important;
+      border-radius: 9999px !important;
+      border: 1px solid rgba(34, 211, 238, 0.25) !important;
+      outline: none !important;
+      box-shadow: inset 0 0 6px rgba(34, 211, 238, 0.15) !important;
+      transition: background 0.25s ease, border-color 0.25s ease !important;
+    }
+    input[type="range"]#scale-slider:hover,
+    div[class*="bottom-"] input[type="range"]:hover {
+      background: rgba(34, 211, 238, 0.24) !important;
+      border-color: rgba(34, 211, 238, 0.45) !important;
+    }
+    input[type="range"]#scale-slider::-webkit-slider-thumb,
+    div[class*="bottom-"] input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none !important;
+      appearance: none !important;
+      width: 11px !important;
+      height: 11px !important;
+      border-radius: 9999px !important;
+      background: rgba(34, 211, 238, 0.85) !important;
+      border: 1.5px solid rgba(224, 242, 254, 0.9) !important;
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.75) !important;
+      cursor: pointer !important;
+      transition: transform 0.15s ease, background 0.15s ease !important;
+    }
+    input[type="range"]#scale-slider::-webkit-slider-thumb:hover,
+    div[class*="bottom-"] input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.25) !important;
+      background: rgba(103, 232, 249, 1) !important;
+    }
+    input[type="range"]#scale-slider::-moz-range-thumb,
+    div[class*="bottom-"] input[type="range"]::-moz-range-thumb {
+      width: 11px !important;
+      height: 11px !important;
+      border-radius: 9999px !important;
+      background: rgba(34, 211, 238, 0.85) !important;
+      border: 1.5px solid rgba(224, 242, 254, 0.9) !important;
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.75) !important;
+      cursor: pointer !important;
+    }
+
   </style>
 </head>
 <body class="relative w-screen h-screen overflow-hidden select-none">
@@ -121,22 +182,16 @@
     <span id="tooltip-text"></span>
   </div>
 
-  <!-- NASA Eyes Minimalist Right-Edge Summon Tab (Visible when drawer is collapsed) -->
-  <button id="inspector-edge-tab" onclick="toggleSidebarVisibility(event)" title="Open Overview Drawer" class="fixed top-1/2 -translate-y-1/2 right-0 z-20 flex flex-col items-center justify-center gap-2 py-4 px-1.5 rounded-l-xl bg-slate-950/50 hover:bg-slate-900/80 backdrop-blur-xl border border-r-0 border-white/15 hover:border-cyan-400/50 text-slate-300 hover:text-cyan-300 shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] pointer-events-auto cursor-pointer group">
-    <svg class="w-3.5 h-3.5 text-cyan-400 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-    </svg>
-    <span class="text-[9px] font-mono uppercase tracking-[0.25em] [writing-mode:vertical-lr] rotate-180 opacity-80 group-hover:opacity-100">OVERVIEW</span>
+  <!-- Sleek Glowing Minimalist Right-Edge Summon Tab (Textless) -->
+  <button id="inspector-edge-tab" onclick="toggleSidebarVisibility(event)" title="Open Overview Drawer" class="fixed top-1/2 -translate-y-1/2 right-0 z-20 w-3 h-[420px] rounded-l-xl bg-cyan-950/75 hover:bg-cyan-900/90 backdrop-blur-xl border border-r-0 border-cyan-400/50 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
+    <div class="w-1 h-1/3 max-h-24 min-h-[24px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
   </button>
 
   <!-- Right-Side Astrophysical Inspector Drawer (Overflow-visible so left slide-back tab attaches cleanly) -->
   <aside id="inspector" class="fixed top-16 right-4 z-20 w-96 bg-slate-950/45 border border-white/10 rounded-2xl backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-[430px] pointer-events-auto">
-    <!-- Attached Left-Side Slide-Back Tab -->
-    <button onclick="toggleSidebarVisibility(event)" title="Slide Overview Drawer Out" class="absolute top-1/2 -translate-y-1/2 -left-[26px] w-[26px] flex flex-col items-center justify-center gap-2 py-4 px-1 rounded-l-xl bg-slate-950/55 hover:bg-slate-900/85 backdrop-blur-xl border border-r-0 border-white/15 hover:border-cyan-400/50 text-slate-300 hover:text-cyan-300 shadow-2xl transition cursor-pointer group">
-      <svg class="w-3.5 h-3.5 text-cyan-400 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-      </svg>
-      <span class="text-[9px] font-mono uppercase tracking-[0.25em] [writing-mode:vertical-lr] rotate-180 opacity-80 group-hover:opacity-100">OVERVIEW</span>
+    <!-- Sleek Glowing Minimalist Attached Slide-Back Tab (Textless) -->
+    <button onclick="toggleSidebarVisibility(event)" title="Slide Overview Drawer Out" class="absolute top-0 bottom-0 -left-3.5 w-3.5 h-full rounded-l-xl bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
+      <div class="w-1 h-1/3 max-h-24 min-h-[24px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
     </button>
     <div class="max-h-[calc(100vh-7.5rem)] overflow-y-auto p-5">
     <!-- Minimalist Guided Tour Controls Header (Visible During Tour) -->
@@ -187,15 +242,11 @@
 
     <div class="flex items-start justify-between">
       <div>
-        <span id="target-scale" class="text-[10px] font-mono uppercase tracking-widest text-emerald-400 block"></span>
+        <span id="target-scale" class="text-[10px] font-mono uppercase tracking-widest text-cyan-300 block"></span>
         <h2 id="target-name" class="text-xl font-bold text-white mt-0.5"></h2>
         <p id="target-type" class="text-xs text-slate-300/90"></p>
       </div>
-      <button id="btn-close-inspector" onclick="closeInspector()" title="Close Panel" class="w-6 h-6 rounded-full bg-slate-900/50 border border-slate-700/70 hover:border-slate-500 flex items-center justify-center text-slate-400 hover:text-white transition transform hover:scale-110 cursor-pointer shrink-0">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      
     </div>
 
     <div class="mt-2.5 pt-2.5 border-t border-white/10 text-xs text-amber-300 font-mono flex items-center justify-between">
@@ -243,42 +294,34 @@
     </div>
   </aside>
 
-  <!-- Bottom-Right Map Key Summon Circle Button (<) -->
-  <button id="map-key-summon-btn" onclick="toggleMapKey(event)" title="Show Controls Key" class="fixed bottom-5 right-4 z-20 w-8 h-8 rounded-full bg-slate-950/55 hover:bg-slate-900/85 backdrop-blur-xl border border-white/15 hover:border-cyan-400/50 flex items-center justify-center text-slate-300 hover:text-cyan-300 shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] pointer-events-auto cursor-pointer group">
-    <svg class="w-3.5 h-3.5 text-cyan-400 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-    </svg>
+  <!-- Bottom-Right Map Key Summon Tab -->
+  <button id="map-key-summon-btn" onclick="toggleMapKey(event)" title="Open Map Key" class="fixed bottom-5 right-0 z-20 w-3.5 h-[148px] rounded-l-xl bg-cyan-950/80 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
+    <div class="w-1 h-1/3 max-h-12 min-h-[20px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
   </button>
 
   <!-- Bottom-Right Slide-In/Out Compact Map Key Drawer -->
   <aside id="map-key-drawer" class="fixed bottom-5 right-4 z-20 w-64 bg-slate-950/55 border border-white/10 rounded-2xl p-3.5 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-[300px] pointer-events-auto">
-    <!-- Attached Small Circle Slide-Back Button (>) on Left Edge -->
-    <button onclick="toggleMapKey(event)" title="Hide Controls Key" class="absolute top-1/2 -translate-y-1/2 -left-4 w-7 h-7 rounded-full bg-slate-950/80 hover:bg-slate-900 backdrop-blur-xl border border-white/15 hover:border-cyan-400/50 flex items-center justify-center text-slate-300 hover:text-cyan-300 shadow-xl transition cursor-pointer group">
-      <svg class="w-3.5 h-3.5 text-cyan-400 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-      </svg>
+    <!-- Attached Left-Edge Full-Height Slide-Back Tab -->
+    <button id="map-key-attached-tab" onclick="toggleMapKey(event)" title="Close Map Key" class="absolute top-0 bottom-0 -left-3.5 w-3.5 h-full rounded-l-xl bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
+      <div class="w-1 h-1/3 max-h-12 min-h-[20px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
     </button>
-
-    <div class="text-[9px] font-mono uppercase tracking-[0.2em] text-slate-400 mb-2.5 pb-1.5 border-b border-white/10 flex items-center justify-between">
-      <span>Controls Key</span>
-    </div>
 
     <div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[11px] text-slate-200 font-medium">
       <!-- Reset -->
       <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.7)] shrink-0"></span>
+        <span class="w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.7)] shrink-0"></span>
         <span>Reset</span>
       </div>
       <!-- Cosmic Web -->
       <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-fuchsia-950/70 border border-fuchsia-400/70 flex items-center justify-center text-fuchsia-300 shrink-0">
+        <span class="w-4 h-4 rounded-full bg-cyan-950/70 border border-cyan-400/70 flex items-center justify-center text-cyan-300 shrink-0">
           <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M4.9 19.1L19.1 4.9"/></svg>
         </span>
         <span>Cosmic Web</span>
       </div>
       <!-- Orbits -->
       <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-emerald-950/60 border border-emerald-500/50 flex items-center justify-center text-emerald-400 shrink-0">
+        <span class="w-4 h-4 rounded-full bg-cyan-950/60 border border-cyan-400/50 flex items-center justify-center text-cyan-300 shrink-0">
           <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6A9 9 0 1 0 18 18"/></svg>
         </span>
         <span>Orbits</span>
@@ -318,13 +361,6 @@
         </span>
         <span>Deep Web</span>
       </div>
-      <!-- All Tiers -->
-      <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-amber-300 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/></svg>
-        </span>
-        <span>All Tiers</span>
-      </div>
       <!-- Overview -->
       <div class="flex items-center space-x-2">
         <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">
@@ -346,15 +382,31 @@
   <footer id="bottom-hud" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-20 bg-slate-950/45 border border-white/10 px-4 py-2 rounded-full backdrop-blur-xl flex items-center space-x-4 pointer-events-auto shadow-[0_10px_35px_rgba(0,0,0,0.65)] transition-all duration-300">
     <div class="flex items-center space-x-3">
       <span class="text-[10px] font-mono uppercase tracking-widest text-slate-400 whitespace-nowrap hidden sm:inline">Scale</span>
-      <input id="scale-slider" type="range" min="1.0" max="4.0" step="0.01" value="1.0" class="w-28 sm:w-32 accent-emerald-400 cursor-pointer" />
+      <input id="scale-slider" type="range" min="1.0" max="4.0" step="0.01" value="1.0" class="w-28 sm:w-32 accent-cyan-400 cursor-pointer" />
 
-      <!-- Sol System Core Reset Button (Uniform w-8 h-8) -->
-      <button onclick="resetToSolCore()" title="Return to Sun (Sol Core)" class="w-7 h-7 rounded-full bg-amber-400 hover:bg-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.75)] transition transform hover:scale-110 shrink-0 cursor-pointer"></button>
+      <!-- Sol System Core Reset Radar Button matching Screenshot 1 -->
+                  <button onclick="resetToSolCore()" title="Return to Sun (Sol Core)" class="w-7 h-7 rounded-full bg-cyan-950/50 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center text-cyan-300 transition transform hover:scale-110 shadow-[0_0_10px_rgba(34,211,238,0.3)] shrink-0 cursor-pointer">
+        <svg class="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <!-- Sweeping radar sector (cone) -->
+          <path d="M12 12L5.2 18.8A9.5 9.5 0 0 1 2.5 12H12Z" fill="currentColor" fill-opacity="0.35" stroke="none"/>
+          <!-- Concentric radar rings -->
+          <circle cx="12" cy="12" r="9.5" opacity="0.8"/>
+          <circle cx="12" cy="12" r="6.2" opacity="0.6"/>
+          <circle cx="12" cy="12" r="3" opacity="0.5"/>
+          <!-- Orthogonal crosshairs -->
+          <line x1="12" y1="1.5" x2="12" y2="22.5" opacity="0.8"/>
+          <line x1="1.5" y1="12" x2="22.5" y2="12" opacity="0.8"/>
+          <!-- Target pips along the rings -->
+          <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/>
+          <circle cx="7.2" cy="16.8" r="1.2" fill="currentColor"/>
+          <circle cx="15.8" cy="15.8" r="1.0" fill="currentColor"/>
+        </svg>
+      </button>
 
       <!-- Cosmic Web Filament Button (True 8-Spoke Scalloped Spider-Web with Electric Pulses) -->
       <button id="btn-cosmic-web" onclick="toggleCosmicWeb()" title="Toggle Cosmic Web Filaments"
-        class="relative w-7 h-7 rounded-full bg-fuchsia-950/60 border border-fuchsia-400/70 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_14px_rgba(232,121,249,0.55)] shrink-0">
-        <svg id="cosmic-web-svg" class="w-6 h-6 text-fuchsia-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(232,121,249,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        class="relative w-7 h-7 rounded-full bg-cyan-950/50 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(34,211,238,0.3)] shrink-0">
+        <svg id="cosmic-web-svg" class="w-6 h-6 text-cyan-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
           <!-- 8 Radial Spokes extending to tips -->
           <g stroke-width="1.15" stroke-opacity="0.85">
             <path d="M12 1.2v21.6M1.2 12h21.6M4.4 4.4l15.2 15.2M4.4 19.6L19.6 4.4"/>
@@ -382,7 +434,7 @@
 
       <!-- Pause/Resume Orbital Motion Button (Uniform w-6 h-6) -->
       <button id="btn-orbits" onclick="toggleOrbitPause()" title="Toggle Orbital Motion" class="relative w-8 h-8 rounded-full bg-emerald-950/50 border border-emerald-500/40 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(16,185,129,0.3)] shrink-0">
-        <svg id="orbit-spinner-svg" class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none">
+        <svg id="orbit-spinner-svg" class="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none">
           <!-- Counter-clockwise arc from 1:30 (45 deg top-right) around to 4:30 (45 deg bottom-right) -->
           <path d="M 18.36 5.64 A 9 9 0 1 0 18.36 18.36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
           <!-- Crisp, stroke-free triangular arrowhead tilted at the exact 45-degree counter-clockwise tangent -->
@@ -392,7 +444,7 @@
       </button>
 
       <!-- Guided Cosmic Tour Button (Play-Orbit Hybrid Icon) -->
-      <button id="btn-cosmic-tour" onclick="toggleCosmicTour()" title="Start Tour" class="relative w-8 h-8 rounded-full bg-cyan-950/50 border border-cyan-500/40 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)] shrink-0">
+      <button id="btn-cosmic-tour" onclick="toggleCosmicTour()" title="Start Tour" class="relative w-8 h-8 rounded-full bg-cyan-950/50 border border-cyan-500/50 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)] shrink-0">
         <span id="tour-ring-outer" class="hidden"></span>
         <svg id="tour-compass-svg" class="w-4 h-4 text-cyan-400 transition-transform duration-500" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2.5" opacity="0.75" />
@@ -434,11 +486,7 @@
 
       <!-- Persistent Sidebar Toggle (|||) & Fullscreen / Standard Mode Buttons -->
       <div id="hud-right-controls" class="flex items-center space-x-2.5 pl-2">
-        <button id="btn-toggle-sidebar" onclick="toggleSidebarVisibility(event)" title="Toggle Sidebar On / Off" class="w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
-          <svg id="sidebar-toggle-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 5v14M12 5v14M16 5v14" />
-          </svg>
-        </button>
+        
 
         <button id="btn-fullscreen-zen" onclick="toggleFullscreenZen()" title="Enter Fullscreen Mode" class="w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
           <svg id="fullscreen-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -535,7 +583,7 @@
     function init() {
       scene = new THREE.Scene();
 
-      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.05, 45000);
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.05, 50000);
       camera.position.set(0, 16, 36);
 
       renderer = new THREE.WebGLRenderer({
@@ -550,7 +598,7 @@
       controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
-      controls.maxDistance = 14000;
+      controls.maxDistance = 12000;
       controls.minDistance = 5.0;
 
       raycaster = new THREE.Raycaster();
@@ -667,8 +715,8 @@
       const pulse = document.getElementById("web-electric-pulse");
 
       if (isCosmicWebVisible) {
-        if (btn) btn.className = "relative w-8 h-8 rounded-full bg-fuchsia-950/60 border border-fuchsia-400/70 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_14px_rgba(232,121,249,0.55)] shrink-0";
-        if (svg) svg.className.baseVal = "w-6 h-6 text-fuchsia-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(232,121,249,0.8)]";
+        if (btn) btn.className = "relative w-8 h-8 rounded-full bg-cyan-950/50 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(34,211,238,0.3)] shrink-0";
+        if (svg) svg.className.baseVal = "w-6 h-6 text-cyan-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]";
         if (pulse) pulse.classList.remove("hidden");
       } else {
         if (btn) btn.className = "relative w-8 h-8 rounded-full bg-slate-900/60 border border-fuchsia-500/25 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 opacity-50 shrink-0";
@@ -705,15 +753,15 @@
         if (!isOrbitPaused) {
           btn.className = "relative w-8 h-8 rounded-full bg-emerald-950/50 border border-emerald-500/40 " +
             "flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(16,185,129,0.3)] shrink-0";
-          svg.classList.remove("orbit-paused", "text-emerald-400/50", "text-amber-400/70");
-          svg.classList.add("text-emerald-400");
+          svg.classList.remove("orbit-paused", "text-cyan-300/50", "text-amber-400/70");
+          svg.classList.add("text-cyan-300");
           dot.className = "absolute w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] transition-all duration-300";
         } else {
           btn.className = "relative w-8 h-8 rounded-full bg-slate-900/60 border border-emerald-500/25 " +
             "flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 opacity-50 shrink-0";
-          svg.classList.remove("text-emerald-400", "text-amber-400/70");
-          svg.classList.add("orbit-paused", "text-emerald-400/50");
-          dot.className = "absolute w-1.5 h-1.5 rounded-full bg-emerald-500/40 transition-all duration-300";
+          svg.classList.remove("text-cyan-300", "text-amber-400/70");
+          svg.classList.add("orbit-paused", "text-cyan-300/50");
+          dot.className = "absolute w-1.5 h-1.5 rounded-full bg-cyan-400/60 transition-all duration-300";
         }
       }
     };
@@ -757,19 +805,31 @@
     };
 
     function updateSidebarToggleStyle() {
-      const btn = document.getElementById("btn-toggle-sidebar");
       const inspector = document.getElementById("inspector");
       const edgeTab = document.getElementById("inspector-edge-tab");
-      if (!btn || !inspector) return;
+      const mapKeySummon = document.getElementById("map-key-summon-btn");
+      const mapKeyDrawer = document.getElementById("map-key-drawer");
+      if (!inspector) return;
+
       const isVisible = !inspector.classList.contains("translate-x-[430px]");
+      const inFullscreen = isZenMode || !!document.fullscreenElement;
+
       if (edgeTab) {
-        if (isVisible || isZenMode) edgeTab.classList.add("translate-x-full", "opacity-0", "pointer-events-none");
-        else edgeTab.classList.remove("translate-x-full", "opacity-0", "pointer-events-none");
+        // Hide the right-edge summon tab whenever the sidebar is open OR when in Fullscreen/Zen mode
+        if (isVisible || inFullscreen) {
+          edgeTab.classList.add("translate-x-full", "opacity-0", "pointer-events-none");
+        } else {
+          edgeTab.classList.remove("translate-x-full", "opacity-0", "pointer-events-none");
+        }
       }
-      if (isVisible) {
-        btn.className = "w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/70 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.3)]";
-      } else {
-        btn.className = "w-8 h-8 rounded-full bg-slate-900/70 border border-white/15 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg";
+
+      if (mapKeySummon && mapKeyDrawer) {
+        const isMapKeyOpen = !mapKeyDrawer.classList.contains("translate-x-[300px]");
+        if (isMapKeyOpen || inFullscreen) {
+          mapKeySummon.classList.add("translate-x-20", "opacity-0", "pointer-events-none");
+        } else {
+          mapKeySummon.classList.remove("translate-x-20", "opacity-0", "pointer-events-none");
+        }
       }
     }
 
@@ -1503,7 +1563,7 @@ const pulseItem = {
     async function fetchCatalog() {
       try {
         const res = await fetch('/api/catalog');
-        catalog = await res.json();
+        catalog = (await res.json()).filter(item => item.id !== 'voyager-1');
         renderCatalogNodes();
       } catch (err) {
         console.error("Failed to fetch catalog:", err);
@@ -1926,8 +1986,32 @@ const pulseItem = {
           const shapleyGlow = makeFractalNodeSprite('rgba(56, 189, 248, 0.5)', item.size * 6.5);
           mesh.add(shapleyGlow);
         } else if (item.id === "el-gordo") {
-          const shockAura = makeFractalNodeSprite('rgba(234, 179, 8, 0.6)', item.size * 5.0);
+          // X-Ray Blue Shock Plume + 3D Member Galaxy Swarm
+          const shockAura = makeFractalNodeSprite('rgba(37, 99, 235, 0.85)', item.size * 5.5);
           mesh.add(shockAura);
+          const coreGlow = makeFractalNodeSprite('rgba(255, 255, 255, 0.9)', item.size * 2.2);
+          mesh.add(coreGlow);
+
+          const gGeo = new THREE.BufferGeometry();
+          const gCount = 180;
+          const gPos = new Float32Array(gCount * 3);
+          for (let k = 0; k < gCount; k++) {
+            gPos[k * 3] = (Math.random() - 0.5) * (item.size * 4.0);
+            gPos[k * 3 + 1] = (Math.random() - 0.5) * (item.size * 4.0);
+            gPos[k * 3 + 2] = (Math.random() - 0.5) * (item.size * 4.0);
+          }
+          gGeo.setAttribute('position', new THREE.BufferAttribute(gPos, 3));
+          const gMat = new THREE.PointsMaterial({
+            color: 0xfde047,
+            size: 0.38,
+            map: createRoundParticleTexture(),
+            transparent: true,
+            opacity: 0.9,
+            depthWrite: false
+          });
+          const gPts = new THREE.Points(gGeo, gMat);
+          gPts.raycast = () => {};
+          mesh.add(gPts);
         } else if (item.id === "bootes-void") {
           const voidGalaxiesGeo = new THREE.BufferGeometry();
           const voidGalaxiesCount = 6;
@@ -2018,7 +2102,7 @@ const pulseItem = {
           return;
         }
 
-        const isPlanetaryOrbiter = item.tier === 1 && !["sun", "moon", "voyager-1", "sedna", "halley-comet", "oumuamua"].includes(item.id);
+        const isPlanetaryOrbiter = item.tier === 1 && !["sun", "moon", "sedna", "halley-comet", "oumuamua"].includes(item.id);
 
         if (isPlanetaryOrbiter) {
           const orbitRadius = Math.sqrt(item.position[0]**2 + item.position[2]**2);
@@ -2090,7 +2174,8 @@ const pulseItem = {
             mesh.add(saturnRing);
           }
         } else {
-          mesh.position.set(item.position[0], item.position[1], item.position[2]);
+          applyCosmicDepthProportions(item);
+        mesh.position.set(item.position[0], item.position[1], item.position[2]);
 
           if (item.id === "halley-comet") {
             const a = 18.0;
@@ -2338,14 +2423,6 @@ const pulseItem = {
           "Coated in one of the reddest surfaces in the Solar System due to ultraviolet polymerization of methane and nitrogen ices into complex tholin hydrocarbons."
         ]
       },
-      "voyager-1": {
-        metrics: [["Launch Date", "September 5, 1977"], ["Heliocentric Velocity", "17.0 km/s (~3.57 AU/yr)"], ["Round-Trip Light Time", "> 45 hours"], ["Power Source", "3× Pu-238 MHW-RTGs"]],
-        facts: [
-          "Crossed the heliopause into pristine interstellar plasma on August 25, 2012 at 121.6 AU—becoming the first human-made artifact to leave the heliosphere.",
-          "Captured the iconic 1990 'Pale Blue Dot' portrait of Earth from 6 billion kilometers away at the request of Carl Sagan.",
-          "Carries the gold-plated copper Voyager Golden Record containing sounds, music, and 115 encoded images of Earth for any spacefaring civilization."
-        ]
-      },
       "proxima-centauri": {
         metrics: [["Mass / Radius", "0.122 M☉ / 0.154 R☉"], ["Spectral Type", "M5.5Ve Red Dwarf"], ["Bolometric Luminosity", "0.00155 L☉ (0.15%)"], ["Confirmed Exoplanets", "Proxima b & d"]],
         facts: [
@@ -2587,12 +2664,12 @@ const pulseItem = {
         type: "Gravity-Dominated Planetary Regime • 0.05 AU to 120 AU",
         distance: "0.00 to 160 AU (Heliospheric Boundary)",
         scale_order: "10^9 m to 10^13 m",
-        summary: "Our cosmic voyage begins inside the Sun's gravitational and magnetic domain. Within the Heliosphere orbit the four rocky terrestrial planets, the dwarf planet Ceres, our moon, the four giant planets, and humanity's farthest spacecraft, Voyager 1.", 
+        summary: "Our cosmic voyage begins inside the Sun's gravitational and magnetic domain. Within the Heliosphere orbit the four rocky terrestrial planets, the dwarf planet Ceres, our moon, the four giant planets, periodic comets, and detached outer trans-Neptunian worlds.", 
         metrics: [["Central Anchor", "The Sun (99.86% Mass)"], ["Ecliptic Span", "~60 AU (Neptune/Kuiper)"], ["Heliopause Boundary", "~120 AU (Interstellar Medium)"], ["Gravitational Edge", "~50,000 AU (Oort Cloud)"]],
         facts: [
           "Planetary orbits lie within ~7° of the ecliptic plane, sculpted from a collapsing protoplanetary disk 4.568 billion years ago.",
           "Divided by the 'Frost Line' (~2.7 AU) into refractory silicate-iron terrestrial worlds inside and volatile-rich gas/ice giants outside.",
-          "During this chapter, the tour visits all 15 cataloged Solar System bodies outward from the Sun to Voyager 1."
+          "During this chapter, the tour visits all 14 cataloged Solar System bodies outward from the Sun to Sedna."
         ],
         camPos: { x: -45, y: 58, z: 62 },
         targetPos: { x: 0, y: 0, z: 0 },
@@ -2706,7 +2783,8 @@ const pulseItem = {
         else tourCtrl.classList.add('hidden');
       }
 
-      if (!isSidebarUserHidden) {
+      if (!isSidebarUserHidden || isZenMode || !!document.fullscreenElement || isTourActive) {
+        isSidebarUserHidden = false;
         document.getElementById('inspector').classList.remove('translate-x-[430px]');
       }
       updateSidebarToggleStyle();
@@ -2733,11 +2811,36 @@ const pulseItem = {
       const startCamPos = camera.position.clone();
       const startTargetPos = controls.target.clone();
 
-      const objRadius = (activeTarget && activeTarget.size) ? activeTarget.size : 1.0;
       
-      // Closer, immersive framing distance for planets, stars, and galaxies
-      const baseDist = Math.max(objRadius * 3.2, 4.2);
+      const objRadius = (activeTarget && activeTarget.size) ? activeTarget.size : 1.0;
+      const targetId = (activeTarget && activeTarget.id) ? activeTarget.id.toLowerCase() : '';
+      const targetType = (activeTarget && activeTarget.type) ? activeTarget.type.toLowerCase() : '';
+      const targetTier = (activeTarget && activeTarget.tier) ? activeTarget.tier : 1;
+
+      // Keep planets, moons, and compact stars at 3.2x, but pull back for large structures
+      let multiplier = 3.2;
+
+      if (['sagittarius-a-star', 'milky-way', 'andromeda', 'sombrero-galaxy', 'ton-618', 'messier-87'].includes(targetId)) {
+        // Massive spiral disks, quasars & galactic cores (matches your 9.44.52 PM target screenshot)
+        multiplier = 13.5;
+      } else if (['eagle-nebula', 'orion-nebula', 'el-gordo', 'shapley-supercluster', 'great-attractor', 'bootes-void'].includes(targetId)) {
+        // Expansive volumetric nebulae & superclusters
+        multiplier = 9.5;
+      } else if (['centaurus-a', 'crab-nebula', 'lmc', 'smc', 'smacs-0723', 'gn-z11', 'triangulum', 'pillars-of-creation'].includes(targetId)) {
+        // Medium-large galaxies & supernova remnants
+        multiplier = 7.5;
+      } else if (targetType.includes('galaxy') || targetType.includes('cluster') || targetType.includes('nebula') || targetType.includes('quasar') || targetType.includes('void') || targetTier >= 3) {
+        // Catch-all for any other deep-space galaxy/cluster/nebula
+        multiplier = 9.0;
+      } else if (objRadius >= 3.0 && targetId !== 'sun') {
+        // Large supergiant stars or oversized bodies
+        multiplier = 6.0;
+      }
+
+      const baseDist = Math.max(objRadius * multiplier, 4.2);
       const offsetDist = baseDist;
+
+
 
       const viewDir = startCamPos.clone().sub(startTargetPos);
       if (viewDir.lengthSq() < 0.001) viewDir.set(0.6, 0.3, 0.8);
@@ -3405,7 +3508,24 @@ const pulseItem = {
             if (kind === 'nebula-orion') {
               ramp = [[0.0, 12, 4, 24], [0.38, 98, 18, 88], [0.68, 218, 58, 132], [0.9, 125, 205, 252], [1.0, 255, 245, 255]];
             } else if (kind === 'nebula-eagle') {
-              ramp = [[0.0, 6, 22, 28], [0.4, 18, 92, 78], [0.7, 198, 142, 48], [0.92, 252, 218, 128], [1.0, 255, 252, 235]];
+              // SHO Hubble Palette: Oxygen blue top, Sulfur red/gold base, dark pillar silhouettes
+              const dustPillar = Math.exp(-Math.pow((nx * 1.5 + (w1 - 0.5) * 0.3) * 5.0, 2.0)) * Math.max(0, ny + 0.3);
+              const sho = Math.max(0, 1.0 - dustPillar * 0.95) * t;
+              ramp = [[0.0, 8, 12, 24], [0.35, 2, 132, 199], [0.65, 202, 138, 4], [0.85, 239, 68, 68], [1.0, 255, 248, 220]];
+              [r, g, b] = colorRamp(sho, ramp);
+              bump = sho;
+            } else if (kind === 'nebula-crab') {
+              // Synchrotron blue core + orange/green filamentary cage
+              const coreBlue = Math.max(0, 1.0 - t * 1.2);
+              ramp = [[0.0, 56, 189, 248], [0.4, 249, 115, 22], [0.75, 74, 222, 128], [1.0, 254, 240, 138]];
+              [r, g, b] = colorRamp(t, ramp);
+              bump = t;
+            } else if (kind === 'galaxy-el-gordo') {
+              // Chandra X-ray teardrop blue shock wake + red/yellow background galaxies
+              const xrayWake = Math.max(0, 1.0 - Math.abs(nx - ny) * 1.5) * t;
+              ramp = [[0.0, 10, 25, 60], [0.35, 29, 78, 216], [0.7, 96, 165, 250], [1.0, 255, 255, 255]];
+              [r, g, b] = colorRamp(xrayWake, ramp);
+              bump = xrayWake;
             } else if (kind === 'galaxy-cen-a') {
               const dust = Math.exp(-Math.pow((ny + (w1 - 0.5) * 0.18) * 9.0, 2.0));
               const core = Math.max(0, 1.0 - dust * 0.88) * t;
@@ -3481,7 +3601,9 @@ const pulseItem = {
       if (n.includes('sirius') || n.includes('earendel')) return 'star-a';
       if (n.includes('centauri b') || n.includes('toliman')) return 'star-k';
       if (n.includes('sun') || n.includes('sol') || n.includes('centauri a') || n.includes('rigil')) return 'sun';
-      if (n.includes('magellanic') || n.includes('attractor') || n.includes('shapley') || n.includes('el gordo') || n.includes('smacs') || n.includes('gn-z11')) return 'galaxy-cluster';
+      if (n.includes('el gordo')) return 'galaxy-el-gordo';
+      if (n.includes('centaurus a') || n.includes('caldwell 77')) return 'galaxy-cen-a';
+      if (n.includes('magellanic') || n.includes('attractor') || n.includes('shapley') || n.includes('smacs') || n.includes('gn-z11')) return 'galaxy-cluster';
       return null;
     }
 
@@ -3499,6 +3621,571 @@ const pulseItem = {
       scene.add(hemiLight);
     }
 
+    
+    // === 3D VOLUMETRIC NEBULA, DUST LANE & GALAXY CLUSTER ENGINE ===
+    function createProceduralCloudTexture(drawFn, size = 256) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      drawFn(ctx, size);
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    // Per-pixel 2D fBm + ridged multifractal noise with radial edge feathering (ZERO square borders!)
+    function createFbmNebulaTexture(configFn, size = 384) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.createImageData(size, size);
+      const data = imgData.data;
+
+      for (let py = 0; py < size; py++) {
+        const ny = (py / (size - 1)) * 2.0 - 1.0; // -1 to +1
+        for (let px = 0; px < size; px++) {
+          const nx = (px / (size - 1)) * 2.0 - 1.0; // -1 to +1
+          const r2 = nx * nx + ny * ny;
+          if (r2 >= 1.0) continue; // Strictly zero alpha outside unit circle -> impossible to have square edges
+
+          const r = Math.sqrt(r2);
+          // Smooth quintic radial falloff so edges melt imperceptibly into the starry background
+          const radialMask = Math.pow(Math.max(0, 1.0 - r), 2.2);
+
+          const rgba = configFn(nx, ny, r, radialMask);
+          const idx = (py * size + px) * 4;
+          data[idx]     = Math.max(0, Math.min(255, rgba[0] | 0));
+          data[idx + 1] = Math.max(0, Math.min(255, rgba[1] | 0));
+          data[idx + 2] = Math.max(0, Math.min(255, rgba[2] | 0));
+          data[idx + 3] = Math.max(0, Math.min(255, (rgba[3] * radialMask) | 0));
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    function buildVolumetricCelestialStructures() {
+      // Pinpoint star & distant galaxy sprite with tight core and ultra-soft exponential halo
+      const pinpointStarTex = createProceduralCloudTexture((ctx, s) => {
+        const cx = s / 2, cy = s / 2;
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 0.48);
+        grad.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
+        grad.addColorStop(0.08, 'rgba(255, 252, 240, 0.85)');
+        grad.addColorStop(0.22, 'rgba(255, 240, 200, 0.25)');
+        grad.addColorStop(0.55, 'rgba(200, 220, 255, 0.04)');
+        grad.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2);
+        ctx.fill();
+      }, 128);
+
+      // JWST / Hubble 6- and 4-point diffraction spike star sprite for bright embedded OB stars
+      const diffractionStarTex = createProceduralCloudTexture((ctx, s) => {
+        const cx = s / 2, cy = s / 2;
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 0.45);
+        grad.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
+        grad.addColorStop(0.12, 'rgba(224, 242, 254, 0.75)');
+        grad.addColorStop(0.35, 'rgba(56, 189, 248, 0.15)');
+        grad.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, s * 0.45, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Crisp diffraction spikes
+        ctx.save();
+        ctx.translate(cx, cy);
+        for (let a of [0, Math.PI / 2, Math.PI / 4, -Math.PI / 4]) {
+          ctx.save();
+          ctx.rotate(a);
+          const len = (a === 0 || a === Math.PI / 2) ? s * 0.48 : s * 0.26;
+          const spk = ctx.createLinearGradient(-len, 0, len, 0);
+          spk.addColorStop(0.0, 'rgba(255,255,255,0)');
+          spk.addColorStop(0.45, 'rgba(224,242,254,0.45)');
+          spk.addColorStop(0.5, 'rgba(255,255,255,0.95)');
+          spk.addColorStop(0.55, 'rgba(224,242,254,0.45)');
+          spk.addColorStop(1.0, 'rgba(255,255,255,0)');
+          ctx.fillStyle = spk;
+          ctx.fillRect(-len, -1.1, len * 2, 2.2);
+          ctx.restore();
+        }
+        ctx.restore();
+      }, 128);
+
+      // Soft fBm organic gas puff texture (zero geometric circles, pure turbulent cloud)
+      const fbmGasPuffTex = createFbmNebulaTexture((nx, ny, r) => {
+        const w = fbm3D(nx * 2.2, ny * 2.2, 0.5, 4);
+        const density = fbm3D(nx * 3.4 + w * 0.8, ny * 3.4 - w * 0.8, 1.2, 5);
+        const alpha = Math.max(0, (density - 0.22) * 1.35) * 190;
+        return [255, 255, 255, alpha];
+      }, 256);
+
+      // Helper: creates a 3-tier multi-brightness star/galaxy field (faint dust stars, medium stars, bright beacons)
+      function addMultiMagnitudeStarField(parentGroup, radiusSpan, totalCount, paletteHex, flattenY = 1.0) {
+        const tiers = [
+          { ratio: 0.68, sizeMult: 0.055, opacity: 0.42, tex: pinpointStarTex },     // Barely visible background stars/galaxies
+          { ratio: 0.25, sizeMult: 0.105, opacity: 0.78, tex: pinpointStarTex },     // Medium cluster stars/galaxies
+          { ratio: 0.07, sizeMult: 0.220, opacity: 0.96, tex: diffractionStarTex }   // Bright foreground/embedded OB stars with spikes
+        ];
+        const colors = paletteHex.map(h => new THREE.Color(h));
+
+        tiers.forEach((tier, tIdx) => {
+          const count = Math.max(8, Math.floor(totalCount * tier.ratio));
+          const geo = new THREE.BufferGeometry();
+          const pos = new Float32Array(count * 3);
+          const col = new Float32Array(count * 3);
+
+          for (let i = 0; i < count; i++) {
+            // Gaussian-like radial concentration with wide outer halo blending into background
+            const u = Math.random() * Math.PI * 2;
+            const v = Math.acos(2 * Math.random() - 1);
+            const dist = radiusSpan * Math.pow(Math.random(), 0.65);
+            pos[i * 3]     = dist * Math.sin(v) * Math.cos(u);
+            pos[i * 3 + 1] = dist * Math.sin(v) * Math.sin(u) * flattenY;
+            pos[i * 3 + 2] = dist * Math.cos(v);
+
+            const baseCol = colors[(i + tIdx) % colors.length];
+            const dimFactor = (tIdx === 0) ? (0.45 + Math.random() * 0.45) : (0.8 + Math.random() * 0.2);
+            col[i * 3]     = baseCol.r * dimFactor;
+            col[i * 3 + 1] = baseCol.g * dimFactor;
+            col[i * 3 + 2] = baseCol.b * dimFactor;
+          }
+          geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+          geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
+          const pts = new THREE.Points(geo, new THREE.PointsMaterial({
+            size: radiusSpan * tier.sizeMult,
+            map: tier.tex,
+            vertexColors: true,
+            transparent: true,
+            opacity: tier.opacity,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          }));
+          pts.raycast = () => {};
+          parentGroup.add(pts);
+        });
+      }
+
+      const volumetricIds = [
+        'el-gordo', 'centaurus-a', 'crab-nebula', 'eagle-nebula',
+        'orion-nebula', 'lmc', 'smc', 'great-attractor',
+        'shapley-supercluster', 'smacs-0723', 'gn-z11'
+      ];
+
+      
+    // Ensure any cosmic web lines connecting nodes update to the new deep-space positions
+    celestialObjects.forEach((mesh) => {
+        if (!mesh || !mesh.userData || !mesh.userData.id) return;
+        const id = mesh.userData.id;
+        if (!volumetricIds.includes(id)) return;
+        if (mesh.userData._volumetricBuilt) return;
+        mesh.userData._volumetricBuilt = true;
+
+        const R = mesh.userData.size || 2.5;
+
+        // Make the base sphere completely invisible (serves only as raycast/camera anchor)
+        mesh.material = new THREE.MeshBasicMaterial({
+          color: 0x000000,
+          transparent: true,
+          opacity: 0.0,
+          depthWrite: false
+        });
+
+        while (mesh.children.length > 0) {
+          mesh.remove(mesh.children[0]);
+        }
+
+        const volGroup = new THREE.Group();
+        volGroup.raycast = () => {};
+        mesh.add(volGroup);
+
+        // =========================================================================
+        // 1. CENTAURUS A / CALDWELL 77: Smooth Elliptical Halo + Organic Warped Dust Lane (ZERO square border)
+        // =========================================================================
+        if (id === 'centaurus-a') {
+          const cenATex = createFbmNebulaTexture((nx, ny, r) => {
+            // Rotate coordinates to match Caldwell 77 diagonal dust lane
+            const ang = 0.58;
+            const rx = nx * Math.cos(ang) - ny * Math.sin(ang);
+            const ry = nx * Math.sin(ang) + ny * Math.cos(ang);
+
+            // 1. Smooth elliptical golden-ivory stellar bulge (r-squared exponential falloff)
+            const ellipR = Math.sqrt(rx * rx * 0.85 + ry * ry * 1.15);
+            const bulge = Math.exp(-ellipR * ellipR * 4.2);
+
+            // 2. Turbulent S-warped dark dust lane cutting across ry ~ 0
+            const warp = (fbm3D(rx * 3.2, ry * 3.2, 2.1, 4) - 0.5) * 0.16 + Math.sin(rx * 3.5) * 0.04;
+            const distToLane = Math.abs(ry + warp);
+            const fbmDust = ridgedFbm3D(rx * 6.5 + warp * 3.0, ry * 9.5, 0.7, 5);
+            const laneEnvelope = Math.exp(-Math.pow(distToLane / 0.17, 2.0)) * Math.exp(-rx * rx * 2.2);
+            const dustAbsorption = Math.min(0.96, laneEnvelope * (0.55 + fbmDust * 0.65));
+
+            // 3. Crimson/orange star-forming glow & pink H-alpha knots along the dust lane edges
+            const edgeGlow = Math.exp(-Math.pow((distToLane - 0.06) / 0.09, 2.0)) * Math.exp(-rx * rx * 2.6) * fbmDust;
+            const pinkKnots = Math.pow(Math.max(0, ridgedFbm3D(rx * 14.0, ry * 14.0, 3.3, 4) - 0.62), 2.0) * laneEnvelope * 6.5;
+
+            // Combine emission and absorption with strictly circular radial falloff
+            const litCore = bulge * (1.0 - dustAbsorption * 0.92);
+            const red   = litCore * 255 + edgeGlow * 245 + pinkKnots * 255;
+            const green = litCore * 232 + edgeGlow * 95  + pinkKnots * 65;
+            const blue  = litCore * 185 + edgeGlow * 45  + pinkKnots * 135;
+
+            // Alpha is high in both the bright bulge AND the dark dust lane so the dark dust occludes the core
+            const alpha = Math.min(255, (bulge * 235 + laneEnvelope * 210 + edgeGlow * 140));
+            return [red, green, blue, alpha];
+          }, 512);
+
+          // Expansive outer diffuse galactic halo blending into background stars
+          const outerHalo = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: fbmGasPuffTex,
+            color: 0xfde68a,
+            transparent: true,
+            opacity: 0.32,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          }));
+          outerHalo.scale.set(R * 10.5, R * 9.0, 1);
+          outerHalo.raycast = () => {};
+          volGroup.add(outerHalo);
+
+          const cenASprite = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: cenATex,
+            transparent: true,
+            opacity: 0.98,
+            depthWrite: false
+          }));
+          cenASprite.scale.set(R * 7.2, R * 7.2, 1);
+          cenASprite.raycast = () => {};
+          volGroup.add(cenASprite);
+
+          // Fine pinpoint star & globular cluster field (no giant orange marbles!)
+          addMultiMagnitudeStarField(volGroup, R * 4.2, 260, [0xfffbeb, 0xfde68a, 0xf43f5e, 0x93c5fd], 0.85);
+        }
+
+        // =========================================================================
+        // 2. MESSIER 16 / THE EAGLE NEBULA: Expansive Turbulent Gas Cavern + 3D Fractal Pillars + Starfield
+        // =========================================================================
+        else if (id === 'eagle-nebula') {
+          const eagleTex = createFbmNebulaTexture((nx, ny, r) => {
+            // Turbulent domain warping for organic billowy gas clouds
+            const w1 = fbm3D(nx * 2.8, ny * 2.8, 1.1, 4);
+            const w2 = fbm3D(nx * 5.2 + w1 * 1.4, ny * 5.2 - w1 * 1.4, 2.4, 5);
+            const ridge = ridgedFbm3D(nx * 6.5 + w1 * 1.2, ny * 6.5 + w2 * 1.2, 0.8, 5);
+
+            // Background SHO cavern gas: glowing cyan-blue oxygen cavity at upper-center, golden-amber & rust veil outward
+            const cavDist = Math.sqrt(Math.pow(nx + 0.05, 2) + Math.pow(ny + 0.12, 2));
+            const oxygenBlue = Math.exp(-cavDist * cavDist * 2.8) * (0.55 + w2 * 0.65);
+            const sulfurGold = Math.exp(-r * r * 1.4) * (0.45 + ridge * 0.75);
+
+            let Rcol = sulfurGold * 195 + oxygenBlue * 35;
+            let Gcol = sulfurGold * 125 + oxygenBlue * 175;
+            let Bcol = sulfurGold * 45  + oxygenBlue * 245;
+            let Acol = (oxygenBlue * 165 + sulfurGold * 145) * (0.55 + w1 * 0.6);
+
+            // Sculpt 3 organic, craggy fBm Pillars of Creation rising from bottom-right toward upper-left
+            // Note: in canvas, ny = -1 is top, ny = +1 is bottom
+            const pillars = [
+              { bx: -0.08, by: 0.68, tx: -0.26, ty: -0.34, w: 0.135 }, // Tall Left Pillar I
+              { bx:  0.12, by: 0.72, tx:  0.04, ty: -0.16, w: 0.110 }, // Middle Pillar II
+              { bx:  0.28, by: 0.75, tx:  0.26, ty:  0.06, w: 0.085 }  // Right Pillar III
+            ];
+
+            let maxPillarCore = 0.0;
+            let maxPillarRim  = 0.0;
+
+            for (let p of pillars) {
+              const dx = p.tx - p.bx, dy = p.ty - p.by;
+              const len2 = dx * dx + dy * dy;
+              // Project pixel onto pillar spine segment [0..1]
+              let t = ((nx - p.bx) * dx + (ny - p.by) * dy) / len2;
+              t = Math.max(0.0, Math.min(1.0, t));
+
+              // Perturb spine with multi-octave fBm turbulence so edges are ragged and gaseous
+              const turbX = (w2 - 0.5) * 0.14 + (ridge - 0.5) * 0.08;
+              const turbY = (w1 - 0.5) * 0.10;
+              const px = p.bx + t * dx + turbX;
+              const py = p.by + t * dy + turbY;
+
+              const dist = Math.sqrt((nx - px) * (nx - px) + (ny - py) * (ny - py));
+              const widthAtT = p.w * (1.15 - t * 0.38) * (0.75 + ridge * 0.55);
+
+              if (dist < widthAtT * 1.8) {
+                const normD = dist / widthAtT;
+                // Bright photoevaporating golden-cyan UV rim at the top cap (t near 1) and edges (normD ~ 0.7..1.3)
+                const rimFactor = Math.exp(-Math.pow((normD - 0.82) / 0.38, 2.0)) * (0.45 + t * 0.75) * (0.6 + ridge * 0.6);
+                // Dark rusty-ochre opaque molecular hydrogen dust core inside (normD < 0.85)
+                const coreFactor = Math.exp(-Math.pow(normD / 0.72, 2.2)) * (0.65 + w2 * 0.5);
+
+                if (coreFactor > maxPillarCore) maxPillarCore = coreFactor;
+                if (rimFactor > maxPillarRim) maxPillarRim = rimFactor;
+              }
+            }
+
+            // Apply dark dusty amber-brown pillar absorption + golden-cyan UV ionization rim
+            if (maxPillarCore > 0.01 || maxPillarRim > 0.01) {
+              const absorb = Math.min(0.92, maxPillarCore);
+              // Dark rust/bronze interior shaded by 3D ridge noise
+              const dustR = 52 + ridge * 135;
+              const dustG = 24 + ridge * 78;
+              const dustB = 14 + ridge * 32;
+
+              Rcol = Rcol * (1.0 - absorb) + dustR * absorb + maxPillarRim * 255;
+              Gcol = Gcol * (1.0 - absorb) + dustG * absorb + maxPillarRim * 230;
+              Bcol = Bcol * (1.0 - absorb) + dustB * absorb + maxPillarRim * 165;
+              Acol = Math.max(Acol, absorb * 240 + maxPillarRim * 210);
+            }
+
+            return [Rcol, Gcol, Bcol, Math.min(255, Acol)];
+          }, 512);
+
+          // 1. Massive outer diffuse gaseous emission clouds so M16 spans a huge volume and blends into the stars
+          const ambientLayers = [
+            { pos: [0, 0, -R * 0.8], scale: R * 14.0, color: 0x0369a1, opacity: 0.35 },
+            { pos: [-R * 1.2, R * 0.9, R * 0.4], scale: R * 11.5, color: 0x0ea5e9, opacity: 0.30 },
+            { pos: [R * 1.1, -R * 1.2, -R * 0.3], scale: R * 12.0, color: 0xb45309, opacity: 0.32 },
+            { pos: [0, -R * 1.5, R * 0.6], scale: R * 10.0, color: 0xca8a04, opacity: 0.25 }
+          ];
+          ambientLayers.forEach(cfg => {
+            const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+              map: fbmGasPuffTex,
+              color: cfg.color,
+              transparent: true,
+              opacity: cfg.opacity,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false
+            }));
+            sp.position.set(cfg.pos[0], cfg.pos[1], cfg.pos[2]);
+            sp.scale.set(cfg.scale, cfg.scale, 1);
+            sp.raycast = () => {};
+            volGroup.add(sp);
+          });
+
+          // 2. Core high-resolution fractal Pillars & SHO Cavern sprite (scaled up to R * 9.5)
+          const eagleSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: eagleTex,
+            transparent: true,
+            opacity: 0.95,
+            depthWrite: false
+          }));
+          eagleSprite.scale.set(R * 9.5, R * 9.5, 1);
+          eagleSprite.raycast = () => {};
+          volGroup.add(eagleSprite);
+
+          // 3. Rich 3-tier starfield (hundreds of barely visible background stars + medium stars + bright spiked NGC 6611 OB stars)
+          addMultiMagnitudeStarField(volGroup, R * 5.8, 380, [0xffffff, 0xe0f2fe, 0xfef08a, 0xfdba74, 0x93c5fd], 1.0);
+        }
+
+        // =========================================================================
+        // 3. THE CRAB NEBULA (M1): Expansive Synchrotron Core + Fractal Filament Cage
+        // =========================================================================
+        else if (id === 'crab-nebula') {
+          const crabTex = createFbmNebulaTexture((nx, ny, r) => {
+            // Prolate oval orientation
+            const ang = -0.35;
+            const rx = (nx * Math.cos(ang) - ny * Math.sin(ang)) * 0.88;
+            const ry = (nx * Math.sin(ang) + ny * Math.cos(ang)) * 1.18;
+            const ellipR = Math.sqrt(rx * rx + ry * ry);
+            if (ellipR >= 1.0) return [0, 0, 0, 0];
+
+            const w = fbm3D(rx * 3.5, ry * 3.5, 0.9, 4);
+            const fil1 = ridgedFbm3D(rx * 7.5 + w * 1.6, ry * 7.5 - w * 1.6, 1.5, 5);
+            const fil2 = ridgedFbm3D(rx * 13.0 - w * 1.2, ry * 13.0 + w * 1.2, 3.1, 4);
+            const web = Math.pow(Math.max(0, fil1 * 0.65 + fil2 * 0.35 - 0.28), 1.6) * 2.4;
+
+            // Inner glowing cyan-blue pulsar wind bubble
+            const syncCore = Math.exp(-ellipR * ellipR * 4.8) * (0.75 + w * 0.45);
+            // Outer shell of orange-red and sulfur-green filaments
+            const shellMask = Math.exp(-Math.pow((ellipR - 0.48) / 0.34, 2.0));
+
+            const Rcol = syncCore * 145 + web * shellMask * 255;
+            const Gcol = syncCore * 225 + web * shellMask * (115 + fil2 * 110);
+            const Bcol = syncCore * 255 + web * shellMask * 45;
+            const Acol = Math.min(255, (syncCore * 210 + web * shellMask * 235));
+            return [Rcol, Gcol, Bcol, Acol];
+          }, 512);
+
+          // Wide outer diffuse supernova remnant halo
+          const outerGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: fbmGasPuffTex,
+            color: 0xea580c,
+            transparent: true,
+            opacity: 0.28,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          }));
+          outerGlow.scale.set(R * 10.5, R * 8.5, 1);
+          outerGlow.raycast = () => {};
+          volGroup.add(outerGlow);
+
+          const mainCrab = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: crabTex,
+            transparent: true,
+            opacity: 0.96,
+            depthWrite: false
+          }));
+          mainCrab.scale.set(R * 7.8, R * 7.8, 1);
+          mainCrab.raycast = () => {};
+          volGroup.add(mainCrab);
+
+          addMultiMagnitudeStarField(volGroup, R * 4.5, 220, [0x38bdf8, 0xf97316, 0x4ade80, 0xfef08a, 0xffffff], 0.85);
+        }
+
+        // =========================================================================
+        // 4. EL GORDO & DEEP-SPACE GALAXY CLUSTERS / SUPERCLUSTERS / NEBULAE
+        // =========================================================================
+        else {
+          // Tailor color palettes & gas clouds for each cosmic landmark
+          const clusterConfigs = {
+            'el-gordo': {
+              gasColors: [0x2563eb, 0x60a5fa, 0x1d4ed8],
+              starColors: [0xffffff, 0xfef08a, 0xfbbf24, 0xf97316, 0xef4444, 0x93c5fd],
+              gasScale: 11.5,
+              starSpan: 5.5,
+              starCount: 360,
+              cometaryWake: true
+            },
+            'orion-nebula': {
+              gasColors: [0xdb2777, 0x9333ea, 0x38bdf8, 0xf472b6],
+              starColors: [0xffffff, 0xe0f2fe, 0xfef08a, 0xf472b6],
+              gasScale: 11.0,
+              starSpan: 4.8,
+              starCount: 280
+            },
+            'lmc': {
+              gasColors: [0x38bdf8, 0x818cf8, 0xf472b6],
+              starColors: [0xffffff, 0xbae6fd, 0xfef08a, 0xf43f5e],
+              gasScale: 10.5,
+              starSpan: 4.6,
+              starCount: 340
+            },
+            'smc': {
+              gasColors: [0x60a5fa, 0x818cf8, 0x38bdf8],
+              starColors: [0xffffff, 0xbae6fd, 0xfde68a],
+              gasScale: 9.5,
+              starSpan: 4.0,
+              starCount: 260
+            },
+            'great-attractor': {
+              gasColors: [0xe11d48, 0xf97316, 0x9333ea],
+              starColors: [0xfef08a, 0xfbbf24, 0xf97316, 0xef4444, 0xffffff],
+              gasScale: 13.5,
+              starSpan: 6.2,
+              starCount: 420
+            },
+            'shapley-supercluster': {
+              gasColors: [0x0284c7, 0x6366f1, 0xf59e0b],
+              starColors: [0xffffff, 0xfef08a, 0xfbbf24, 0x93c5fd, 0xf97316],
+              gasScale: 14.0,
+              starSpan: 6.5,
+              starCount: 450
+            },
+            'smacs-0723': {
+              gasColors: [0x1e40af, 0xd97706, 0x38bdf8],
+              starColors: [0xffffff, 0xfef08a, 0xf97316, 0xef4444, 0xbae6fd],
+              gasScale: 10.5,
+              starSpan: 5.0,
+              starCount: 320
+            },
+            'gn-z11': {
+              gasColors: [0xdc2626, 0x991b1b, 0xf97316],
+              starColors: [0xef4444, 0xf97316, 0xfca5a5, 0xfef08a],
+              gasScale: 8.5,
+              starSpan: 3.8,
+              starCount: 180
+            }
+          };
+
+          const cfg = clusterConfigs[id] || clusterConfigs['el-gordo'];
+
+          // Multi-layered volumetric gas/intracluster plasma clouds that fade seamlessly into the background
+          for (let g = 0; g < 6; g++) {
+            const wakeOffset = cfg.cometaryWake ? (g - 1.5) * R * 0.55 : (Math.sin(g * 2.1) * R * 0.65);
+            const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+              map: fbmGasPuffTex,
+              color: cfg.gasColors[g % cfg.gasColors.length],
+              transparent: true,
+              opacity: cfg.cometaryWake ? (0.68 - g * 0.08) : 0.36,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false
+            }));
+            sp.position.set(
+              wakeOffset,
+              cfg.cometaryWake ? wakeOffset * 0.82 : (Math.cos(g * 1.7) * R * 0.55),
+              Math.sin(g * 3.1) * R * 0.4
+            );
+            const layerScale = R * (cfg.gasScale * (0.55 + (g / 6) * 0.65));
+            sp.scale.set(layerScale, layerScale * 0.88, 1);
+            sp.raycast = () => {};
+            volGroup.add(sp);
+          }
+
+          // Deep 3-tier field of faint background galaxies/stars, medium members, and bright central cD galaxies/stars
+          addMultiMagnitudeStarField(volGroup, R * cfg.starSpan, cfg.starCount, cfg.starColors, 0.88);
+        }
+      });
+    }
+
+    
+    // === COSMIC PERSPECTIVE & DEPTH SHELL RESCALER ===
+    function applyCosmicDepthProportions(item) {
+      if (!item || !item.position || item.position.length < 3) return;
+      const id = (item.id || '').toLowerCase();
+      const type = (item.type || '').toLowerCase();
+      const tier = item.tier || 1;
+
+      // Keep Solar System (Tier 1: Sun, Planets, Moons, Asteroid Belt) untouched at the core
+      const solarSystemIds = [
+        'sun', 'sol', 'mercury', 'venus', 'earth', 'moon', 'mars',
+        'jupiter', 'saturn', 'uranus', 'neptune', 'pluto', 'ceres', 'halley'
+      ];
+      if (tier === 1 || solarSystemIds.includes(id) || type.includes('planet') || type === 'moon') {
+        return;
+      }
+
+      let x = item.position[0], y = item.position[1], z = item.position[2];
+      let currentDist = Math.sqrt(x * x + y * y + z * z);
+      if (currentDist < 0.001) currentDist = 1.0;
+
+      // Unit direction vector from Sol Core (0,0,0)
+      const ux = x / currentDist;
+      const uy = y / currentDist;
+      const uz = z / currentDist;
+
+      // Assign target radial distance shell based on astrophysical category/tier
+      let targetDist = currentDist;
+      if (['el-gordo', 'shapley-supercluster', 'great-attractor', 'smacs-0723', 'gn-z11', 'ton-618', 'bootes-void'].includes(id) || tier === 4) {
+        // Tier 4: Deep Cosmological Web & Quasars (950 - 1,650 units out)
+        targetDist = 950 + (currentDist * 4.5);
+      } else if (['andromeda', 'sombrero-galaxy', 'centaurus-a', 'messier-87', 'lmc', 'smc', 'triangulum'].includes(id) || type.includes('galaxy') || tier === 3) {
+        // Tier 3: Galaxies & Local Group (450 - 820 units out)
+        targetDist = 450 + (currentDist * 3.2);
+      } else if (['eagle-nebula', 'crab-nebula', 'orion-nebula', 'pillars-of-creation'].includes(id) || type.includes('nebula')) {
+        // Tier 2B: Galactic Nebulae & Supernova Remnants (220 - 380 units out)
+        targetDist = 220 + (currentDist * 2.2);
+      } else {
+        // Tier 2A: Stellar Neighbors, Pulsars, Stellar Black Holes (120 - 210 units out)
+        targetDist = 120 + (currentDist * 1.6);
+      }
+
+      // Add vertical (Y-axis) 3D dispersion so objects don't sit on a flat pancake plane
+      const hash = id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+      const verticalSpread = Math.sin(hash * 1.37) * 0.38;
+      const ny = uy + verticalSpread;
+      const norm = Math.sqrt(ux * ux + ny * ny + uz * uz) || 1.0;
+
+      item.position[0] = (ux / norm) * targetDist;
+      item.position[1] = (ny / norm) * targetDist;
+      item.position[2] = (uz / norm) * targetDist;
+    }
+
     function applyCharacteristicTexturesToScene() {
       ensurePhotorealisticLighting();
       let texturedCount = 0;
@@ -3512,7 +4199,7 @@ const pulseItem = {
         if (!meta || !meta.name) return;
 
         if (obj.material.wireframe) return;
-        if (meta.id === 'sagittarius-a-star' || meta.id === 'ton-618' || meta.id === 'sombrero-galaxy') return;
+        if (['sagittarius-a-star', 'ton-618', 'sombrero-galaxy', 'el-gordo', 'centaurus-a', 'crab-nebula', 'eagle-nebula', 'orion-nebula', 'lmc', 'smc', 'great-attractor', 'shapley-supercluster', 'smacs-0723', 'gn-z11'].includes(meta.id)) return;
         if (obj.material.transparent && obj.material.opacity < 0.75) return;
 
         const kind = classifyMeshTextureKind(meta.name, meta.type);
@@ -3550,6 +4237,7 @@ const pulseItem = {
         texturedCount++;
       });
       console.log(`[Universe Explorer] Applied 3D fBm & PBR materials to ${texturedCount} celestial bodies.`);
+      buildVolumetricCelestialStructures();
     }
 
     function animate(time = performance.now()) {
@@ -3772,7 +4460,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
     const TIER_1_ORDER = [
       "sun", "mercury", "venus", "earth", "moon", "mars",
       "ceres", "jupiter", "saturn", "uranus", "neptune",
-      "halley-comet", "oumuamua", "sedna", "voyager-1"
+      "halley-comet", "oumuamua", "sedna"
     ];
 
     function buildCosmicTourPlaylist() {
@@ -3899,10 +4587,17 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         .trim();
     }
 
+    function formatSpokenTitle(rawTitle) {
+      if (!rawTitle) return "";
+      // Convert "Name (Alternate)" -> "Name, also known as Alternate"
+      return rawTitle.replace(/\s*\(([^)]+)\)/g, ", also known as $1");
+    }
+
     function getStepNarrationText(step) {
       if (!step || !step.data) return "";
-      const prefix = step.kind === "tier-intro" ? step.data.title : step.data.name;
-      return cleanNarrationText(`${prefix}. ${step.data.summary}`);
+      const rawPrefix = step.kind === "tier-intro" ? step.data.title : step.data.name;
+      const spokenPrefix = step.kind === "tier-intro" ? rawPrefix : formatSpokenTitle(rawPrefix);
+      return cleanNarrationText(`${spokenPrefix}. ${step.data.summary}`);
     }
 
     function preloadTourStepAudio(stepIndex) {
@@ -4038,7 +4733,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       if (step.kind === "tier-intro") {
         activeTargetMesh = null;
         openInspector(step.data, true);
-        speakTourNarration(`${step.data.title}. ${step.data.summary}`, step.dwellMs);
+        speakTourNarration(getStepNarrationText(step), step.dwellMs);
         TWEEN.removeAll();
         isFlyingToTarget = true;
 
@@ -4064,7 +4759,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       } else if (step.kind === "object" && step.mesh) {
         activeTargetMesh = step.mesh;
         openInspector(step.data, false);
-        speakTourNarration(`${step.data.name}. ${step.data.summary}`, step.dwellMs);
+        speakTourNarration(getStepNarrationText(step), step.dwellMs);
         smoothFlyToTarget(2800);
 
         // Timer synced with audio completion in speakTourNarration
@@ -4174,5 +4869,53 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
     }
   
   </script>
+<script>
+    // === SYNC SIDEBAR TAB HEIGHT WITH ACTIVE SLIDE & DEFAULT TO SUN SLIDE HEIGHT ===
+    (function initSidebarTabHeightSync() {
+      let defaultSunSlideHeight = 420;
+      function syncTabHeight() {
+                const mkDrawer = document.getElementById('map-key-drawer');
+        const mkSummon = document.getElementById('map-key-summon-btn');
+        if (mkDrawer && mkSummon) {
+          const mkRect = mkDrawer.getBoundingClientRect();
+          if (mkRect.height > 40) {
+            mkSummon.style.height = mkRect.height + 'px';
+          }
+        }
+        const inspector = document.getElementById('inspector');
+        const edgeTab = document.getElementById('inspector-edge-tab');
+        if (!inspector || !edgeTab) return;
+        const rect = inspector.getBoundingClientRect();
+        if (rect.height > 80) {
+          if (!window._sunDefaultHeightCaptured) {
+            defaultSunSlideHeight = rect.height;
+            window._sunDefaultHeightCaptured = true;
+          }
+          edgeTab.style.height = rect.height + 'px';
+          edgeTab.style.top = (rect.top + rect.height / 2) + 'px';
+        } else {
+          edgeTab.style.height = defaultSunSlideHeight + 'px';
+        }
+      }
+      window.addEventListener('DOMContentLoaded', () => {
+        const inspector = document.getElementById('inspector');
+        if (inspector && typeof ResizeObserver !== 'undefined') {
+          const ro = new ResizeObserver(() => syncTabHeight());
+          ro.observe(inspector);
+        }
+        setTimeout(syncTabHeight, 150);
+        setTimeout(syncTabHeight, 600);
+      });
+      window.addEventListener('resize', syncTabHeight);
+      const origSwitchTab = window.switchInspectorTab;
+      if (typeof origSwitchTab === 'function') {
+        window.switchInspectorTab = function(...args) {
+          const res = origSwitchTab.apply(this, args);
+          requestAnimationFrame(syncTabHeight);
+          return res;
+        };
+      }
+    })();
+</script>
 </body>
 </html>
