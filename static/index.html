@@ -164,9 +164,50 @@
       cursor: pointer !important;
     }
 
+    /* --- NASA Eyes on the Solar System Minimalist Celestial Labels --- */
+    #celestial-labels-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .celestial-label {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: auto;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(226, 232, 240, 0.88);
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(2, 4, 10, 0.85);
+      will-change: transform, opacity;
+      transition: color 0.18s ease, text-shadow 0.18s ease;
+    }
+    .celestial-label--minor {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      color: rgba(175, 190, 212, 0.78);
+    }
+    .celestial-label:hover,
+    .celestial-label--active {
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.45), 0 1px 4px rgba(0, 0, 0, 0.98);
+    }
+
   </style>
 </head>
 <body class="relative w-screen h-screen overflow-hidden select-none">
+
+  <!-- 3D-Tracked NASA Eyes Minimalist Celestial Name Labels Layer -->
+  <div id="celestial-labels-layer" aria-hidden="true"></div>
 
   <!-- Top Navigation Header -->
   <header class="fixed top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
@@ -295,7 +336,7 @@
   </aside>
 
   <!-- Bottom-Right Map Key Summon Tab -->
-  <button id="map-key-summon-btn" onclick="toggleMapKey(event)" title="Open Map Key" class="fixed bottom-5 right-0 z-20 w-3.5 h-[148px] rounded-l-xl bg-cyan-950/80 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
+  <button id="map-key-summon-btn" onclick="toggleMapKey(event)" title="Open Map Key" class="fixed bottom-5 right-0 z-20 w-3.5 h-[116px] rounded-l-xl bg-cyan-950/80 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
     <div class="w-1 h-1/3 max-h-12 min-h-[20px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
   </button>
 
@@ -307,9 +348,21 @@
     </button>
 
     <div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[11px] text-slate-200 font-medium">
-      <!-- Reset -->
+      <!-- Reset (Radar Icon matching bottom bar) -->
       <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.7)] shrink-0"></span>
+        <span class="w-4 h-4 rounded-full bg-cyan-950/60 border border-cyan-500/50 flex items-center justify-center text-cyan-300 shrink-0">
+          <svg class="w-2.5 h-2.5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M12 12L5.2 18.8A9.5 9.5 0 0 1 2.5 12H12Z" fill="currentColor" fill-opacity="0.35" stroke="none"/>
+            <circle cx="12" cy="12" r="9.5" opacity="0.85"/>
+            <circle cx="12" cy="12" r="6.2" opacity="0.65"/>
+            <circle cx="12" cy="12" r="3" opacity="0.55"/>
+            <line x1="12" y1="1.5" x2="12" y2="22.5" opacity="0.85"/>
+            <line x1="1.5" y1="12" x2="22.5" y2="12" opacity="0.85"/>
+            <circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/>
+            <circle cx="7.2" cy="16.8" r="1.3" fill="currentColor"/>
+            <circle cx="15.8" cy="15.8" r="1.1" fill="currentColor"/>
+          </svg>
+        </span>
         <span>Reset</span>
       </div>
       <!-- Cosmic Web -->
@@ -333,45 +386,24 @@
         </span>
         <span>Start Tour</span>
       </div>
-      <!-- Solar Tier -->
-      <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-amber-300 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7" stroke-dasharray="2 2"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg>
-        </span>
-        <span>Solar</span>
-      </div>
-      <!-- Stellar Tier -->
-      <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-amber-300 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8Z"/></svg>
-        </span>
-        <span>Stellar</span>
-      </div>
-      <!-- Galaxies Tier -->
-      <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-amber-300 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="9" ry="4.2" transform="rotate(-28 12 12)"/></svg>
-        </span>
-        <span>Galaxies</span>
-      </div>
-      <!-- Deep Web Tier -->
-      <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-amber-300 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,3 20,8 20,16 12,21 4,16 4,8"/></svg>
-        </span>
-        <span>Deep Web</span>
-      </div>
-      <!-- Overview -->
+      <!-- Overview (matches Sidebar toggle on/off button icon) -->
       <div class="flex items-center space-x-2">
         <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 5v14M12 5v14M16 5v14"/></svg>
+          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5v14M12 5v14M16 5v14"/></svg>
         </span>
         <span>Overview</span>
+      </div>
+      <!-- Labels (matches Label toggle on/off button icon) -->
+      <div class="flex items-center space-x-2">
+        <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">
+          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.6" fill="currentColor" stroke="none"/></svg>
+        </span>
+        <span>Labels</span>
       </div>
       <!-- Fullscreen -->
       <div class="flex items-center space-x-2">
         <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>
+          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>
         </span>
         <span>Fullscreen</span>
       </div>
@@ -484,9 +516,20 @@
         </button>
       </div>
 
-      <!-- Persistent Sidebar Toggle (|||) & Fullscreen / Standard Mode Buttons -->
-      <div id="hud-right-controls" class="flex items-center space-x-2.5 pl-2">
-        
+      <!-- Persistent Sidebar Toggle (|||), Labels Toggle & Fullscreen / Standard Mode Buttons -->
+      <div id="hud-right-controls" class="flex items-center space-x-2 pl-2 border-l border-white/15">
+        <button id="btn-toggle-sidebar" onclick="toggleSidebarVisibility(event)" title="Toggle Overview Sidebar" class="w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
+          <svg id="sidebar-toggle-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 5v14M12 5v14M16 5v14" />
+          </svg>
+        </button>
+
+        <button id="btn-toggle-labels" onclick="toggleLabels(event)" title="Toggle Celestial Labels" class="w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
+          <svg id="labels-toggle-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
+            <circle cx="7" cy="7" r="1.6" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
 
         <button id="btn-fullscreen-zen" onclick="toggleFullscreenZen()" title="Enter Fullscreen Mode" class="w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
           <svg id="fullscreen-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -569,6 +612,66 @@
 
     let isCosmicWebVisible = true;
     let isOrbitPaused = false;
+    let areLabelsVisible = true;
+
+    // === NASA EYES MINIMALIST PRIMARY NAME LABELS STATE ===
+    const PRIMARY_CELESTIAL_NAMES = {
+      "sun": "SUN",
+      "mercury": "MERCURY",
+      "venus": "VENUS",
+      "earth": "EARTH",
+      "moon": "MOON",
+      "mars": "MARS",
+      "ceres": "CERES",
+      "jupiter": "JUPITER",
+      "saturn": "SATURN",
+      "uranus": "URANUS",
+      "neptune": "NEPTUNE",
+      "oumuamua": "'OUMUAMUA",
+      "halley-comet": "HALLEY'S COMET",
+      "sedna": "SEDNA",
+      "alpha-centauri": "ALPHA CENTAURI",
+      "rigil-kentaurus": "RIGIL KENTAURUS",
+      "toliman": "TOLIMAN",
+      "proxima-centauri": "PROXIMA CENTAURI",
+      "barnards-star": "BARNARD'S STAR",
+      "sirius": "SIRIUS",
+      "sirius-b": "SIRIUS B",
+      "trappist-1": "TRAPPIST-1",
+      "polaris": "POLARIS",
+      "betelgeuse": "BETELGEUSE",
+      "crab-nebula": "CRAB NEBULA",
+      "orion-nebula": "ORION NEBULA",
+      "eagle-nebula": "EAGLE NEBULA",
+      "stephenson-2-18": "STEPHENSON 2-18",
+      "sagittarius-a-star": "SAGITTARIUS A*",
+      "lmc": "LARGE MAGELLANIC CLOUD",
+      "smc": "SMALL MAGELLANIC CLOUD",
+      "andromeda": "ANDROMEDA GALAXY",
+      "triangulum": "TRIANGULUM GALAXY",
+      "sombrero-galaxy": "SOMBRERO GALAXY",
+      "centaurus-a": "CENTAURUS A",
+      "messier-87": "MESSIER 87",
+      "great-attractor": "GREAT ATTRACTOR",
+      "bootes-void": "BOÖTES VOID",
+      "shapley-supercluster": "SHAPLEY SUPERCLUSTER",
+      "el-gordo": "EL GORDO",
+      "smacs-0723": "SMACS 0723",
+      "ton-618": "TON 618",
+      "earendel": "EARENDEL",
+      "gn-z11": "GN-Z11"
+    };
+
+    const MINOR_CELESTIAL_LABEL_IDS = new Set([
+      "moon", "ceres", "oumuamua", "halley-comet", "sedna",
+      "toliman", "proxima-centauri", "sirius-b"
+    ]);
+
+    let celestialLabelEntries = [];
+    let celestialLabelById = new Map();
+    let hoveredCelestialMesh = null;
+    const _labelWorldPos = new THREE.Vector3();
+    const _labelProjVec = new THREE.Vector3();
 
     const tooltip = document.getElementById('hover-tooltip');
     const tooltipText = document.getElementById('tooltip-text');
@@ -770,6 +873,25 @@
     let isZenMode = false;
     let isSidebarUserHidden = false;
 
+    window.toggleLabels = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      areLabelsVisible = !areLabelsVisible;
+      const layer = document.getElementById("celestial-labels-layer");
+      const btn = document.getElementById("btn-toggle-labels");
+      if (layer) {
+        layer.style.display = areLabelsVisible ? "block" : "none";
+      }
+      if (btn) {
+        if (areLabelsVisible) {
+          btn.title = "Toggle Celestial Name Labels On / Off";
+          btn.className = "w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg";
+        } else {
+          btn.title = "Show Celestial Name Labels";
+          btn.className = "w-8 h-8 rounded-full bg-slate-900/60 border border-slate-800/80 hover:border-slate-600 flex items-center justify-center text-slate-500 hover:text-slate-300 opacity-50 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg";
+        }
+      }
+    };
+
     window.toggleMapKey = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
       const drawer = document.getElementById("map-key-drawer");
@@ -809,10 +931,21 @@
       const edgeTab = document.getElementById("inspector-edge-tab");
       const mapKeySummon = document.getElementById("map-key-summon-btn");
       const mapKeyDrawer = document.getElementById("map-key-drawer");
+      const sidebarBtn = document.getElementById("btn-toggle-sidebar");
       if (!inspector) return;
 
       const isVisible = !inspector.classList.contains("translate-x-[430px]");
       const inFullscreen = isZenMode || !!document.fullscreenElement;
+
+      if (sidebarBtn) {
+        if (isVisible) {
+          sidebarBtn.title = "Hide Overview Sidebar";
+          sidebarBtn.className = "w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/70 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.3)]";
+        } else {
+          sidebarBtn.title = "Toggle Overview Sidebar On / Off";
+          sidebarBtn.className = "w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg";
+        }
+      }
 
       if (edgeTab) {
         // Hide the right-edge summon tab whenever the sidebar is open OR when in Fullscreen/Zen mode
@@ -2237,9 +2370,202 @@ const pulseItem = {
         celestialObjects.push(mesh);
       });
 
+      buildCelestialObjectLabels();
+
       if (typeof applyCharacteristicTexturesToScene === 'function') {
         applyCharacteristicTexturesToScene();
         window._texturesInitialized = true;
+      }
+    }
+
+    // === NASA EYES MINIMALIST PRIMARY NAME LABELS & ORBITAL TRACKING ===
+    function getPrimaryCelestialName(data) {
+      if (!data) return "";
+      const id = (data.id || "").toLowerCase();
+      if (PRIMARY_CELESTIAL_NAMES[id]) return PRIMARY_CELESTIAL_NAMES[id];
+      const raw = data.name || data.title || "";
+      return raw
+        .replace(/\s*\([^)]*\)/g, "")
+        .replace(/\s*&\s*Pulsar/gi, "")
+        .replace(/^(?:The\s+|\d+\s+|\d+[A-Z]\/)/i, "")
+        .trim()
+        .toUpperCase();
+    }
+
+    function buildCelestialObjectLabels() {
+      const layer = document.getElementById("celestial-labels-layer");
+      if (!layer) return;
+      layer.innerHTML = "";
+      celestialLabelEntries = [];
+      celestialLabelById.clear();
+
+      celestialObjects.forEach((mesh) => {
+        if (!mesh || !mesh.userData) return;
+        const data = mesh.userData;
+        const primaryName = getPrimaryCelestialName(data);
+        if (!primaryName) return;
+
+        const id = (data.id || "").toLowerCase();
+        const el = document.createElement("div");
+        el.className = MINOR_CELESTIAL_LABEL_IDS.has(id)
+          ? "celestial-label celestial-label--minor"
+          : "celestial-label";
+        el.textContent = primaryName;
+        el.dataset.objectId = id;
+
+        el.addEventListener("pointerenter", () => {
+          hoveredCelestialMesh = mesh;
+        });
+        el.addEventListener("pointerleave", () => {
+          if (hoveredCelestialMesh === mesh) hoveredCelestialMesh = null;
+        });
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          activeTargetMesh = mesh;
+          openInspector(data);
+          smoothFlyToTarget();
+        });
+
+        layer.appendChild(el);
+        const entry = {
+          mesh: mesh,
+          data: data,
+          id: id,
+          tier: Number(data.tier) || 1,
+          el: el,
+          visible: false,
+          sx: 0,
+          sy: 0,
+          offsetX: 10,
+          alpha: 1
+        };
+        celestialLabelEntries.push(entry);
+        celestialLabelById.set(id, entry);
+      });
+    }
+
+    function updateCelestialLabels(camDist) {
+      if (!areLabelsVisible || !celestialLabelEntries.length) return;
+      scene.updateMatrixWorld();
+
+      const halfW = window.innerWidth * 0.5;
+      const halfH = window.innerHeight * 0.5;
+      const fovTan = Math.tan(THREE.MathUtils.degToRad(camera.fov) * 0.5);
+
+      for (let i = 0; i < celestialLabelEntries.length; i++) {
+        const entry = celestialLabelEntries[i];
+        const mesh = entry.mesh;
+
+        if (!isNodeVisible(mesh)) {
+          if (entry.visible) {
+            entry.el.style.display = "none";
+            entry.visible = false;
+          }
+          continue;
+        }
+
+        mesh.getWorldPosition(_labelWorldPos);
+        _labelProjVec.copy(_labelWorldPos).project(camera);
+
+        // Hide if behind the camera or outside screen bounds
+        if (
+          _labelProjVec.z > 1.0 ||
+          _labelProjVec.z < -1.0 ||
+          _labelProjVec.x < -1.06 ||
+          _labelProjVec.x > 1.06 ||
+          _labelProjVec.y < -1.06 ||
+          _labelProjVec.y > 1.06
+        ) {
+          if (entry.visible) {
+            entry.el.style.display = "none";
+            entry.visible = false;
+          }
+          continue;
+        }
+
+        const distToCam = camera.position.distanceTo(_labelWorldPos);
+        const isFocusedOrHovered = (activeTargetMesh === mesh || hoveredCelestialMesh === mesh);
+
+        // Compute scale-aware opacity so labels remain clean and uncluttered across zoom regimes
+        let alpha = 0.9;
+        if (manualTierLock !== 0) {
+          alpha = 0.92;
+        } else if (entry.tier === 1) {
+          if (entry.id === "sun") {
+            alpha = camDist > 420 ? Math.max(0.45, 1.0 - (camDist - 420) / 900) : 0.95;
+          } else if (camDist <= 145) {
+            alpha = 0.9;
+          } else if (camDist < 235) {
+            alpha = 0.9 * (1.0 - (camDist - 145) / 90.0);
+          } else {
+            alpha = 0.0;
+          }
+        } else if (entry.id === "toliman" || entry.id === "proxima-centauri" || entry.id === "sirius-b") {
+          if (distToCam <= 230) {
+            alpha = 0.85;
+          } else if (distToCam < 340) {
+            alpha = 0.85 * (1.0 - (distToCam - 230) / 110.0);
+          } else {
+            alpha = 0.0;
+          }
+        } else {
+          // Tier 2, 3, 4 primary objects: softly muted when camera is deep inside inner Solar System, crisp when zoomed out or approaching
+          alpha = camDist < 65 && distToCam > 130 ? 0.58 : 0.88;
+        }
+
+        if (isFocusedOrHovered) {
+          alpha = 1.0;
+        }
+
+        if (alpha <= 0.02) {
+          if (entry.visible) {
+            entry.el.style.display = "none";
+            entry.visible = false;
+          }
+          continue;
+        }
+
+        const pxPerUnit = halfH / Math.max(0.1, fovTan * distToCam);
+        const apparentRadiusPx = (entry.data.size || 0.5) * pxPerUnit;
+        entry.offsetX = Math.max(8, Math.min(34, apparentRadiusPx + 7));
+        entry.sx = (_labelProjVec.x * 0.5 + 0.5) * window.innerWidth;
+        entry.sy = (-_labelProjVec.y * 0.5 + 0.5) * window.innerHeight;
+        entry.alpha = alpha;
+
+        if (!entry.visible) {
+          entry.el.style.display = "block";
+          entry.visible = true;
+        }
+        entry.el.classList.toggle("celestial-label--active", isFocusedOrHovered);
+      }
+
+      // Smoothly separate close orbital companion pairs (Earth/Moon, Alpha Centauri A/B, Sirius A/B) when passing at the same screen Y
+      const companionPairs = [
+        ["earth", "moon"],
+        ["rigil-kentaurus", "toliman"],
+        ["sirius", "sirius-b"]
+      ];
+      for (let p = 0; p < companionPairs.length; p++) {
+        const primary = celestialLabelById.get(companionPairs[p][0]);
+        const companion = celestialLabelById.get(companionPairs[p][1]);
+        if (primary && companion && primary.visible && companion.visible) {
+          const dx = Math.abs((companion.sx + companion.offsetX) - (primary.sx + primary.offsetX));
+          const dy = Math.abs(companion.sy - primary.sy);
+          if (dx < 76 && dy < 15) {
+            const overlap = (1.0 - dx / 76.0) * (1.0 - dy / 15.0);
+            primary.sy -= 5.5 * overlap;
+            companion.sy += 6.5 * overlap;
+          }
+        }
+      }
+
+      for (let i = 0; i < celestialLabelEntries.length; i++) {
+        const entry = celestialLabelEntries[i];
+        if (!entry.visible) continue;
+        const finalX = entry.sx + entry.offsetX;
+        const finalY = entry.sy;
+        entry.el.style.transform = `translate3d(${finalX.toFixed(1)}px, ${finalY.toFixed(1)}px, 0) translateY(-50%)`;
+        entry.el.style.opacity = entry.alpha.toFixed(3);
       }
     }
 
@@ -2275,6 +2601,7 @@ const pulseItem = {
       if (intersects.length > 0 && event.clientX < window.innerWidth - 410) {
         const resolved = resolveTargetData(intersects[0].object);
         if (resolved && resolved.data.name) {
+          hoveredCelestialMesh = resolved.rootMesh;
           tooltipText.textContent = `${resolved.data.name} (${resolved.data.distance})`;
           tooltip.style.left = `${event.clientX}px`;
           tooltip.style.top = `${event.clientY}px`;
@@ -2283,12 +2610,13 @@ const pulseItem = {
           return;
         }
       }
+      hoveredCelestialMesh = null;
       tooltip.style.display = 'none';
       document.body.style.cursor = 'default';
     }
 
     function onPointerDown(event) {
-      if (event.target && event.target.closest && event.target.closest('header, footer, aside, #cosmic-tour-hud, button, input')) return;
+      if (event.target && event.target.closest && event.target.closest('header, footer, aside, #cosmic-tour-hud, button, input, .celestial-label')) return;
       if (event.clientY < 60 || event.clientX > window.innerWidth - 410) return;
 
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -4431,6 +4759,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       }
 
       controls.update();
+      updateCelestialLabels(camDist);
       if (!window._texturesInitialized && celestialObjects.length > 5) {
         applyCharacteristicTexturesToScene();
         window._texturesInitialized = true;
