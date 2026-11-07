@@ -681,7 +681,7 @@
       scene = new THREE.Scene();
 
       camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.05, 50000);
-      camera.position.set(0, 16, 36);
+      camera.position.set(0, 22.5, 32);
 
       renderer = new THREE.WebGLRenderer({
         antialias: true,
@@ -702,9 +702,6 @@
       mouse = new THREE.Vector2();
 
       buildUniformCelestialSkybox();
-      buildMilkyWaySpiral();
-      buildAndromedaSpiral();
-      buildTriangulumSpiral();
       buildNASAHubbleCosmicWeb();
       buildDelicateAuroraCMB();
       buildAsteroidBelt();
@@ -793,7 +790,7 @@
       }
 
       new TWEEN.Tween(camera.position)
-        .to({ x: 0, y: 16, z: 36 }, 2000)
+        .to({ x: 0, y: 22.5, z: 32 }, 2000)
         .easing(TWEEN.Easing.Cubic.InOut)
         .start();
 
@@ -2167,59 +2164,295 @@ const pulseItem = {
           sagAGroup.position.set(item.position[0], item.position[1], item.position[2]);
           sagAGroup.userData = item;
 
-          const shadowGeo = new THREE.SphereGeometry(item.size, 32, 32);
-          const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+          const R = item.size; // 3.1
+
+          // Diagonal relativistic tilt group (matches SS3 / SS4 / SS5 diagonal orientation)
+          const sagATiltGroup = new THREE.Group();
+          sagATiltGroup.rotation.z = 0.40;
+          sagAGroup.add(sagATiltGroup);
+
+          // 1. Pitch-Black Event Horizon Shadow Sphere
+          const shadowGeo = new THREE.SphereGeometry(R, 64, 64);
+          const shadowMat = new THREE.MeshBasicMaterial({
+            color: 0x000000,
+            depthWrite: true,
+            depthTest: true
+          });
           const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
           shadowMesh.userData = item;
-          sagAGroup.add(shadowMesh);
+          shadowMesh.renderOrder = 1;
+          sagATiltGroup.add(shadowMesh);
 
-          const diskGeo = new THREE.RingGeometry(item.size * 1.25, item.size * 3.6, 64);
+          // 2. Gravitationally Lensed Einstein Arches (Upper & Lower Warped Disk Halo) + Razor-Sharp Photon Ring
+          const lensedHaloCanvas = document.createElement("canvas");
+          lensedHaloCanvas.width = 1024;
+          lensedHaloCanvas.height = 1024;
+          const lCtx = lensedHaloCanvas.getContext("2d");
+          const lImg = lCtx.createImageData(1024, 1024);
+          const lData = lImg.data;
+          const rHoriz = 1.0 / 3.2; // Event horizon radius in normalized [-1,1] space
+
+          for (let py = 0; py < 1024; py++) {
+            const ny = (py / 1023) * 2.0 - 1.0; // -1 (top) to +1 (bottom)
+            for (let px = 0; px < 1024; px++) {
+              const nx = (px / 1023) * 2.0 - 1.0;
+              const r2 = nx * nx + ny * ny;
+              if (r2 >= 1.0) continue;
+              const r = Math.sqrt(r2);
+              const idx = (py * 1024 + px) * 4;
+
+              // Strictly transparent inside the black hole shadow so the 3D black sphere stays pure #000000
+              if (r < rHoriz * 0.965) {
+                continue;
+              }
+
+              const absSin = Math.abs(ny) / Math.max(0.0001, r);
+              const isUpper = ny < 0; // Canvas ny < 0 is +Y (upper arch)
+
+              // Razor-sharp golden-white Photon Ring + inner blue-violet Doppler sheen (SS3, SS4, SS5)
+              const photonDist = (r - rHoriz * 1.012) / (rHoriz * 0.022);
+              const photonRing = Math.exp(-photonDist * photonDist);
+              const innerBlueDist = (r - rHoriz * 0.992) / (rHoriz * 0.032);
+              const innerBlueRim = Math.exp(-innerBlueDist * innerBlueDist) * (0.55 + 0.45 * absSin);
+
+              // Gravitationally lensed upper and lower arches curving over and under the shadow (SS4, SS5)
+              const archReach = isUpper
+                ? rHoriz * (1.14 + 1.08 * Math.pow(absSin, 0.72))
+                : rHoriz * (1.12 + 0.86 * Math.pow(absSin, 0.82));
+
+              let archIntensity = 0.0;
+              let archStreak = 0.0;
+              let uArch = 0.0;
+              if (r >= rHoriz * 0.985 && r <= archReach) {
+                uArch = (r - rHoriz * 0.985) / Math.max(0.001, archReach - rHoriz * 0.985);
+                // Smooth arch envelope peaking in the inner lensed zone and feathering outward
+                const radialEnv = Math.pow(Math.max(0, 1.0 - uArch), 1.45) * Math.pow(Math.min(1.0, uArch * 6.5), 0.55);
+                const polarEnv = Math.pow(absSin, 0.35);
+                // Concentric relativistic plasma striations in the lensed arches (SS4, SS5)
+                const angle = Math.atan2(ny, nx);
+                const s1 = Math.sin(uArch * 58.0 + Math.cos(angle * 3.0) * 1.4) * 0.5 + 0.5;
+                const s2 = Math.sin(uArch * 135.0 + Math.sin(angle * 5.0) * 1.8) * 0.5 + 0.5;
+                const s3 = Math.sin(uArch * 26.0) * 0.5 + 0.5;
+                archStreak = s1 * 0.48 + s2 * 0.32 + s3 * 0.20;
+                archIntensity = radialEnv * polarEnv * (0.42 + 0.72 * archStreak);
+              }
+
+              // Soft outer warm amber-violet atmospheric corona around the lensed structure
+              const corona = Math.exp(-Math.pow((r - rHoriz) / (rHoriz * 1.15), 2.0)) * 0.18 * Math.pow(absSin, 0.25);
+
+              // Combine colors: white-gold photon ring + golden-amber/rose-gold lensed arches + violet-blue inner rim
+              const heat = Math.max(0, 1.0 - uArch * 0.85);
+              let red   = photonRing * 255 + archIntensity * (255 * heat + 235 * (1 - heat)) + innerBlueRim * 135 + corona * 245;
+              let green = photonRing * 246 + archIntensity * (218 * Math.pow(heat, 1.2) + 125 * (1 - heat)) + innerBlueRim * 170 + corona * 155;
+              let blue  = photonRing * 220 + archIntensity * (165 * Math.pow(heat, 2.0) + 55 * (1 - heat)) + innerBlueRim * 255 + corona * 115;
+              let alpha = Math.min(1.0, photonRing * 0.98 + archIntensity * 0.92 + innerBlueRim * 0.72 + corona) * 255;
+
+              lData[idx]     = Math.min(255, red | 0);
+              lData[idx + 1] = Math.min(255, green | 0);
+              lData[idx + 2] = Math.min(255, blue | 0);
+              lData[idx + 3] = Math.min(255, alpha | 0);
+            }
+          }
+          lCtx.putImageData(lImg, 0, 0);
+          const lensedHaloTex = new THREE.CanvasTexture(lensedHaloCanvas);
+          lensedHaloTex.colorSpace = THREE.SRGBColorSpace;
+          lensedHaloTex.needsUpdate = true;
+
+          const lensedHaloGeo = new THREE.PlaneGeometry(R * 6.4, R * 6.4);
+          const lensedHaloMat = new THREE.MeshBasicMaterial({
+            map: lensedHaloTex,
+            transparent: true,
+            opacity: 0.98,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            depthTest: true,
+            side: THREE.DoubleSide
+          });
+          const lensedHaloMesh = new THREE.Mesh(lensedHaloGeo, lensedHaloMat);
+          lensedHaloMesh.position.z = -R * 0.04;
+          lensedHaloMesh.renderOrder = 2;
+          lensedHaloMesh.raycast = () => {};
+          sagATiltGroup.add(lensedHaloMesh);
+
+          // 3. 3D Relativistic Equatorial Accretion Disk with Multi-Band Plasma Streams (SS3, SS4, SS5)
+          const diskCanvas = document.createElement("canvas");
+          diskCanvas.width = 1024;
+          diskCanvas.height = 1024;
+          const dCtx = diskCanvas.getContext("2d");
+          const dImg = dCtx.createImageData(1024, 1024);
+          const dData = dImg.data;
+          const rDiskInner = 0.192; // Matches event horizon radius R on a plane of width R * 10.6
+          const rDiskOuter = 0.985;
+
+          for (let py = 0; py < 1024; py++) {
+            const ny = (py / 1023) * 2.0 - 1.0;
+            for (let px = 0; px < 1024; px++) {
+              const nx = (px / 1023) * 2.0 - 1.0;
+              const r2 = nx * nx + ny * ny;
+              if (r2 >= 1.0) continue;
+              const r = Math.sqrt(r2);
+              if (r < rDiskInner * 0.95) continue;
+
+              const u = Math.max(0, (r - rDiskInner) / (rDiskOuter - rDiskInner));
+              if (u >= 1.0) continue;
+
+              const theta = Math.atan2(ny, nx);
+              // Seamless spiral Keplerian shear coordinates
+              const spiralPhase = theta + 11.5 * Math.pow(1.0 - u, 1.35);
+              const sx = Math.cos(spiralPhase);
+              const sy = Math.sin(spiralPhase);
+
+              const turb1 = Math.sin(sx * 4.0 + u * 28.0) * Math.cos(sy * 4.0 - u * 22.0);
+              const turb2 = Math.sin( theta * 3.0 + u * 52.0 ) * 0.5 + Math.cos(theta * 7.0 - u * 85.0) * 0.5;
+
+              // Concentric glowing plasma bands separated by dark magnetorotational grooves (SS3, SS4)
+              const band1 = Math.sin(u * 88.0 + turb1 * 2.4) * 0.5 + 0.5;
+              const band2 = Math.sin(u * 195.0 + turb2 * 2.8) * 0.5 + 0.5;
+              const band3 = Math.pow(Math.sin(u * 42.0 + turb1 * 1.5) * 0.5 + 0.5, 1.4);
+              const grooveMask = 0.32 + 0.68 * Math.pow(band1 * 0.50 + band2 * 0.30 + band3 * 0.20, 0.85);
+
+              // Smooth inner turn-on at ISCO and smooth outer feathering
+              const innerFade = Math.min(1.0, Math.max(0.0, (r - rDiskInner * 0.95) / (rDiskInner * 0.08)));
+              const outerFade = Math.pow(1.0 - u, 1.55);
+              // Relativistic Doppler beaming (brighter on approaching left/front wing)
+              const dopplerBoost = 1.0 - 0.16 * (nx / r);
+
+              // Multi-zone relativistic color ramp (SS3 + SS4):
+              // Zone 0 (u < 0.08): Electric blue-violet inner Doppler rim into blinding white-gold ISCO
+              // Zone 1 (0.08..0.38): White-hot cream, golden-amber, and luminous rose-violet streaks
+              // Zone 2 (0.38..0.75): Fiery golden-orange and coral-amber plasma streams
+              // Zone 3 (0.75..1.00): Deep burnt orange-red and smoky bronze outer disk
+              let cR, cG, cB;
+              const ribbonTint = Math.sin(u * 64.0 + theta * 2.0) * 0.5 + 0.5;
+
+              if (u < 0.075) {
+                const t = u / 0.075;
+                cR = 135 + t * 120;
+                cG = 165 + t * 85;
+                cB = 255;
+              } else if (u < 0.36) {
+                const t = (u - 0.075) / 0.285;
+                // Blend warm white-gold (SS4) with subtle rose-violet relativistic ribbons (SS3)
+                const violetStreak = (1.0 - t) * Math.pow(ribbonTint, 1.8) * 0.38;
+                cR = 255;
+                cG = (242 - t * 52) * (1.0 - violetStreak * 0.28);
+                cB = (205 - t * 105) + violetStreak * 95;
+              } else if (u < 0.74) {
+                const t = (u - 0.36) / 0.38;
+                cR = 255 - t * 18;
+                cG = 190 - t * 92;
+                cB = 100 - t * 68 + Math.pow(ribbonTint, 2.0) * 28 * (1.0 - t);
+              } else {
+                const t = (u - 0.74) / 0.26;
+                cR = 237 - t * 115;
+                cG = 98 - t * 68;
+                cB = 32 - t * 22;
+              }
+
+              // Embedded hot white-blue magnetic reconnection flare knots in inner disk (SS4)
+              let flareBoost = 0.0;
+              if (u > 0.02 && u < 0.28) {
+                const fAng1 = Math.atan2(ny, nx) - 1.15;
+                const fAng2 = Math.atan2(ny, nx) - 1.85;
+                const fAng3 = Math.atan2(ny, nx) - 0.55;
+                const d1 = Math.hypot((u - 0.09) * 5.5, Math.sin(fAng1 * 0.5) * 2.4);
+                const d2 = Math.hypot((u - 0.15) * 5.0, Math.sin(fAng2 * 0.5) * 2.8);
+                const d3 = Math.hypot((u - 0.12) * 5.5, Math.sin(fAng3 * 0.5) * 3.0);
+                flareBoost = Math.exp(-d1 * d1 * 9.0) + Math.exp(-d2 * d2 * 10.0) * 0.85 + Math.exp(-d3 * d3 * 11.0) * 0.75;
+              }
+
+              const lum = grooveMask * dopplerBoost * (0.78 + 0.42 * band1);
+              const finalR = Math.min(255, cR * lum + flareBoost * 235);
+              const finalG = Math.min(255, cG * lum + flareBoost * 248);
+              const finalB = Math.min(255, cB * lum + flareBoost * 255);
+              const finalA = Math.min(255, innerFade * outerFade * (0.45 + 0.55 * grooveMask + flareBoost * 0.5) * 250);
+
+              const idx = (py * 1024 + px) * 4;
+              dData[idx]     = finalR | 0;
+              dData[idx + 1] = finalG | 0;
+              dData[idx + 2] = finalB | 0;
+              dData[idx + 3] = finalA | 0;
+            }
+          }
+          dCtx.putImageData(dImg, 0, 0);
+          const sagADiskTex = new THREE.CanvasTexture(diskCanvas);
+          sagADiskTex.colorSpace = THREE.SRGBColorSpace;
+          sagADiskTex.needsUpdate = true;
+
+          // Pitch group tilts the equatorial disk nearly edge-on (-78.3 deg) so the front half
+          // sweeps across the lower-front of the black sphere (SS3, SS4, SS5)
+          const sagADiskPitchGroup = new THREE.Group();
+          sagADiskPitchGroup.rotation.x = -Math.PI * 0.435;
+          sagATiltGroup.add(sagADiskPitchGroup);
+
+          const diskGeo = new THREE.PlaneGeometry(R * 10.6, R * 10.6);
           const diskMat = new THREE.MeshBasicMaterial({
-            color: 0xf97316,
+            map: sagADiskTex,
             side: THREE.DoubleSide,
             transparent: true,
-            opacity: 0.95,
+            opacity: 0.98,
             blending: THREE.AdditiveBlending,
-            depthWrite: false
+            depthWrite: false,
+            depthTest: true
           });
           sagAAccretionDisk = new THREE.Mesh(diskGeo, diskMat);
-          sagAAccretionDisk.rotation.x = Math.PI / 2.3;
+          sagAAccretionDisk.renderOrder = 3;
           sagAAccretionDisk.raycast = () => {};
-          sagAGroup.add(sagAAccretionDisk);
+          sagADiskPitchGroup.add(sagAAccretionDisk);
 
-          const outerHaloGeo = new THREE.RingGeometry(item.size * 3.7, item.size * 4.8, 48);
-          const outerHaloMat = new THREE.MeshBasicMaterial({
-            color: 0xd97706,
+          // Secondary volumetric disk thickness layer for rich edge-on depth
+          const thickDiskMat = new THREE.MeshBasicMaterial({
+            map: sagADiskTex,
             side: THREE.DoubleSide,
             transparent: true,
-            opacity: 0.35,
+            opacity: 0.42,
             blending: THREE.AdditiveBlending,
-            depthWrite: false
+            depthWrite: false,
+            depthTest: true
           });
-          const outerHalo = new THREE.Mesh(outerHaloGeo, outerHaloMat);
-          outerHalo.rotation.x = Math.PI / 2.3;
-          outerHalo.raycast = () => {};
-          sagAGroup.add(outerHalo);
+          const thickDiskMesh = new THREE.Mesh(diskGeo, thickDiskMat);
+          thickDiskMesh.rotation.x = 0.055;
+          thickDiskMesh.rotation.y = -0.045;
+          thickDiskMesh.scale.setScalar(1.04);
+          thickDiskMesh.renderOrder = 3;
+          thickDiskMesh.raycast = () => {};
+          sagAAccretionDisk.add(thickDiskMesh);
 
-          const flareCount = 5;
-          const flareGeo = new THREE.SphereGeometry(item.size * 0.18, 16, 16);
-          const flareMat = new THREE.MeshBasicMaterial({
-            color: 0xfef08a,
-            transparent: true,
-            opacity: 0.9,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
-          });
+          // 4. Volumetric White-Blue & Golden Magnetic Reconnection Plasma Flares on Inner Disk (SS4)
+          const flareCloudTex = createProceduralCloudTexture((ctx, s) => {
+            const cx = s / 2, cy = s / 2;
+            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 0.48);
+            grad.addColorStop(0.0, "rgba(255, 255, 255, 1.0)");
+            grad.addColorStop(0.22, "rgba(215, 240, 255, 0.85)");
+            grad.addColorStop(0.52, "rgba(125, 185, 255, 0.32)");
+            grad.addColorStop(1.0, "rgba(0, 0, 0, 0.0)");
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2);
+            ctx.fill();
+          }, 128);
 
+          const flareCount = 6;
           for (let f = 0; f < flareCount; f++) {
-            const fMesh = new THREE.Mesh(flareGeo, flareMat);
-            fMesh.raycast = () => {};
-            sagAGroup.add(fMesh);
+            const fSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+              map: flareCloudTex,
+              color: (f % 2 === 0) ? 0xe0f2fe : 0xfef3c7,
+              transparent: true,
+              opacity: 0.88,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false
+            }));
+            const flareScale = R * (0.62 + (f % 3) * 0.22);
+            fSprite.scale.set(flareScale * 1.35, flareScale * 0.85, 1);
+            fSprite.renderOrder = 4;
+            fSprite.raycast = () => {};
+            sagATiltGroup.add(fSprite);
+
             sagAPlasmaFlares.push({
-              mesh: fMesh,
-              radius: item.size * (1.45 + f * 0.45),
+              mesh: fSprite,
+              radius: R * (1.22 + f * 0.28),
               angle: (f / flareCount) * Math.PI * 2,
-              speed: 0.045 - f * 0.005
+              speed: 0.018 - f * 0.0018
             });
           }
 
@@ -3138,7 +3371,9 @@ const pulseItem = {
       // Keep planets, moons, and compact stars at 3.2x, but pull back for large structures
       let multiplier = 3.2;
 
-      if (['sagittarius-a-star', 'milky-way', 'andromeda', 'sombrero-galaxy', 'ton-618', 'messier-87'].includes(targetId)) {
+      if (targetId === 'sagittarius-a-star') {
+        multiplier = 6.2;
+      } else if (['milky-way', 'andromeda', 'sombrero-galaxy', 'ton-618', 'messier-87'].includes(targetId)) {
         // Massive spiral disks, quasars & galactic cores (matches your 9.44.52 PM target screenshot)
         multiplier = 13.5;
       } else if (['eagle-nebula', 'orion-nebula', 'el-gordo', 'shapley-supercluster', 'great-attractor', 'bootes-void'].includes(targetId)) {
@@ -3164,12 +3399,14 @@ const pulseItem = {
       if (viewDir.lengthSq() < 0.001) viewDir.set(0.6, 0.3, 0.8);
       viewDir.normalize();
 
-      // Balanced close-up elevation
-      const offsetVec = new THREE.Vector3(
-        viewDir.x * offsetDist,
-        Math.max(offsetDist * 0.28, 1.4),
-        viewDir.z * offsetDist
-      );
+      // Balanced close-up elevation (head-on relativistic framing for Sagittarius A*)
+      const offsetVec = (targetId === 'sagittarius-a-star')
+        ? new THREE.Vector3(0, offsetDist * 0.08, offsetDist)
+        : new THREE.Vector3(
+            viewDir.x * offsetDist,
+            Math.max(offsetDist * 0.28, 1.4),
+            viewDir.z * offsetDist
+          );
 
       const tweenObj = { t: 0 };
       new TWEEN.Tween(tweenObj)
@@ -4093,6 +4330,7 @@ const pulseItem = {
       }
 
       const volumetricIds = [
+        'andromeda', 'triangulum', 'sombrero-galaxy', 'messier-87', 'bootes-void',
         'el-gordo', 'centaurus-a', 'crab-nebula', 'eagle-nebula',
         'orion-nebula', 'lmc', 'smc', 'great-attractor',
         'shapley-supercluster', 'smacs-0723', 'gn-z11'
@@ -4117,18 +4355,466 @@ const pulseItem = {
           depthWrite: false
         });
 
+        // Preserve animated 3D jet/beam sub-groups (Crab Pulsar beams & Centaurus A jets)
+        const preservedChildren = [];
+        if (id === 'crab-nebula' && typeof crabPulsarBeams !== 'undefined' && crabPulsarBeams) {
+          preservedChildren.push(crabPulsarBeams);
+        }
+        if (id === 'centaurus-a' && typeof cenAJetGroup !== 'undefined' && cenAJetGroup) {
+          preservedChildren.push(cenAJetGroup);
+        }
+
         while (mesh.children.length > 0) {
           mesh.remove(mesh.children[0]);
         }
+        preservedChildren.forEach(ch => mesh.add(ch));
 
         const volGroup = new THREE.Group();
         volGroup.raycast = () => {};
         mesh.add(volGroup);
 
         // =========================================================================
+        // 0A. ANDROMEDA GALAXY (M31): NASA Spitzer/GALEX/Hubble Multi-Wavelength Spiral
+        //     Matches Screenshot_2026-11-07_at_11.16.35_AM.png
+        // =========================================================================
+        if (id === 'andromeda') {
+          const m31Tex = createFbmNebulaTexture((nx, ny, r) => {
+            // Tilt ~26 deg from bottom-left to top-right (matching reference screenshot)
+            const ang = 0.46;
+            const rx = nx * Math.cos(ang) - ny * Math.sin(ang);
+            const ry = nx * Math.sin(ang) + ny * Math.cos(ang);
+
+            // Foreshortened inclined spiral disk plane (aspect ratio ~2.65 : 1)
+            const dx = rx * 1.05;
+            const dy = ry * 2.65;
+            const rDisk = Math.sqrt(dx * dx + dy * dy);
+            const theta = Math.atan2(dy, dx);
+
+            // 1. Blazing white-pink-gold stellar bulge
+            const bulgeR = Math.sqrt(rx * rx * 1.2 + ry * ry * 3.8);
+            const coreWhite = Math.exp(-bulgeR * bulgeR * 28.0);
+            const bulgeWarm = Math.exp(-bulgeR * bulgeR * 7.5);
+
+            // 2. Tightly wound 2-arm logarithmic spiral + M31's signature 10-kpc star-forming ring
+            const turb = fbm3D(dx * 3.5, dy * 3.5, 1.4, 4);
+            const ridge = ridgedFbm3D(dx * 6.0 + turb * 1.2, dy * 6.0 - turb * 1.2, 2.3, 5);
+            const spiralPhase1 = Math.sin(theta * 2.0 - rDisk * 19.5 + (turb - 0.5) * 2.2) * 0.5 + 0.5;
+            const spiralPhase2 = Math.sin(theta * 2.0 - rDisk * 38.0 + ridge * 2.4) * 0.5 + 0.5;
+            const ring10kpc = Math.exp(-Math.pow((rDisk - 0.56) / 0.16, 2.0));
+            const outerCrimsonRing = Math.exp(-Math.pow((rDisk - 0.74) / 0.22, 2.0));
+
+            const diskEnv = Math.exp(-rDisk * rDisk * 1.65) * Math.max(0, 1.0 - rDisk * 0.88);
+            const lavenderArms = Math.pow(spiralPhase1 * 0.65 + spiralPhase2 * 0.35, 1.35) * diskEnv * (0.55 + 0.65 * ridge);
+
+            // Dark concentric dust absorption lanes between the lavender spiral arms
+            const dustLane = Math.pow(1.0 - spiralPhase1, 2.2) * Math.exp(-Math.pow((rDisk - 0.42) / 0.28, 2.0)) * (0.45 + 0.55 * ridge);
+            const dustAbsorb = Math.min(0.78, dustLane * 0.85);
+
+            // 3. Companion dwarf elliptical galaxy M110 (NGC 205) in lower-right (nx ~ +0.16, ny ~ +0.46)
+            const m110x = (nx - 0.16) * 0.85 + (ny - 0.46) * 0.52;
+            const m110y = -(nx - 0.16) * 0.52 + (ny - 0.46) * 0.85;
+            const m110R = Math.sqrt(m110x * m110x * 1.1 + m110y * m110y * 3.2);
+            const m110Glow = Math.exp(-m110R * m110R * 95.0);
+
+            // 4. Embedded cyan/blue/gold star-forming OB knots along the spiral arms
+            const knotField = Math.pow(Math.max(0, ridgedFbm3D(dx * 16.0, dy * 16.0, 4.1, 4) - 0.66), 2.2) * diskEnv * 7.5;
+
+            // Combine colors matching the NASA Spitzer/GALEX/Optical composite screenshot:
+            // Core: white -> warm rose-peach; Inner/mid arms: lavender-violet & pearl-blue;
+            // Outer ring & halo: deep crimson-red & magenta-rose
+            const crimsonHalo = (outerCrimsonRing * (0.55 + 0.65 * ridge) + diskEnv * 0.42) * (1.0 - coreWhite * 0.8);
+
+            let Rcol = (coreWhite * 255 + bulgeWarm * 255 + lavenderArms * 218 + crimsonHalo * 215 + knotField * 185) * (1.0 - dustAbsorb * 0.65) + m110Glow * 215;
+            let Gcol = (coreWhite * 250 + bulgeWarm * 195 + lavenderArms * 182 + crimsonHalo * 38  + knotField * 235) * (1.0 - dustAbsorb * 0.82) + m110Glow * 195;
+            let Bcol = (coreWhite * 245 + bulgeWarm * 205 + lavenderArms * 255 + crimsonHalo * 88  + knotField * 255) * (1.0 - dustAbsorb * 0.75) + m110Glow * 248;
+
+            const Acol = Math.min(255, (coreWhite * 255 + bulgeWarm * 235 + lavenderArms * 225 + crimsonHalo * 195 + m110Glow * 210 + dustLane * 140));
+            return [Rcol, Gcol, Bcol, Acol];
+          }, 512);
+
+          // Diffuse crimson-magenta outer galactic halo
+          const m31OuterHalo = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: fbmGasPuffTex,
+            color: 0xbe185d,
+            transparent: true,
+            opacity: 0.34,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          }));
+          m31OuterHalo.scale.set(R * 12.5, R * 8.2, 1);
+          m31OuterHalo.raycast = () => {};
+          volGroup.add(m31OuterHalo);
+
+          const m31Sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: m31Tex,
+            transparent: true,
+            opacity: 0.98,
+            depthWrite: false
+          }));
+          m31Sprite.scale.set(R * 10.2, R * 10.2, 1);
+          m31Sprite.raycast = () => {};
+          volGroup.add(m31Sprite);
+
+          addMultiMagnitudeStarField(volGroup, R * 5.2, 420, [0xffffff, 0xe9d5ff, 0x7dd3fc, 0xfef08a, 0xf472b6, 0xfda4af], 0.58);
+        }
+
+        // =========================================================================
+        // 0B. TRIANGULUM GALAXY (M33): Flocculent Lavender Spiral + Hot-Pink H II Knots
+        //     Matches Screenshot_2026-11-07_at_11.17.18_AM.png
+        // =========================================================================
+        else if (id === 'triangulum') {
+          const m33Tex = createFbmNebulaTexture((nx, ny, r) => {
+            // Slight inclination matching the NOIRLab/Hubble portrait orientation
+            const ang = -0.52;
+            const rx = (nx * Math.cos(ang) - ny * Math.sin(ang)) * 1.28;
+            const ry = (nx * Math.sin(ang) + ny * Math.cos(ang)) * 0.96;
+            const rDisk = Math.sqrt(rx * rx + ry * ry);
+            const theta = Math.atan2(ry, rx);
+
+            // 1. Warm pinkish-gold & cream central core threaded with fine dust filaments
+            const w1 = fbm3D(rx * 3.6, ry * 3.6, 0.8, 4);
+            const w2 = fbm3D(rx * 7.2 + w1 * 1.3, ry * 7.2 - w1 * 1.3, 2.1, 5);
+            const ridge = ridgedFbm3D(rx * 9.5 + w1 * 1.5, ry * 9.5 + w2 * 1.5, 1.7, 5);
+
+            const coreGlow = Math.exp(-rDisk * rDisk * 9.5) * (0.75 + 0.35 * w1);
+            const innerDisk = Math.exp(-rDisk * rDisk * 2.4) * (0.55 + 0.55 * w2);
+
+            // 2. Loosely wound flocculent multi-arm spiral in violet-purple and lavender-blue
+            const arm1 = Math.sin(theta * 2.0 + rDisk * 8.5 + (w1 - 0.5) * 2.6) * 0.5 + 0.5;
+            const arm2 = Math.sin(theta * 3.0 + rDisk * 11.0 - (w2 - 0.5) * 2.4) * 0.5 + 0.5;
+            const armMask = Math.pow(arm1 * 0.62 + arm2 * 0.38, 1.3) * Math.exp(-rDisk * rDisk * 1.55);
+
+            // Dark dusty inter-arm filaments near the center
+            const dustFilaments = Math.pow(Math.max(0, 1.0 - ridge), 2.4) * Math.exp(-rDisk * rDisk * 4.2) * 0.55;
+
+            // 3. Vibrant Hot-Pink / Magenta H-alpha Star-Forming Nebular Knots (NGC 604 & companions)
+            const h2Noise = ridgedFbm3D(rx * 15.5 + w2, ry * 15.5 - w1, 3.7, 4);
+            let h2Knots = Math.pow(Math.max(0, h2Noise - 0.58), 2.1) * (armMask + innerDisk * 0.5) * 8.5;
+
+            // Prominent NGC 604 giant H II region at upper-left (nx ~ -0.48, ny ~ -0.22) + major knots
+            const majorKnots = [
+              { kx: -0.48, ky: -0.22, kr: 0.065, str: 1.35 }, // NGC 604
+              { kx: -0.14, ky: -0.26, kr: 0.042, str: 0.95 },
+              { kx:  0.08, ky: -0.09, kr: 0.045, str: 0.95 },
+              { kx: -0.08, ky:  0.18, kr: 0.048, str: 1.05 },
+              { kx:  0.04, ky:  0.29, kr: 0.044, str: 0.95 },
+              { kx:  0.34, ky:  0.38, kr: 0.040, str: 0.85 },
+              { kx:  0.22, ky: -0.24, kr: 0.038, str: 0.80 }
+            ];
+            for (let k of majorKnots) {
+              const d2 = (nx - k.kx) * (nx - k.kx) + (ny - k.ky) * (ny - k.ky);
+              h2Knots += Math.exp(-d2 / (k.kr * k.kr)) * k.str * (0.7 + 0.5 * ridge);
+            }
+
+            // Young blue OB stellar associations in the outer spiral arms
+            const blueOB = Math.pow(Math.max(0, ridgedFbm3D(rx * 13.0, ry * 13.0, 5.2, 4) - 0.56), 2.0) * armMask * (0.4 + rDisk * 1.1) * 5.2;
+
+            const absorb = 1.0 - dustFilaments;
+            const Rcol = (coreGlow * 255 + innerDisk * 215 + armMask * 175 + blueOB * 110) * absorb + h2Knots * 255;
+            const Gcol = (coreGlow * 215 + innerDisk * 145 + armMask * 115 + blueOB * 195) * absorb + h2Knots * 48;
+            const Bcol = (coreGlow * 205 + innerDisk * 210 + armMask * 235 + blueOB * 255) * absorb + h2Knots * 145;
+            const Acol = Math.min(255, (coreGlow * 245 + innerDisk * 215 + armMask * 205 + h2Knots * 220 + blueOB * 180));
+
+            return [Rcol, Gcol, Bcol, Acol];
+          }, 512);
+
+          const m33Halo = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: fbmGasPuffTex,
+            color: 0x9333ea,
+            transparent: true,
+            opacity: 0.30,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          }));
+          m33Halo.scale.set(R * 11.0, R * 11.5, 1);
+          m33Halo.raycast = () => {};
+          volGroup.add(m33Halo);
+
+          const m33Sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: m33Tex,
+            transparent: true,
+            opacity: 0.98,
+            depthWrite: false
+          }));
+          m33Sprite.scale.set(R * 9.2, R * 9.2, 1);
+          m33Sprite.raycast = () => {};
+          volGroup.add(m33Sprite);
+
+          addMultiMagnitudeStarField(volGroup, R * 4.8, 390, [0xf43f5e, 0xe879f9, 0x38bdf8, 0xffffff, 0xfef08a, 0xc084fc], 0.88);
+        }
+
+        // =========================================================================
+        // 0C. BOÖTES VOID (THE GREAT NOTHING): Barnard-68 Style Pitch-Black Cosmic Void
+        //     Matches SS6.png and SS7.webp
+        // =========================================================================
+        else if (id === 'bootes-void') {
+          // Helper that evaluates the organic multi-lobe void silhouette (SS6 / SS7 shape)
+          // Returns > 1.0 inside the dark void cavity, < 1.0 outside in the dense starfield
+          function evalVoidSilhouette(nx, ny) {
+            const lobes = [
+              { cx: -0.02, cy: -0.04, rx: 0.33, ry: 0.35, w: 1.00 }, // Central dark body
+              { cx: -0.07, cy: -0.27, rx: 0.23, ry: 0.24, w: 0.82 }, // Upper apex lobe
+              { cx:  0.23, cy:  0.07, rx: 0.25, ry: 0.22, w: 0.85 }, // Right rounded lobe
+              { cx: -0.23, cy:  0.27, rx: 0.21, ry: 0.19, w: 0.84 }, // Distinct lower-left protruding lobe (SS6 & SS7)
+              { cx: -0.03, cy:  0.21, rx: 0.24, ry: 0.20, w: 0.75 }  // Lower bridge
+            ];
+            let field = 0.0;
+            for (let l of lobes) {
+              const dx = (nx - l.cx) / l.rx;
+              const dy = (ny - l.cy) / l.ry;
+              const d2 = dx * dx + dy * dy;
+              field += l.w * Math.exp(-d2 * 1.65);
+            }
+            // Add ragged, wispy dark molecular/void boundary tendrils via multi-octave fBm
+            const turb1 = fbm3D(nx * 4.5 + 1.3, ny * 4.5 + 2.1, 0.7, 4) - 0.5;
+            const turb2 = ridgedFbm3D(nx * 9.0, ny * 9.0, 1.9, 4) - 0.5;
+            return field + turb1 * 0.28 + turb2 * 0.14;
+          }
+
+          const voidCanvas = document.createElement('canvas');
+          voidCanvas.width = 512;
+          voidCanvas.height = 512;
+          const vCtx = voidCanvas.getContext('2d');
+          const vImg = vCtx.createImageData(512, 512);
+          const vData = vImg.data;
+
+          for (let py = 0; py < 512; py++) {
+            const ny = (py / 511) * 2.0 - 1.0;
+            for (let px = 0; px < 512; px++) {
+              const nx = (px / 511) * 2.0 - 1.0;
+              const r2 = nx * nx + ny * ny;
+              if (r2 >= 1.0) continue;
+              const r = Math.sqrt(r2);
+              const radialMask = Math.pow(Math.max(0, 1.0 - r), 1.6);
+
+              const vf = evalVoidSilhouette(nx, ny);
+              const idx = (py * 512 + px) * 4;
+
+              if (vf >= 0.88) {
+                // Inside the pitch-black void core & smoky dark charcoal boundary rim (SS6, SS7)
+                const coreDepth = Math.min(1.0, (vf - 0.88) / 0.24);
+                const rimWisp = (1.0 - coreDepth) * (0.5 + 0.5 * fbm3D(nx * 12.0, ny * 12.0, 3.1, 4));
+                // Dark charcoal/umbral edge transitioning into pure #000000 void interior
+                vData[idx]     = (rimWisp * 22) | 0;
+                vData[idx + 1] = (rimWisp * 18) | 0;
+                vData[idx + 2] = (rimWisp * 15) | 0;
+                vData[idx + 3] = Math.min(255, (Math.pow(coreDepth, 0.45) * 255) | 0);
+              } else {
+                // Subtle slate-blue background starlight glow surrounding the dark silhouette (SS6)
+                const rimProximity = Math.exp(-Math.pow((0.88 - vf) / 0.32, 2.0));
+                const dustGlow = rimProximity * radialMask * (0.45 + 0.55 * fbm3D(nx * 5.0, ny * 5.0, 0.4, 4));
+                vData[idx]     = (dustGlow * 125) | 0;
+                vData[idx + 1] = (dustGlow * 150) | 0;
+                vData[idx + 2] = (dustGlow * 195) | 0;
+                vData[idx + 3] = Math.min(255, (dustGlow * 145) | 0);
+              }
+            }
+          }
+          vCtx.putImageData(vImg, 0, 0);
+          const voidTex = new THREE.CanvasTexture(voidCanvas);
+          voidTex.colorSpace = THREE.SRGBColorSpace;
+          voidTex.needsUpdate = true;
+
+          // 1. Opaque pitch-black void silhouette sprite (NormalBlending so it occludes background lines/stars)
+          const voidSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: voidTex,
+            transparent: true,
+            opacity: 1.0,
+            blending: THREE.NormalBlending,
+            depthWrite: false
+          }));
+          const voidSpan = R * 8.2;
+          voidSprite.scale.set(voidSpan, voidSpan, 1);
+          voidSprite.renderOrder = 5;
+          voidSprite.raycast = () => {};
+          volGroup.add(voidSprite);
+
+          // 2. Dense, glittering multi-colored surrounding starfield (SS6, SS7) with ZERO stars inside the void core
+          const starLayers = [
+            { count: 1100, size: R * 0.16, opacity: 0.88, tex: pinpointStarTex },
+            { count: 320,  size: R * 0.30, opacity: 0.96, tex: pinpointStarTex },
+            { count: 48,   size: R * 0.62, opacity: 1.00, tex: diffractionStarTex }
+          ];
+
+          starLayers.forEach((layer, lIdx) => {
+            const ptsArr = [];
+            const colArr = [];
+            let attempts = 0;
+            while (ptsArr.length < layer.count * 3 && attempts < layer.count * 12) {
+              attempts++;
+              // Sample within circular field around the void
+              const rad = Math.pow(Math.random(), 0.58) * 0.96;
+              const ang = Math.random() * Math.PI * 2;
+              const nx = rad * Math.cos(ang);
+              const ny = rad * Math.sin(ang);
+              const vf = evalVoidSilhouette(nx, -ny); // -ny matches canvas Y orientation
+
+              // Strictly exclude stars from the pitch-black void interior
+              if (vf > 0.96) continue;
+
+              const px = nx * (voidSpan * 0.48);
+              const py = ny * (voidSpan * 0.48);
+              const pz = (Math.random() - 0.5) * R * 1.4;
+              ptsArr.push(px, py, pz);
+
+              // Stars right along the void boundary (0.78 < vf <= 0.96) are dust-reddened orange/crimson (SS6, SS7)
+              let cr, cg, cb;
+              if (vf > 0.78) {
+                cr = 1.0;
+                cg = 0.38 + Math.random() * 0.28;
+                cb = 0.12 + Math.random() * 0.15;
+              } else {
+                const pick = Math.random();
+                if (pick < 0.32) {
+                  // Crisp blue-white stars
+                  cr = 0.78; cg = 0.88; cb = 1.0;
+                } else if (pick < 0.68) {
+                  // Pure white-cream stars
+                  cr = 1.0; cg = 0.98; cb = 0.92;
+                } else if (pick < 0.88) {
+                  // Warm golden-amber stars
+                  cr = 1.0; cg = 0.82; cb = 0.45;
+                } else {
+                  // Deep orange-red K/M stars
+                  cr = 1.0; cg = 0.45; cb = 0.22;
+                }
+              }
+              const bFactor = (lIdx === 0) ? (0.55 + Math.random() * 0.45) : 1.0;
+              colArr.push(cr * bFactor, cg * bFactor, cb * bFactor);
+            }
+
+            // Add the signature bright beacon stars on the right and bottom edges (SS6 & SS7)
+            if (lIdx === 2) {
+              const beacons = [
+                { x:  0.41, y:  0.08, c: [1.0, 0.95, 0.90] }, // Prominent bright right-edge star (SS7)
+                { x:  0.38, y: -0.34, c: [0.92, 0.96, 1.0] }, // Lower-right bright star (SS6)
+                { x: -0.05, y: -0.38, c: [0.95, 0.92, 1.0] }, // Bottom-center bright star (SS7)
+                { x: -0.26, y: -0.02, c: [1.0, 0.42, 0.22] }, // Reddened left-rim double star (SS7)
+                { x: -0.21, y:  0.36, c: [1.0, 0.82, 0.55] }  // Upper-left golden star (SS6)
+              ];
+              beacons.forEach(b => {
+                ptsArr.push(b.x * voidSpan, b.y * voidSpan, R * 0.2);
+                colArr.push(b.c[0], b.c[1], b.c[2]);
+              });
+            }
+
+            const sGeo = new THREE.BufferGeometry();
+            sGeo.setAttribute('position', new THREE.Float32BufferAttribute(ptsArr, 3));
+            sGeo.setAttribute('color', new THREE.Float32BufferAttribute(colArr, 3));
+            const sPts = new THREE.Points(sGeo, new THREE.PointsMaterial({
+              size: layer.size,
+              map: layer.tex,
+              vertexColors: true,
+              transparent: true,
+              opacity: layer.opacity,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false
+            }));
+            sPts.renderOrder = 6;
+            sPts.raycast = () => {};
+            volGroup.add(sPts);
+          });
+        }
+
+        // =========================================================================
+        // 0D. SOMBRERO GALAXY (M104): NASA Hubble/Spitzer Luminous Bulge + Razor-Sharp Dust Ring
+        // =========================================================================
+        else if (id === 'sombrero-galaxy') {
+          const m104Tex = createFbmNebulaTexture((nx, ny, r) => {
+            const ang = 0.11; // Slight 6-degree tilt
+            const rx = nx * Math.cos(ang) - ny * Math.sin(ang);
+            const ry = nx * Math.sin(ang) + ny * Math.cos(ang);
+
+            // 1. Expansive golden-ivory spherical/elliptical stellar halo & blazing nucleus
+            const bulgeR = Math.sqrt(rx * rx * 0.92 + ry * ry * 1.35);
+            const nucleus = Math.exp(-bulgeR * bulgeR * 26.0);
+            const haloBulge = Math.exp(-bulgeR * bulgeR * 3.8);
+
+            // 2. Nearly edge-on equatorial disk & sharp dark dust absorption ring
+            const diskR = Math.sqrt(rx * rx + (ry * 6.2) * (ry * 6.2));
+            const ringZone = Math.exp(-Math.pow((diskR - 0.62) / 0.16, 2.0)) * Math.exp(-ry * ry * 95.0);
+            const innerBrightDisk = Math.exp(-Math.pow((diskR - 0.38) / 0.22, 2.0)) * Math.exp(-ry * ry * 140.0);
+            const turb = ridgedFbm3D(rx * 12.0, ry * 36.0, 1.5, 4);
+
+            // Foreground portion of the dust lane (ry > 0.015) strongly absorbs the golden bulge
+            const frontLane = Math.exp(-Math.pow((ry - 0.045) / 0.042, 2.0)) * Math.exp(-rx * rx * 1.65) * (0.68 + 0.32 * turb);
+            const absorb = Math.min(0.94, frontLane * 0.95);
+
+            // Spitzer infrared ruby-amber glow along the outer dust ring
+            const irRim = ringZone * (0.55 + 0.55 * turb);
+
+            const litBulge = (nucleus * 1.2 + haloBulge * 0.92 + innerBrightDisk * 0.85) * (1.0 - absorb);
+            const Rcol = litBulge * 255 + irRim * 235 + absorb * 28;
+            const Gcol = litBulge * 232 + irRim * 115 + absorb * 16;
+            const Bcol = litBulge * 185 + irRim * 65  + absorb * 12;
+            const Acol = Math.min(255, (haloBulge * 235 + ringZone * 240 + frontLane * 245 + innerBrightDisk * 210));
+            return [Rcol, Gcol, Bcol, Acol];
+          }, 512);
+
+          const m104Sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: m104Tex,
+            transparent: true,
+            opacity: 0.98,
+            depthWrite: false
+          }));
+          m104Sprite.scale.set(R * 9.5, R * 9.5, 1);
+          m104Sprite.raycast = () => {};
+          volGroup.add(m104Sprite);
+
+          addMultiMagnitudeStarField(volGroup, R * 4.5, 310, [0xfffbeb, 0xfef08a, 0xfde68a, 0xf97316], 0.75);
+        }
+
+        // =========================================================================
+        // 0E. MESSIER 87 (VIRGO A): Supergiant cD Elliptical + 5,000-ly Relativistic Synchrotron Jet
+        // =========================================================================
+        else if (id === 'messier-87') {
+          const m87Tex = createFbmNebulaTexture((nx, ny, r) => {
+            // 1. Colossal golden-amber cD elliptical galaxy halo + blazing AGN core
+            const ellipR = Math.sqrt(nx * nx * 0.92 + ny * ny * 1.08);
+            const agnCore = Math.exp(-ellipR * ellipR * 42.0);
+            const goldenHalo = Math.exp(-ellipR * ellipR * 3.4);
+
+            // 2. Relativistic synchrotron plasma jet shooting toward upper-left (angle ~ -2.45 rad)
+            const jAng = -0.68; // Upper-left diagonal
+            const jx = nx * Math.cos(jAng) - ny * Math.sin(jAng);
+            const jy = nx * Math.sin(jAng) + ny * Math.cos(jAng);
+
+            let jetIntensity = 0.0;
+            if (jx < 0.02 && jx > -0.78) {
+              const distAlong = -jx;
+              const jetWidth = 0.018 + distAlong * 0.055;
+              const turb = ridgedFbm3D(jx * 18.0, jy * 18.0, 2.2, 4);
+              const crossProfile = Math.exp(-Math.pow(jy / jetWidth, 2.0));
+              // Shock knots (HST-1, A, B, C) along the jet spine
+              const knots = 0.55 + 0.65 * Math.pow(Math.sin(distAlong * 28.0 + turb * 2.0) * 0.5 + 0.5, 1.6);
+              jetIntensity = crossProfile * Math.exp(-distAlong * 1.6) * knots * (0.75 + 0.45 * turb);
+            }
+
+            const Rcol = agnCore * 255 + goldenHalo * 255 + jetIntensity * 165;
+            const Gcol = agnCore * 250 + goldenHalo * 212 + jetIntensity * 228;
+            const Bcol = agnCore * 235 + goldenHalo * 135 + jetIntensity * 255;
+            const Acol = Math.min(255, (agnCore * 255 + goldenHalo * 230 + jetIntensity * 245));
+            return [Rcol, Gcol, Bcol, Acol];
+          }, 512);
+
+          const m87Sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: m87Tex,
+            transparent: true,
+            opacity: 0.98,
+            depthWrite: false
+          }));
+          m87Sprite.scale.set(R * 9.6, R * 9.6, 1);
+          m87Sprite.raycast = () => {};
+          volGroup.add(m87Sprite);
+
+          // M87's famous swarm of ~12,000 globular clusters
+          addMultiMagnitudeStarField(volGroup, R * 5.0, 420, [0xfef08a, 0xfde68a, 0xfffbeb, 0x38bdf8, 0xfbbf24], 0.92);
+        }
+
+        // =========================================================================
         // 1. CENTAURUS A / CALDWELL 77: Smooth Elliptical Halo + Organic Warped Dust Lane (ZERO square border)
         // =========================================================================
-        if (id === 'centaurus-a') {
+        else if (id === 'centaurus-a') {
           const cenATex = createFbmNebulaTexture((nx, ny, r) => {
             // Rotate coordinates to match Caldwell 77 diagonal dust lane
             const ang = 0.58;
@@ -4357,7 +5043,93 @@ const pulseItem = {
         }
 
         // =========================================================================
-        // 4. EL GORDO & DEEP-SPACE GALAXY CLUSTERS / SUPERCLUSTERS / NEBULAE
+        // 3B. ORION NEBULA (M42): NASA Hubble/JWST Cavern + Trapezium Core + Orion Bar
+        // =========================================================================
+        else if (id === 'orion-nebula') {
+          const m42Tex = createFbmNebulaTexture((nx, ny, r) => {
+            const w1 = fbm3D(nx * 3.0, ny * 3.0, 1.4, 4);
+            const w2 = fbm3D(nx * 6.0 + w1 * 1.5, ny * 6.0 - w1 * 1.5, 2.7, 5);
+            const ridge = ridgedFbm3D(nx * 7.5 + w1, ny * 7.5 + w2, 0.9, 5);
+
+            // Glowing turquoise-white Trapezium OB core offset slightly upper-center
+            const trapDist = Math.hypot(nx - 0.04, ny + 0.08);
+            const trapCore = Math.exp(-trapDist * trapDist * 9.5) * (0.75 + 0.45 * w1);
+
+            // Sweeping parabolic H II wings in magenta-rose, violet, and crimson
+            const wingArc = Math.exp(-Math.pow((r - 0.42) / 0.32, 2.0)) * (0.55 + 0.65 * ridge);
+            // Golden-rust Orion Bar ionization front cutting diagonally across lower-left
+            const barDist = Math.abs((nx * 0.72 + ny * 0.69) - 0.24 + (w1 - 0.5) * 0.12);
+            const orionBar = Math.exp(-Math.pow(barDist / 0.085, 2.0)) * Math.exp(-r * r * 2.2) * (0.6 + 0.6 * ridge);
+
+            const Rcol = trapCore * 225 + wingArc * 245 + orionBar * 255;
+            const Gcol = trapCore * 252 + wingArc * (55 + w2 * 65) + orionBar * 165;
+            const Bcol = trapCore * 255 + wingArc * (165 + w1 * 85) + orionBar * 75;
+            const Acol = Math.min(255, (trapCore * 245 + wingArc * 215 + orionBar * 220) * (0.65 + 0.5 * w2));
+            return [Rcol, Gcol, Bcol, Acol];
+          }, 512);
+
+          const m42Sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: m42Tex,
+            transparent: true,
+            opacity: 0.96,
+            depthWrite: false
+          }));
+          m42Sprite.scale.set(R * 9.6, R * 9.6, 1);
+          m42Sprite.raycast = () => {};
+          volGroup.add(m42Sprite);
+
+          addMultiMagnitudeStarField(volGroup, R * 5.0, 320, [0xffffff, 0xe0f2fe, 0xf472b6, 0xfef08a, 0xc084fc], 0.95);
+        }
+
+        // =========================================================================
+        // 3C. SMACS 0723 (JWST FIRST DEEP FIELD): Central cD Galaxies + Einstein Lensing Arcs
+        // =========================================================================
+        else if (id === 'smacs-0723') {
+          const smacsTex = createFbmNebulaTexture((nx, ny, r) => {
+            const theta = Math.atan2(ny, nx);
+            // Diffuse golden-white intracluster light & central cD elliptical galaxy core
+            const icl = Math.exp(-r * r * 5.2);
+            const cdCore = Math.exp(-r * r * 32.0);
+
+            // Tangential gravitational lensing Einstein arcs (JWST orange/amber/crimson stretched galaxies)
+            let arcs = 0.0;
+            const arcDefs = [
+              { r0: 0.34, w: 0.018, a0: -0.65, span: 0.55 },
+              { r0: 0.44, w: 0.016, a0:  0.42, span: 0.62 },
+              { r0: 0.52, w: 0.018, a0:  2.15, span: 0.48 },
+              { r0: 0.39, w: 0.015, a0: -2.25, span: 0.52 },
+              { r0: 0.61, w: 0.017, a0:  1.15, span: 0.44 }
+            ];
+            for (let a of arcDefs) {
+              const dr = (r - a.r0) / a.w;
+              let da = Math.atan2(Math.sin(theta - a.a0), Math.cos(theta - a.a0));
+              if (Math.abs(dr) < 2.5 && Math.abs(da) < a.span) {
+                arcs += Math.exp(-dr * dr) * Math.exp(-Math.pow(da / (a.span * 0.6), 2.0));
+              }
+            }
+
+            const Rcol = cdCore * 255 + icl * 245 + arcs * 255;
+            const Gcol = cdCore * 248 + icl * 215 + arcs * 135;
+            const Bcol = cdCore * 225 + icl * 165 + arcs * 55;
+            const Acol = Math.min(255, cdCore * 255 + icl * 195 + arcs * 245);
+            return [Rcol, Gcol, Bcol, Acol];
+          }, 512);
+
+          const smacsSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: smacsTex,
+            transparent: true,
+            opacity: 0.98,
+            depthWrite: false
+          }));
+          smacsSprite.scale.set(R * 9.2, R * 9.2, 1);
+          smacsSprite.raycast = () => {};
+          volGroup.add(smacsSprite);
+
+          addMultiMagnitudeStarField(volGroup, R * 5.2, 380, [0xffffff, 0xfef08a, 0xf97316, 0xef4444, 0xbae6fd], 0.92);
+        }
+
+        // =========================================================================
+        // 4. EL GORDO, MAGELLANIC CLOUDS & DEEP-SPACE SUPERCLUSTERS / GALAXIES
         // =========================================================================
         else {
           // Tailor color palettes & gas clouds for each cosmic landmark
@@ -4370,26 +5142,19 @@ const pulseItem = {
               starCount: 360,
               cometaryWake: true
             },
-            'orion-nebula': {
-              gasColors: [0xdb2777, 0x9333ea, 0x38bdf8, 0xf472b6],
-              starColors: [0xffffff, 0xe0f2fe, 0xfef08a, 0xf472b6],
-              gasScale: 11.0,
-              starSpan: 4.8,
-              starCount: 280
-            },
             'lmc': {
-              gasColors: [0x38bdf8, 0x818cf8, 0xf472b6],
-              starColors: [0xffffff, 0xbae6fd, 0xfef08a, 0xf43f5e],
+              gasColors: [0x38bdf8, 0x818cf8, 0xf43f5e],
+              starColors: [0xffffff, 0xbae6fd, 0xfef08a, 0xf43f5e, 0xe879f9],
               gasScale: 10.5,
-              starSpan: 4.6,
-              starCount: 340
+              starSpan: 4.8,
+              starCount: 380
             },
             'smc': {
-              gasColors: [0x60a5fa, 0x818cf8, 0x38bdf8],
-              starColors: [0xffffff, 0xbae6fd, 0xfde68a],
+              gasColors: [0x60a5fa, 0x818cf8, 0xf472b6],
+              starColors: [0xffffff, 0xbae6fd, 0xfde68a, 0xf43f5e],
               gasScale: 9.5,
-              starSpan: 4.0,
-              starCount: 260
+              starSpan: 4.2,
+              starCount: 290
             },
             'great-attractor': {
               gasColors: [0xe11d48, 0xf97316, 0x9333ea],
@@ -4404,13 +5169,6 @@ const pulseItem = {
               gasScale: 14.0,
               starSpan: 6.5,
               starCount: 450
-            },
-            'smacs-0723': {
-              gasColors: [0x1e40af, 0xd97706, 0x38bdf8],
-              starColors: [0xffffff, 0xfef08a, 0xf97316, 0xef4444, 0xbae6fd],
-              gasScale: 10.5,
-              starSpan: 5.0,
-              starCount: 320
             },
             'gn-z11': {
               gasColors: [0xdc2626, 0x991b1b, 0xf97316],
@@ -4517,7 +5275,7 @@ const pulseItem = {
         if (!meta || !meta.name) return;
 
         if (obj.material.wireframe) return;
-        if (['sagittarius-a-star', 'ton-618', 'sombrero-galaxy', 'el-gordo', 'centaurus-a', 'crab-nebula', 'eagle-nebula', 'orion-nebula', 'lmc', 'smc', 'great-attractor', 'shapley-supercluster', 'smacs-0723', 'gn-z11'].includes(meta.id)) return;
+        if (['sagittarius-a-star', 'ton-618', 'andromeda', 'triangulum', 'sombrero-galaxy', 'messier-87', 'bootes-void', 'el-gordo', 'centaurus-a', 'crab-nebula', 'eagle-nebula', 'orion-nebula', 'lmc', 'smc', 'great-attractor', 'shapley-supercluster', 'smacs-0723', 'gn-z11'].includes(meta.id)) return;
         if (obj.material.transparent && obj.material.opacity < 0.75) return;
 
         const kind = classifyMeshTextureKind(meta.name, meta.type);
@@ -4590,14 +5348,14 @@ const pulseItem = {
         });
 
         if (sagAAccretionDisk) {
-          sagAAccretionDisk.rotation.z += 0.015;
+          sagAAccretionDisk.rotation.z += 0.012;
         }
         sagAPlasmaFlares.forEach(flare => {
           flare.angle += flare.speed;
           flare.mesh.position.set(
             Math.cos(flare.angle) * flare.radius,
-            Math.sin(flare.angle) * flare.radius * 0.38,
-            Math.sin(flare.angle) * flare.radius * 0.92
+            -Math.sin(flare.angle) * flare.radius * 0.203,
+            Math.sin(flare.angle) * flare.radius * 0.979
           );
         });
 
