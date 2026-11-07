@@ -575,8 +575,9 @@
     let sagAAccretionDisk = null;
     let sagAPlasmaFlares = [];
 
-    // TON 618 Quasar Disk
+    // TON 618 Quasar Disk & Relativistic Flares
     let ton618AccretionDisk = null;
+    let ton618PlasmaFlares = [];
 
     // Binary & Hierarchy Systems
     let siriusBarycenterGroup = null;
@@ -680,7 +681,7 @@
     function init() {
       scene = new THREE.Scene();
 
-      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.05, 50000);
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.05, 95000);
       camera.position.set(0, 22.5, 32);
 
       renderer = new THREE.WebGLRenderer({
@@ -695,7 +696,7 @@
       controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
-      controls.maxDistance = 12000;
+      controls.maxDistance = 26000;
       controls.minDistance = 5.0;
 
       raycaster = new THREE.Raycaster();
@@ -741,7 +742,7 @@
       const col = new Float32Array(starCount * 3);
 
       for (let i = 0; i < starCount * 3; i += 3) {
-        const radius = 2800.0;
+        const radius = 38000.0;
         const u = Math.random();
         const v = Math.random();
         const theta = u * 2.0 * Math.PI;
@@ -1418,20 +1419,105 @@
         return (seed - 1) / 2147483646;
       }
 
-      // 1. Expanded Supercluster Attractor Nodes across a much wider cosmic volume
-      const nodeCount = 88; // Increased density from 52
+      // Helper matching applyCosmicDepthProportions() so Cosmic Web filaments reach exact positions of furthest objects
+      function computeRescaledTargetPos(id, rawPos, tier) {
+        const x = rawPos[0], y = rawPos[1], z = rawPos[2];
+        const currentDist = Math.sqrt(x * x + y * y + z * z) || 1.0;
+        const ux = x / currentDist, uy = y / currentDist, uz = z / currentDist;
+        const targetDist = (tier === 4 || id === 'great-attractor')
+          ? (950 + currentDist * 4.5)
+          : (450 + currentDist * 3.2);
+        const hash = id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+        const verticalSpread = Math.sin(hash * 1.37) * 0.38;
+        const ny = uy + verticalSpread;
+        const norm = Math.sqrt(ux * ux + ny * ny + uz * uz) || 1.0;
+        return new THREE.Vector3((ux / norm) * targetDist, (ny / norm) * targetDist, (uz / norm) * targetDist);
+      }
+
+      // 1. Multi-Shell Supercluster Attractor Nodes spanning from Local Group (380) to Deep Cosmic Horizon (~7,850)
       const nodes = [];
-      for (let i = 0; i < nodeCount; i++) {
+      // Inner shell: Local Group & nearby supercluster web (r = 380 .. 2,150)
+      const innerCount = 82;
+      for (let i = 0; i < innerCount; i++) {
         const u = fRand(), v = fRand();
         const theta = u * 2.0 * Math.PI;
         const phi = Math.acos(2.0 * v - 1.0);
-        const r = 400 + fRand() * 1350; // Stretches much further out (up to ~1750 units)
+        const r = 380 + fRand() * 1770;
         nodes.push(new THREE.Vector3(
           r * Math.sin(phi) * Math.cos(theta),
-          r * Math.sin(phi) * Math.sin(theta) * 0.62,
+          r * Math.sin(phi) * Math.sin(theta) * 0.65,
           r * Math.cos(phi)
         ));
       }
+
+      // Mid-deep shell: Laniakea, Shapley, and Coma-scale filaments (r = 2,100 .. 5,300)
+      const midCount = 58;
+      for (let i = 0; i < midCount; i++) {
+        const u = fRand(), v = fRand();
+        const theta = u * 2.0 * Math.PI;
+        const phi = Math.acos(2.0 * v - 1.0);
+        const r = 2100 + fRand() * 3200;
+        nodes.push(new THREE.Vector3(
+          r * Math.sin(phi) * Math.cos(theta),
+          r * Math.sin(phi) * Math.sin(theta) * 0.72,
+          r * Math.cos(phi)
+        ));
+      }
+
+      // Outer horizon shell: High-redshift protocluster web reaching the furthest objects (r = 5,100 .. 7,850)
+      const outerCount = 44;
+      for (let i = 0; i < outerCount; i++) {
+        const u = fRand(), v = fRand();
+        const theta = u * 2.0 * Math.PI;
+        const phi = Math.acos(2.0 * v - 1.0);
+        const r = 5100 + fRand() * 2750;
+        nodes.push(new THREE.Vector3(
+          r * Math.sin(phi) * Math.cos(theta),
+          r * Math.sin(phi) * Math.sin(theta) * 0.78,
+          r * Math.cos(phi)
+        ));
+      }
+
+      // Anchor nodes at the exact rescaled coordinates of Tier 3 & Tier 4 celestial objects (including furthest map objects)
+      const deepCatalogAnchors = [
+        { id: 'andromeda', pos: [380, 105, -255], tier: 3 },
+        { id: 'triangulum', pos: [450, 48, -330], tier: 3 },
+        { id: 'sombrero-galaxy', pos: [-335, 135, -380], tier: 3 },
+        { id: 'centaurus-a', pos: [-510, 220, 175], tier: 3 },
+        { id: 'messier-87', pos: [-285, 410, -510], tier: 3 },
+        { id: 'great-attractor', pos: [-660, -175, -445], tier: 3 },
+        { id: 'shapley-supercluster', pos: [-605, -540, 650], tier: 4 },
+        { id: 'el-gordo', pos: [825, -350, -605], tier: 4 },
+        { id: 'smacs-0723', pos: [460, 730, 985], tier: 4 },
+        { id: 'ton-618', pos: [-985, -445, 890], tier: 4 },
+        { id: 'earendel', pos: [670, -540, 1240], tier: 4 },
+        { id: 'gn-z11', pos: [0, 0, 1500], tier: 4 }
+      ];
+
+      const anchorVectors = deepCatalogAnchors.map(item => computeRescaledTargetPos(item.id, item.pos, item.tier));
+      anchorVectors.forEach(vec => nodes.push(vec));
+
+      // Create organic stepping-stone bridge nodes from the inner web out to each furthest Tier 4 anchor so filaments visibly reach them
+      anchorVectors.forEach(targetVec => {
+        const distFromCore = targetVec.length();
+        if (distFromCore > 2400) {
+          const dir = targetVec.clone().normalize();
+          const steps = 4;
+          let prevPt = dir.clone().multiplyScalar(1450);
+          nodes.push(prevPt);
+          for (let s = 1; s < steps; s++) {
+            const frac = s / steps;
+            const radialDist = 1450 + frac * (distFromCore - 1450);
+            const stepPt = dir.clone().multiplyScalar(radialDist);
+            // Organic lateral offset so the filament bridge winds naturally through 3D space
+            stepPt.x += (fRand() - 0.5) * 420;
+            stepPt.y += (fRand() - 0.5) * 320;
+            stepPt.z += (fRand() - 0.5) * 420;
+            nodes.push(stepPt);
+            prevPt = stepPt;
+          }
+        }
+      });
 
       // 2. Recursive Midpoint-Displacement Fractal Bolt Generator
       function generateFractalBolt(pStart, pEnd, depth, jitterScale) {
@@ -1479,20 +1565,11 @@
         depthWrite: false
       });
 
-window._cosmicMaterials = { 
+      window._cosmicMaterials = { 
         core: coreFilamentMat, 
         outer: outerFilamentMat, 
         branch: branchFilamentMat 
       };
-
-      const pulseCoreGeo = new THREE.SphereGeometry(0.85, 8, 8);
-      const pulseCoreMat = new THREE.MeshBasicMaterial({
-        color: 0xfce7f3,
-        transparent: true,
-        opacity: 0.48,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false
-      });
 
       const pulseHaloGeo = new THREE.SphereGeometry(2.1, 8, 8);
       const pulseHaloMat = new THREE.MeshBasicMaterial({
@@ -1503,83 +1580,117 @@ window._cosmicMaterials = {
         depthWrite: false
       });
 
-      // 4. Connect Supercluster Nodes with Long-Range Conduits & Fractal Sub-Branches
+      function addFractalConduit(pA, pB, dist) {
+        const boltPts = generateFractalBolt(pA, pB, 4, dist * 0.20);
+        const boltGeom = new THREE.BufferGeometry().setFromPoints(boltPts);
+
+        const coreLine = new THREE.Line(boltGeom, coreFilamentMat);
+        coreLine.raycast = () => {};
+        cosmicWebGroup.add(coreLine);
+
+        const sheathPts = generateFractalBolt(pA, pB, 4, dist * 0.24);
+        const sheathGeom = new THREE.BufferGeometry().setFromPoints(sheathPts);
+        const sheathLine = new THREE.Line(sheathGeom, outerFilamentMat);
+        sheathLine.raycast = () => {};
+        cosmicWebGroup.add(sheathLine);
+
+        const branchReach = Math.max(85, dist * 0.14);
+        const branchCount = 1 + Math.floor(fRand() * 2);
+        for (let b = 0; b < branchCount; b++) {
+          const pickIdx = 3 + Math.floor(fRand() * (boltPts.length - 6));
+          const branchOrigin = boltPts[pickIdx];
+          const branchDir = new THREE.Vector3(
+            (fRand() - 0.5) * branchReach,
+            (fRand() - 0.5) * (branchReach * 0.75),
+            (fRand() - 0.5) * branchReach
+          );
+          const branchTarget = branchOrigin.clone().add(branchDir);
+          const subPts = generateFractalBolt(branchOrigin, branchTarget, 3, branchReach * 0.28);
+          const subGeom = new THREE.BufferGeometry().setFromPoints(subPts);
+          const subLine = new THREE.Line(subGeom, branchFilamentMat);
+          subLine.raycast = () => {};
+          cosmicWebGroup.add(subLine);
+        }
+
+        if (fRand() > 0.48) {
+          const boltCurve = new THREE.CatmullRomCurve3(boltPts);
+          const pulseGroup = new THREE.Group();
+          const sparkPts = [
+            new THREE.Vector3(0, 0, -4.5),
+            new THREE.Vector3(1.0, 0.8, -2.0),
+            new THREE.Vector3(-0.8, -0.7, 0.0),
+            new THREE.Vector3(0.6, 0.5, 2.0),
+            new THREE.Vector3(0, 0, 4.5)
+          ];
+          const sparkGeo = new THREE.BufferGeometry().setFromPoints(sparkPts);
+          const sparkMat = new THREE.LineBasicMaterial({
+            color: 0xff33bb,
+            transparent: true,
+            opacity: 0.325,
+            blending: THREE.AdditiveBlending
+          });
+          const sparkLine = new THREE.Line(sparkGeo, sparkMat);
+          sparkLine.raycast = () => {};
+          pulseGroup.add(sparkLine);
+
+          const pHalo = new THREE.Mesh(pulseHaloGeo, pulseHaloMat);
+          pHalo.raycast = () => {};
+          pulseGroup.add(pHalo);
+          cosmicWebGroup.add(pulseGroup);
+
+          const pulseItem = {
+            mesh: pulseGroup,
+            curve: boltCurve,
+            progress: fRand(),
+            speed: 0.0014 + fRand() * 0.0022,
+            sparkMat: sparkMat,
+            haloMat: pulseHaloMat
+          };
+          filamentFlowParticles.push(pulseItem);
+          window._filamentPulses.push(pulseItem);
+        }
+      }
+
+      // 4. Connect Supercluster Nodes with Adaptive Radial Thresholds across Inner, Mid, and Deep Horizon Shells
+      const connectedPairs = new Set();
       for (let i = 0; i < nodes.length; i++) {
+        const rA = nodes[i].length();
         for (let j = i + 1; j < nodes.length; j++) {
+          const rB = nodes[j].length();
+          const maxR = Math.max(rA, rB);
           const dist = nodes[i].distanceTo(nodes[j]);
-          if (dist > 240 && dist < 620) { // Wider span for massive, far-reaching cosmic filaments
-            const boltPts = generateFractalBolt(nodes[i], nodes[j], 4, dist * 0.22);
-            const boltGeom = new THREE.BufferGeometry().setFromPoints(boltPts);
 
-            const coreLine = new THREE.Line(boltGeom, coreFilamentMat);
-            coreLine.raycast = () => {};
-            cosmicWebGroup.add(coreLine);
+          // Scale connection span with radial depth so both inner and deep-horizon shells form a continuous web
+          const minSpan = maxR < 2200 ? 240 : (maxR < 5200 ? 480 : 650);
+          const maxSpan = maxR < 2200 ? 640 : (maxR < 5200 ? 1580 : 2250);
 
-            const sheathPts = generateFractalBolt(nodes[i], nodes[j], 4, dist * 0.26);
-            const sheathGeom = new THREE.BufferGeometry().setFromPoints(sheathPts);
-            const sheathLine = new THREE.Line(sheathGeom, outerFilamentMat);
-            sheathLine.raycast = () => {};
-            cosmicWebGroup.add(sheathLine);
-
-            const branchCount = 1 + Math.floor(fRand() * 2);
-            for (let b = 0; b < branchCount; b++) {
-              const pickIdx = 3 + Math.floor(fRand() * (boltPts.length - 6));
-              const branchOrigin = boltPts[pickIdx];
-              const branchDir = new THREE.Vector3(
-                (fRand() - 0.5) * 85,
-                (fRand() - 0.5) * 65,
-                (fRand() - 0.5) * 85
-              );
-              const branchTarget = branchOrigin.clone().add(branchDir);
-              const subPts = generateFractalBolt(branchOrigin, branchTarget, 3, 24);
-              const subGeom = new THREE.BufferGeometry().setFromPoints(subPts);
-              const subLine = new THREE.Line(subGeom, branchFilamentMat);
-              subLine.raycast = () => {};
-              cosmicWebGroup.add(subLine);
-            }
-
-            if (fRand() > 0.45) {
-              const boltCurve = new THREE.CatmullRomCurve3(boltPts);
-              const pulseGroup = new THREE.Group();
-// --- Longer, translucent 3D electric spark zigzag ---
-              const sparkPts = [
-                new THREE.Vector3(0, 0, -4.5),
-                new THREE.Vector3(1.0, 0.8, -2.0),
-                new THREE.Vector3(-0.8, -0.7, 0.0),
-                new THREE.Vector3(0.6, 0.5, 2.0),
-                new THREE.Vector3(0, 0, 4.5)
-              ];
-              const sparkGeo = new THREE.BufferGeometry().setFromPoints(sparkPts);
-              const sparkMat = new THREE.LineBasicMaterial({
-                color: 0xff33bb,
-                transparent: true,
-                opacity: 0.325,
-                blending: THREE.AdditiveBlending
-              });
-              const sparkLine = new THREE.Line(sparkGeo, sparkMat);
-              sparkLine.raycast = () => {};
-              pulseGroup.add(sparkLine);
-              // -------------------------------------------------------------
-
-              const pHalo = new THREE.Mesh(pulseHaloGeo, pulseHaloMat);
-              pHalo.raycast = () => {};
-              pulseGroup.add(pHalo);
-              cosmicWebGroup.add(pulseGroup);
-
-const pulseItem = {
-                mesh: pulseGroup,
-                curve: boltCurve,
-                progress: fRand(),
-                speed: 0.0016 + fRand() * 0.0024,
-                sparkMat: sparkMat,       // <-- Add this reference
-                haloMat: pulseHaloMat     // <-- Add this reference
-              };
-              filamentFlowParticles.push(pulseItem);
-              window._filamentPulses.push(pulseItem);
-            }
+          if (dist > minSpan && dist < maxSpan) {
+            connectedPairs.add(`${i}-${j}`);
+            addFractalConduit(nodes[i], nodes[j], dist);
           }
         }
       }
+
+      // Ensure every deep catalog anchor (GN-z11, Earendel, TON 618, SMACS 0723, El Gordo, Shapley, etc.)
+      // has at least 3 direct cosmic web filament conduits connecting it into the broader network
+      anchorVectors.forEach(anchorPt => {
+        const anchorIdx = nodes.indexOf(anchorPt);
+        const candidates = [];
+        for (let k = 0; k < nodes.length; k++) {
+          if (k === anchorIdx) continue;
+          const d = anchorPt.distanceTo(nodes[k]);
+          if (d > 180) candidates.push({ idx: k, dist: d });
+        }
+        candidates.sort((a, b) => a.dist - b.dist);
+        for (let c = 0; c < Math.min(3, candidates.length); c++) {
+          const otherIdx = candidates[c].idx;
+          const key = anchorIdx < otherIdx ? `${anchorIdx}-${otherIdx}` : `${otherIdx}-${anchorIdx}`;
+          if (!connectedPairs.has(key)) {
+            connectedPairs.add(key);
+            addFractalConduit(anchorPt, nodes[otherIdx], candidates[c].dist);
+          }
+        }
+      });
 
       function makeSubtleNodeSprite(rgbaColor, scaleSize) {
         const c = document.createElement('canvas');
@@ -1604,14 +1715,15 @@ const pulseItem = {
         return sprite;
       }
 
-      // 5. Subtle Supercluster Intersection Nodes
+      // 5. Subtle Supercluster Intersection Nodes (scaled gently for deep-horizon visibility)
       nodes.forEach(pt => {
-        const outerAura = makeSubtleNodeSprite('rgba(232, 121, 249, 0.18)', 9.0);
+        const rScale = pt.length() > 2500 ? 2.2 : 1.0;
+        const outerAura = makeSubtleNodeSprite('rgba(232, 121, 249, 0.18)', 9.0 * rScale);
         outerAura.position.copy(pt);
         outerAura.raycast = () => {};
         cosmicWebGroup.add(outerAura);
 
-        const hotCore = makeSubtleNodeSprite('rgba(253, 242, 248, 0.32)', 3.8);
+        const hotCore = makeSubtleNodeSprite('rgba(253, 242, 248, 0.32)', 3.8 * rScale);
         hotCore.position.copy(pt);
         hotCore.raycast = () => {};
         cosmicWebGroup.add(hotCore);
@@ -1622,7 +1734,8 @@ const pulseItem = {
     }
 
     function buildDelicateAuroraCMB() {
-      const radius = 2150;
+      // Expanded from 2,150 to 8,650 so all celestial objects (furthest at ~7,744 units) dwell within the Observable Universe border
+      const radius = 8650;
       const geometry = new THREE.SphereGeometry(radius, 128, 96);
       const count = geometry.attributes.position.count;
       const colors = new Float32Array(count * 3);
@@ -1658,9 +1771,10 @@ const pulseItem = {
         const y = pos.getY(i);
         const z = pos.getZ(i);
 
-        const w1 = Math.sin(x * 0.010 + t) * Math.cos(y * 0.010);
-        const w2 = Math.sin(y * 0.014 - t * 0.75) * Math.cos(z * 0.014);
-        const w3 = Math.cos(z * 0.020 + t * 0.4) * Math.sin(x * 0.020);
+        // Scaled spatial frequencies for the 8,650-unit Observable Universe border sphere
+        const w1 = Math.sin(x * 0.0025 + t) * Math.cos(y * 0.0025);
+        const w2 = Math.sin(y * 0.0035 - t * 0.75) * Math.cos(z * 0.0035);
+        const w3 = Math.cos(z * 0.0050 + t * 0.4) * Math.sin(x * 0.0050);
         const anisotropy = (w1 + w2 + w3) / 3.0;
 
         const i3 = i * 3;
@@ -1717,7 +1831,13 @@ const pulseItem = {
         } else if (item.id === "messier-87") {
           material = new THREE.MeshBasicMaterial({ color: 0xfde047 });
         } else if (item.id === "ton-618") {
-          material = new THREE.MeshBasicMaterial({ color: 0x000000 });
+          item.size = Math.max(item.size || 65.0, 65.0);
+          geometry = new THREE.SphereGeometry(item.size, 64, 64);
+          material = new THREE.MeshBasicMaterial({
+            color: 0x000000,
+            depthWrite: true,
+            depthTest: true
+          });
         } else if (item.id === "earendel") {
           material = new THREE.MeshBasicMaterial({ color: 0x93c5fd });
         } else if (item.id === "earth") {
@@ -1733,8 +1853,58 @@ const pulseItem = {
         } else if (item.id === "ceres") {
           material = new THREE.MeshBasicMaterial({ color: 0xd1d5db });
         } else if (item.id === "oumuamua") {
-          geometry = new THREE.CylinderGeometry(0.12, 0.22, item.size * 2.2, 16);
-          material = new THREE.MeshBasicMaterial({ color: 0xf87171 });
+          geometry = new THREE.SphereGeometry(1.0, 96, 64);
+          const posAttr = geometry.attributes.position;
+          const S = item.size; // 0.28
+          for (let i = 0; i < posAttr.count; i++) {
+            const ux = posAttr.getX(i);
+            const uy = posAttr.getY(i);
+            const uz = posAttr.getZ(i);
+
+            // Azimuth around the horizontal XZ perimeter for scalloped lobes (Screenshot 6.17.13 PM)
+            const az = Math.atan2(uz, ux);
+            const rHoriz = Math.sqrt(ux * ux + uz * uz);
+
+            // 7 deep V-shaped radial clefts carving rounded lobes around the perimeter (Screenshot 6.17.13 PM)
+            const lobeWave = Math.abs(Math.sin(az * 3.5 + 0.35 * Math.sin(az * 2.0)));
+            const cleftGroove = (1.0 - Math.pow(lobeWave, 0.48)) * 0.22 * Math.pow(rHoriz, 0.75);
+
+            // Asymmetric tapering along major X axis: chiseled prow (-X) & terraced tail (+X) (Screenshot 6.17.48 PM)
+            const prowTaper = (ux < 0)
+              ? (1.0 - 0.32 * Math.pow(-ux, 1.65))
+              : (1.0 - 0.24 * Math.pow(ux, 1.35) - 0.06 * Math.floor(ux * 3.5));
+
+            // Longitudinal striated ridges & diagonal side crevasses (Screenshot 6.17.48 PM)
+            const striations = Math.sin(uz * 22.0 + ux * 6.0 + Math.sin(ux * 10.0) * 1.4) * 0.048;
+            const crag1 = Math.sin(ux * 9.5 + uy * 7.2) * Math.cos(uz * 11.0 - ux * 5.4) * 0.065;
+            const crag2 = Math.sin(ux * 21.0 - uz * 19.0 + uy * 15.0) * 0.028;
+            const diagCrevasse = Math.exp(-Math.pow((ux * 0.85 + uy * 0.55 + 0.18) * 9.5, 2.0)) * 0.11
+                               + Math.exp(-Math.pow((ux * 0.75 - uy * 0.60 - 0.22) * 10.5, 2.0)) * 0.09;
+
+            // Prominent dorsal impact crater basin with raised rim on upper +Y surface (both screenshots)
+            let craterDisp = 0.0;
+            if (uy > 0.05) {
+              const dxC = (ux + 0.12) / 0.28;
+              const dzC = (uz - 0.03) / 0.24;
+              const dC = Math.sqrt(dxC * dxC + dzC * dzC);
+              if (dC < 0.88) {
+                const nC = dC / 0.88;
+                craterDisp = -(1.0 - nC * nC) * 0.38;
+              } else if (dC < 1.32) {
+                const rimPhase = ((dC - 0.88) / 0.44) * Math.PI;
+                craterDisp = Math.sin(rimPhase) * 0.11;
+              }
+            }
+
+            const radialMod = Math.max(0.42, 1.0 - cleftGroove + striations + crag1 + crag2 - diagCrevasse);
+            const px = ux * S * 3.35 * (0.88 + 0.12 * radialMod);
+            const pz = uz * S * 1.52 * prowTaper * radialMod;
+            const py = (uy * (0.82 + 0.24 * radialMod) + craterDisp) * S * 0.54 * prowTaper;
+
+            posAttr.setXYZ(i, px, py, pz);
+          }
+          geometry.computeVertexNormals();
+          material = new THREE.MeshBasicMaterial({ color: 0xb93822 });
         } else if (item.id === "eagle-nebula") {
           material = new THREE.MeshBasicMaterial({ color: 0x34d399, transparent: true, opacity: 0.85 });
         } else if (item.id === "sagittarius-a-star") {
@@ -1778,6 +1948,30 @@ const pulseItem = {
         if (item.id === "sun") {
           const glow = makeFractalNodeSprite('rgba(251, 191, 36, 0.85)', item.size * 4.5);
           mesh.add(glow);
+        } else if (item.id === "oumuamua") {
+          // Faint ice-blue sublimating volatile / nitrogen outgassing mist (Screenshot 6.17.13 PM)
+          const outgasTex = createProceduralCloudTexture((ctx, s) => {
+            const cx = s * 0.5, cy = s * 0.5;
+            const g = ctx.createRadialGradient(cx, cy, s * 0.04, cx, cy, s * 0.48);
+            g.addColorStop(0.0, "rgba(186, 230, 253, 0.42)");
+            g.addColorStop(0.38, "rgba(125, 211, 252, 0.22)");
+            g.addColorStop(0.72, "rgba(56, 189, 248, 0.08)");
+            g.addColorStop(1.0, "rgba(0, 0, 0, 0.0)");
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2);
+            ctx.fill();
+          }, 128);
+          const outgasSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: outgasTex,
+            transparent: true,
+            opacity: 0.85,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          }));
+          outgasSprite.scale.set(item.size * 6.2, item.size * 7.5, 1);
+          outgasSprite.raycast = () => {};
+          mesh.add(outgasSprite);
         } else if (item.id === "stephenson-2-18") {
           const hypergiantGlow = makeFractalNodeSprite('rgba(220, 38, 38, 0.90)', item.size * 3.8);
           mesh.add(hypergiantGlow);
@@ -1829,22 +2023,421 @@ const pulseItem = {
           m87Jet.raycast = () => {};
           mesh.add(m87Jet);
         } else if (item.id === "ton-618") {
-          const quasarAura = makeFractalNodeSprite('rgba(56, 189, 248, 0.85)', item.size * 5.5);
-          mesh.add(quasarAura);
+          const R = item.size; // 65.0 (Event horizon diameter = 130.0 units, larger than the entire Solar System)
+          mesh.renderOrder = 1;
+          ton618PlasmaFlares = [];
 
-          const diskGeo = new THREE.RingGeometry(item.size * 1.25, item.size * 3.8, 64);
+          // Diagonal relativistic tilt group (matches Screenshot 5.40.09 PM & 5.41.38 PM)
+          const ton618TiltGroup = new THREE.Group();
+          ton618TiltGroup.rotation.z = 0.34;
+          mesh.add(ton618TiltGroup);
+
+          // 1. Gravitationally Lensed Einstein Arches + Razor-Sharp Photon Ring + 360° Swirling Crimson-Amber Vortex Ring
+          //    Combines Screenshot 5.39.28 PM (360° fiery golden-orange-crimson turbulent ring around event horizon)
+          //    with Screenshot 5.40.09 PM & 5.41.38 PM (incandescent white-gold upper/lower lensed Einstein arches)
+          const lensedCanvas = document.createElement("canvas");
+          lensedCanvas.width = 1024;
+          lensedCanvas.height = 1024;
+          const lCtx = lensedCanvas.getContext("2d");
+          const lImg = lCtx.createImageData(1024, 1024);
+          const lData = lImg.data;
+          const rHoriz = 1.0 / 3.35; // Event horizon radius on plane of width R * 6.7
+
+          for (let py = 0; py < 1024; py++) {
+            const ny = (py / 1023) * 2.0 - 1.0;
+            for (let px = 0; px < 1024; px++) {
+              const nx = (px / 1023) * 2.0 - 1.0;
+              const r2 = nx * nx + ny * ny;
+              if (r2 >= 1.0) continue;
+              const r = Math.sqrt(r2);
+              const idx = (py * 1024 + px) * 4;
+
+              // Strictly transparent inside the black hole shadow so the 3D sphere stays pure #000000
+              if (r < rHoriz * 0.968) continue;
+
+              const absSin = Math.abs(ny) / Math.max(0.0001, r);
+              const isUpper = ny < 0;
+              const theta = Math.atan2(ny, nx);
+
+              // Razor-sharp incandescent white-gold Photon Ring right at the shadow edge (5.40.09 PM & 5.41.38 PM)
+              const photonDist = (r - rHoriz * 1.010) / (rHoriz * 0.020);
+              const photonRing = Math.exp(-photonDist * photonDist);
+
+              // 360-degree turbulent swirling golden-orange & deep crimson vortex ring (Screenshot 5.39.28 PM)
+              let vortexRing = 0.0;
+              let vortexHeat = 0.0;
+              const uVortex = (r - rHoriz * 0.985) / (rHoriz * 0.62);
+              if (uVortex >= 0.0 && uVortex <= 1.0) {
+                const swirlAng = theta + 9.5 * Math.pow(1.0 - uVortex, 1.25);
+                const f1 = Math.sin(swirlAng * 5.0 + uVortex * 34.0) * 0.5 + 0.5;
+                const f2 = Math.cos(swirlAng * 11.0 - uVortex * 62.0) * 0.5 + 0.5;
+                const f3 = Math.sin(uVortex * 48.0 + Math.sin(theta * 4.0) * 2.2) * 0.5 + 0.5;
+                const filament = Math.pow(f1 * 0.45 + f2 * 0.30 + f3 * 0.25, 0.85);
+                const radialEnv = Math.sin(Math.pow(uVortex, 0.65) * Math.PI) * Math.pow(1.0 - uVortex, 0.55);
+                // Brighter golden flare on lower-left and upper-right arcs (matching Screenshot 5.39.28 PM)
+                const asymBoost = 0.72 + 0.38 * Math.pow(Math.cos(theta - 2.35), 2.0) + 0.28 * Math.pow(Math.cos(theta + 0.85), 2.0);
+                vortexRing = radialEnv * (0.38 + 0.78 * filament) * asymBoost;
+                vortexHeat = Math.max(0.0, Math.min(1.0, (1.0 - uVortex * 0.78) * (0.65 + 0.55 * f1)));
+              }
+
+              // Tall gravitationally lensed upper & lower Einstein arches (Screenshot 5.40.09 PM & 5.41.38 PM)
+              const archReach = isUpper
+                ? rHoriz * (1.18 + 1.22 * Math.pow(absSin, 0.68))
+                : rHoriz * (1.14 + 0.95 * Math.pow(absSin, 0.78));
+
+              let archIntensity = 0.0;
+              let uArch = 0.0;
+              if (r >= rHoriz * 0.985 && r <= archReach) {
+                uArch = (r - rHoriz * 0.985) / Math.max(0.001, archReach - rHoriz * 0.985);
+                const radialEnv = Math.pow(Math.max(0, 1.0 - uArch), 1.35) * Math.pow(Math.min(1.0, uArch * 6.5), 0.52);
+                const polarEnv = Math.pow(absSin, 0.38);
+                const s1 = Math.sin(uArch * 64.0 + Math.cos(theta * 3.0) * 1.5) * 0.5 + 0.5;
+                const s2 = Math.sin(uArch * 148.0 + Math.sin(theta * 6.0) * 1.8) * 0.5 + 0.5;
+                const s3 = Math.sin(uArch * 28.0) * 0.5 + 0.5;
+                const archStreak = s1 * 0.48 + s2 * 0.32 + s3 * 0.20;
+                archIntensity = radialEnv * polarEnv * (0.46 + 0.74 * archStreak);
+              }
+
+              // Outer crimson-amber quasar corona (Screenshot 5.39.28 PM & 5.41.38 PM)
+              const corona = Math.exp(-Math.pow((r - rHoriz * 1.15) / (rHoriz * 1.05), 2.0)) * 0.26;
+
+              const archHeat = Math.max(0, 1.0 - uArch * 0.82);
+              const red = photonRing * 255
+                + archIntensity * (255 * archHeat + 245 * (1 - archHeat))
+                + vortexRing * (255 * vortexHeat + 215 * (1 - vortexHeat))
+                + corona * 235;
+              const green = photonRing * 250
+                + archIntensity * (232 * Math.pow(archHeat, 1.15) + 118 * (1 - archHeat))
+                + vortexRing * (195 * Math.pow(vortexHeat, 1.35) + 52 * (1 - vortexHeat))
+                + corona * 95;
+              const blue = photonRing * 228
+                + archIntensity * (185 * Math.pow(archHeat, 2.0) + 32 * (1 - archHeat))
+                + vortexRing * (115 * Math.pow(vortexHeat, 2.4) + 12 * (1 - vortexHeat))
+                + corona * 24;
+              const alpha = Math.min(1.0, photonRing * 0.99 + archIntensity * 0.94 + vortexRing * 0.88 + corona) * 255;
+
+              lData[idx]     = Math.min(255, red | 0);
+              lData[idx + 1] = Math.min(255, green | 0);
+              lData[idx + 2] = Math.min(255, blue | 0);
+              lData[idx + 3] = Math.min(255, alpha | 0);
+            }
+          }
+          lCtx.putImageData(lImg, 0, 0);
+          const lensedTex = new THREE.CanvasTexture(lensedCanvas);
+          lensedTex.colorSpace = THREE.SRGBColorSpace;
+          lensedTex.needsUpdate = true;
+
+          const lensedGeo = new THREE.PlaneGeometry(R * 6.7, R * 6.7);
+          const lensedMat = new THREE.MeshBasicMaterial({
+            map: lensedTex,
+            transparent: true,
+            opacity: 0.99,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            depthTest: true,
+            side: THREE.DoubleSide
+          });
+          const lensedMesh = new THREE.Mesh(lensedGeo, lensedMat);
+          lensedMesh.position.z = -R * 0.03;
+          lensedMesh.renderOrder = 2;
+          lensedMesh.raycast = () => {};
+          ton618TiltGroup.add(lensedMesh);
+
+          // 2. Hyperluminous 140-Trillion-Sun Relativistic Quasar Accretion Disk (5.40.09 PM & 5.41.38 PM)
+          const diskCanvas = document.createElement("canvas");
+          diskCanvas.width = 1024;
+          diskCanvas.height = 1024;
+          const dCtx = diskCanvas.getContext("2d");
+          const dImg = dCtx.createImageData(1024, 1024);
+          const dData = dImg.data;
+          const rDiskInner = 0.185; // Matches event horizon radius R on a plane of width R * 10.8
+          const rDiskOuter = 0.985;
+
+          for (let py = 0; py < 1024; py++) {
+            const ny = (py / 1023) * 2.0 - 1.0;
+            for (let px = 0; px < 1024; px++) {
+              const nx = (px / 1023) * 2.0 - 1.0;
+              const r2 = nx * nx + ny * ny;
+              if (r2 >= 1.0) continue;
+              const r = Math.sqrt(r2);
+              if (r < rDiskInner * 0.95) continue;
+
+              const u = Math.max(0, (r - rDiskInner) / (rDiskOuter - rDiskInner));
+              if (u >= 1.0) continue;
+
+              const theta = Math.atan2(ny, nx);
+              const spiralPhase = theta + 13.0 * Math.pow(1.0 - u, 1.35);
+              const sx = Math.cos(spiralPhase);
+              const sy = Math.sin(spiralPhase);
+
+              const turb1 = Math.sin(sx * 4.0 + u * 30.0) * Math.cos(sy * 4.0 - u * 24.0);
+              const turb2 = Math.sin(theta * 4.0 + u * 56.0) * 0.5 + Math.cos(theta * 8.0 - u * 92.0) * 0.5;
+
+              const band1 = Math.sin(u * 92.0 + turb1 * 2.5) * 0.5 + 0.5;
+              const band2 = Math.sin(u * 210.0 + turb2 * 2.9) * 0.5 + 0.5;
+              const band3 = Math.pow(Math.sin(u * 44.0 + turb1 * 1.6) * 0.5 + 0.5, 1.35);
+              const grooveMask = 0.34 + 0.66 * Math.pow(band1 * 0.50 + band2 * 0.30 + band3 * 0.20, 0.82);
+
+              const innerFade = Math.min(1.0, Math.max(0.0, (r - rDiskInner * 0.95) / (rDiskInner * 0.075)));
+              const outerFade = Math.pow(1.0 - u, 1.48);
+              const dopplerBoost = 1.0 - 0.18 * (nx / r);
+
+              // Quasar blackbody temperature gradient (Screenshot 5.40.09 PM & 5.41.38 PM):
+              // Blinding white-gold ISCO -> incandescent golden-yellow -> fiery orange-amber -> deep crimson-red outer disk
+              let cR, cG, cB;
+              if (u < 0.22) {
+                const t = u / 0.22;
+                cR = 255;
+                cG = 252 - t * 24;
+                cB = 235 - t * 95;
+              } else if (u < 0.58) {
+                const t = (u - 0.22) / 0.36;
+                cR = 255;
+                cG = 228 - t * 96;
+                cB = 140 - t * 105;
+              } else {
+                const t = (u - 0.58) / 0.42;
+                cR = 255 - t * 95;
+                cG = 132 - t * 102;
+                cB = 35 - t * 28;
+              }
+
+              const lum = grooveMask * dopplerBoost * (0.82 + 0.42 * band1);
+              const finalR = Math.min(255, cR * lum);
+              const finalG = Math.min(255, cG * lum);
+              const finalB = Math.min(255, cB * lum);
+              const finalA = Math.min(255, innerFade * outerFade * (0.48 + 0.52 * grooveMask) * 252);
+
+              const idx = (py * 1024 + px) * 4;
+              dData[idx]     = finalR | 0;
+              dData[idx + 1] = finalG | 0;
+              dData[idx + 2] = finalB | 0;
+              dData[idx + 3] = finalA | 0;
+            }
+          }
+          dCtx.putImageData(dImg, 0, 0);
+          const ton618DiskTex = new THREE.CanvasTexture(diskCanvas);
+          ton618DiskTex.colorSpace = THREE.SRGBColorSpace;
+          ton618DiskTex.needsUpdate = true;
+
+          const ton618DiskPitchGroup = new THREE.Group();
+          ton618DiskPitchGroup.rotation.x = -Math.PI * 0.435;
+          ton618TiltGroup.add(ton618DiskPitchGroup);
+
+          const diskGeo = new THREE.PlaneGeometry(R * 10.8, R * 10.8);
           const diskMat = new THREE.MeshBasicMaterial({
-            color: 0x06b6d4,
+            map: ton618DiskTex,
             side: THREE.DoubleSide,
             transparent: true,
-            opacity: 0.95,
+            opacity: 0.99,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            depthTest: true
+          });
+          ton618AccretionDisk = new THREE.Mesh(diskGeo, diskMat);
+          ton618AccretionDisk.renderOrder = 3;
+          ton618AccretionDisk.raycast = () => {};
+          ton618DiskPitchGroup.add(ton618AccretionDisk);
+
+          // Secondary volumetric disk thickness layer for towering hyperluminous quasar depth
+          const thickDiskMat = new THREE.MeshBasicMaterial({
+            map: ton618DiskTex,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.46,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            depthTest: true
+          });
+          const thickDiskMesh = new THREE.Mesh(diskGeo, thickDiskMat);
+          thickDiskMesh.rotation.x = 0.06;
+          thickDiskMesh.rotation.y = -0.05;
+          thickDiskMesh.scale.setScalar(1.05);
+          thickDiskMesh.renderOrder = 3;
+          thickDiskMesh.raycast = () => {};
+          ton618AccretionDisk.add(thickDiskMesh);
+
+          // 3. Blazing Relativistic Quasar / Blazar Plasma Jet & Segmented Counter-Jet (Screenshot 5.41.38 PM)
+          const jetBeamCanvas = document.createElement("canvas");
+          jetBeamCanvas.width = 512;
+          jetBeamCanvas.height = 128;
+          const jCtx = jetBeamCanvas.getContext("2d");
+          const jImg = jCtx.createImageData(512, 128);
+          const jData = jImg.data;
+          for (let py = 0; py < 128; py++) {
+            const ny = (py / 127) * 2.0 - 1.0; // Across jet width
+            for (let px = 0; px < 512; px++) {
+              const u = px / 511; // 0 (base at black hole core) to 1 (outer tip)
+              // Tightly collimated laser-white inner spine + glowing golden-amber plasma sheath
+              const coreWidth = 0.14 + u * 0.18;
+              const sheathWidth = 0.42 + u * 0.48;
+              const coreProfile = Math.exp(-Math.pow(ny / coreWidth, 2.0));
+              const sheathProfile = Math.exp(-Math.pow(ny / sheathWidth, 2.0));
+              const baseFade = Math.min(1.0, u * 16.0);
+              const tipFade = Math.pow(1.0 - u, 0.55);
+              const env = baseFade * tipFade;
+
+              const rCol = Math.min(255, (coreProfile * 255 + sheathProfile * 255) * env);
+              const gCol = Math.min(255, (coreProfile * 252 + sheathProfile * 185) * env);
+              const bCol = Math.min(255, (coreProfile * 230 + sheathProfile * 65) * env);
+              const aCol = Math.min(255, Math.min(1.0, coreProfile * 0.98 + sheathProfile * 0.62) * env * 255);
+
+              const idx = (py * 512 + px) * 4;
+              jData[idx]     = rCol | 0;
+              jData[idx + 1] = gCol | 0;
+              jData[idx + 2] = bCol | 0;
+              jData[idx + 3] = aCol | 0;
+            }
+          }
+          jCtx.putImageData(jImg, 0, 0);
+          const jetBeamTex = new THREE.CanvasTexture(jetBeamCanvas);
+          jetBeamTex.colorSpace = THREE.SRGBColorSpace;
+          jetBeamTex.needsUpdate = true;
+
+          // Forward relativistic jet shooting from the central core toward upper-right (Screenshot 5.41.38 PM)
+          const jetGroup = new THREE.Group();
+          // Angle jet to match Screenshot 5.41.38 PM (~24 deg above horizontal to the right, tilted slightly forward)
+          jetGroup.rotation.z = -0.22;
+          jetGroup.rotation.y = -0.18;
+          jetGroup.position.set(0, 0, R * 1.02);
+          ton618TiltGroup.add(jetGroup);
+
+          const jetLen = R * 9.5;
+          const jetWid = R * 0.92;
+          const jetPlaneGeo = new THREE.PlaneGeometry(jetLen, jetWid);
+          jetPlaneGeo.translate(jetLen * 0.5, 0, 0);
+          const jetPlaneMat = new THREE.MeshBasicMaterial({
+            map: jetBeamTex,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.98,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            depthTest: true
+          });
+          const jetPlane1 = new THREE.Mesh(jetPlaneGeo, jetPlaneMat);
+          jetPlane1.renderOrder = 5;
+          jetPlane1.raycast = () => {};
+          jetGroup.add(jetPlane1);
+
+          const jetPlane2 = new THREE.Mesh(jetPlaneGeo, jetPlaneMat);
+          jetPlane2.rotation.x = Math.PI * 0.5;
+          jetPlane2.renderOrder = 5;
+          jetPlane2.raycast = () => {};
+          jetGroup.add(jetPlane2);
+
+          // Blazing white-gold jet launch base core right at the polar magnetosphere (Screenshot 5.41.38 PM)
+          const flareCloudTex = createProceduralCloudTexture((ctx, s) => {
+            const cx = s / 2, cy = s / 2;
+            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, s * 0.48);
+            grad.addColorStop(0.0, "rgba(255, 255, 255, 1.0)");
+            grad.addColorStop(0.28, "rgba(255, 245, 200, 0.92)");
+            grad.addColorStop(0.62, "rgba(251, 146, 60, 0.42)");
+            grad.addColorStop(1.0, "rgba(0, 0, 0, 0.0)");
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, s * 0.48, 0, Math.PI * 2);
+            ctx.fill();
+          }, 128);
+
+          const jetBaseCore = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: flareCloudTex,
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.98,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          }));
+          jetBaseCore.scale.set(R * 1.45, R * 1.15, 1);
+          jetBaseCore.renderOrder = 6;
+          jetBaseCore.raycast = () => {};
+          jetGroup.add(jetBaseCore);
+
+          // Segmented relativistic counter-jet knots on the lower-left (Screenshot 5.41.38 PM)
+          const counterKnotDistances = [-R * 1.65, -R * 2.55, -R * 3.45];
+          counterKnotDistances.forEach((d, kIdx) => {
+            const knotGeo = new THREE.PlaneGeometry(R * 0.78, R * 0.34);
+            const knotMat = new THREE.MeshBasicMaterial({
+              map: flareCloudTex,
+              color: 0xfef08a,
+              side: THREE.DoubleSide,
+              transparent: true,
+              opacity: 0.92 - kIdx * 0.12,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false,
+              depthTest: true
+            });
+            const knotMesh = new THREE.Mesh(knotGeo, knotMat);
+            knotMesh.position.set(d, -R * 0.12, 0);
+            knotMesh.renderOrder = 5;
+            knotMesh.raycast = () => {};
+            jetGroup.add(knotMesh);
+          });
+
+          // 4. Orbiting Hot Plasma Flares on the Inner Quasar Disk
+          const flareCount = 8;
+          for (let f = 0; f < flareCount; f++) {
+            const fSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+              map: flareCloudTex,
+              color: (f % 2 === 0) ? 0xfef9c3 : 0xfb923c,
+              transparent: true,
+              opacity: 0.88,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false
+            }));
+            const flareScale = R * (0.58 + (f % 3) * 0.22);
+            fSprite.scale.set(flareScale * 1.4, flareScale * 0.85, 1);
+            fSprite.renderOrder = 4;
+            fSprite.raycast = () => {};
+            ton618TiltGroup.add(fSprite);
+
+            ton618PlasmaFlares.push({
+              mesh: fSprite,
+              radius: R * (1.24 + f * 0.32),
+              angle: (f / flareCount) * Math.PI * 2,
+              speed: 0.016 - f * 0.0014
+            });
+          }
+
+          // 5. Dense Surrounding Background Starfield Outside the Event Horizon & Ring (Screenshot 5.39.28 PM)
+          const starCount = 480;
+          const starPos = new Float32Array(starCount * 3);
+          const starCol = new Float32Array(starCount * 3);
+          const palette = [
+            new THREE.Color(0xffffff),
+            new THREE.Color(0xfef08a),
+            new THREE.Color(0xfde68a),
+            new THREE.Color(0xbae6fd),
+            new THREE.Color(0xfdba74)
+          ];
+          for (let i = 0; i < starCount; i++) {
+            const ang = Math.random() * Math.PI * 2;
+            const rad = R * (2.15 + Math.pow(Math.random(), 0.75) * 3.85);
+            const zSpread = (Math.random() - 0.5) * R * 1.8;
+            starPos[i * 3]     = Math.cos(ang) * rad;
+            starPos[i * 3 + 1] = Math.sin(ang) * rad;
+            starPos[i * 3 + 2] = zSpread;
+            const c = palette[i % palette.length];
+            const b = 0.55 + Math.random() * 0.45;
+            starCol[i * 3]     = c.r * b;
+            starCol[i * 3 + 1] = c.g * b;
+            starCol[i * 3 + 2] = c.b * b;
+          }
+          const starGeo = new THREE.BufferGeometry();
+          starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
+          starGeo.setAttribute("color", new THREE.BufferAttribute(starCol, 3));
+          const starMat = new THREE.PointsMaterial({
+            size: R * 0.048,
+            map: createRoundParticleTexture(),
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.90,
             blending: THREE.AdditiveBlending,
             depthWrite: false
           });
-          ton618AccretionDisk = new THREE.Mesh(diskGeo, diskMat);
-          ton618AccretionDisk.rotation.x = Math.PI / 2.6;
-          ton618AccretionDisk.raycast = () => {};
-          mesh.add(ton618AccretionDisk);
+          const starPts = new THREE.Points(starGeo, starMat);
+          starPts.raycast = () => {};
+          mesh.add(starPts);
         } else if (item.id === "earendel") {
           const earendelGlow = makeFractalNodeSprite('rgba(147, 197, 253, 0.95)', item.size * 4.2);
           mesh.add(earendelGlow);
@@ -3471,7 +4064,7 @@ const pulseItem = {
 
     let isDraggingSlider = false;
     const minZoomDist = 4.0;
-    const maxZoomDist = 5800.0;
+    const maxZoomDist = 22000.0;
 
     function onScaleSliderInput(val) {
       isDraggingSlider = true;
@@ -3652,7 +4245,7 @@ const pulseItem = {
       } else if (camDist <= 550) {
         tVal = 2.0 + ((camDist - 120.0) / 430.0);
       } else {
-        tVal = 3.0 + ((camDist - 550.0) / 2050.0);
+        tVal = 3.0 + ((camDist - 550.0) / 14500.0);
       }
 
       if (!isUserDraggingSlider) {
@@ -3664,11 +4257,11 @@ const pulseItem = {
         if (camDist < 1200) {
           cmbMaterial.opacity = 0.0;
         } else if (camDist >= 2600) {
-          cmbMaterial.opacity = 0.07;
+          cmbMaterial.opacity = 0.075;
         } else {
           const norm = (camDist - 1200) / (2600 - 1200);
           const smooth = norm * norm * (3 - 2 * norm);
-          cmbMaterial.opacity = 0.07 * smooth;
+          cmbMaterial.opacity = 0.075 * smooth;
         }
       }
 
@@ -5297,15 +5890,16 @@ const pulseItem = {
         } else {
           const isOceanWorld = (kind === 'earth');
           const isGasGiant = (kind === 'jupiter' || kind === 'saturn' || kind === 'uranus' || kind === 'neptune' || kind === 'venus');
+          const isOumuamua = (kind === 'oumuamua');
           obj.material = new THREE.MeshStandardMaterial({
             map: procTex,
             bumpMap: bumpTex || null,
-            bumpScale: isGasGiant ? 0.012 : isOceanWorld ? 0.035 : 0.065,
-            roughness: isOceanWorld ? 0.42 : isGasGiant ? 0.68 : 0.88,
-            metalness: isOceanWorld ? 0.12 : 0.04,
+            bumpScale: isGasGiant ? 0.012 : isOceanWorld ? 0.035 : isOumuamua ? 0.115 : 0.065,
+            roughness: isOceanWorld ? 0.42 : isGasGiant ? 0.68 : isOumuamua ? 0.76 : 0.88,
+            metalness: isOceanWorld ? 0.12 : isOumuamua ? 0.08 : 0.04,
             emissiveMap: procTex,
             emissive: new THREE.Color(0xffffff),
-            emissiveIntensity: 0.12
+            emissiveIntensity: isOumuamua ? 0.26 : 0.12
           });
         }
         obj.material.needsUpdate = true;
@@ -5336,15 +5930,23 @@ const pulseItem = {
         crabPulsarBeams.rotation.y += 0.045;
       }
 
-      if (ton618AccretionDisk) {
-        ton618AccretionDisk.rotation.z += 0.020;
-      }
-
       if (!isOrbitPaused) {
         orbitingPlanets.forEach(p => {
           p.angle -= p.speed;
           p.mesh.position.x = Math.cos(p.angle) * p.radius;
           p.mesh.position.z = Math.sin(p.angle) * p.radius;
+        });
+
+        if (ton618AccretionDisk) {
+          ton618AccretionDisk.rotation.z += 0.015;
+        }
+        ton618PlasmaFlares.forEach(flare => {
+          flare.angle += flare.speed;
+          flare.mesh.position.set(
+            Math.cos(flare.angle) * flare.radius,
+            -Math.sin(flare.angle) * flare.radius * 0.203,
+            Math.sin(flare.angle) * flare.radius * 0.979
+          );
         });
 
         if (sagAAccretionDisk) {
@@ -5353,7 +5955,7 @@ const pulseItem = {
         sagAPlasmaFlares.forEach(flare => {
           flare.angle += flare.speed;
           flare.mesh.position.set(
-            Math.cos(flare.angle) * flare.radius,
+            Math.cos(flare.angle) * flare.angle * 0 + Math.cos(flare.angle) * flare.radius,
             -Math.sin(flare.angle) * flare.radius * 0.203,
             Math.sin(flare.angle) * flare.radius * 0.979
           );
@@ -5427,8 +6029,10 @@ const pulseItem = {
 
           const pos = getOumuamuaPosition(oumuamuaOrbitObj.t);
           oumuamuaOrbitObj.mesh.position.copy(pos);
-          oumuamuaOrbitObj.mesh.rotation.x += 0.015;
-          oumuamuaOrbitObj.mesh.rotation.y += 0.025;
+          // Realistic non-principal-axis tumbling motion that showcases both the elongated shard profile and scalloped dorsal crater
+          oumuamuaOrbitObj.mesh.rotation.y += 0.006;
+          oumuamuaOrbitObj.mesh.rotation.x = 0.28 + 0.22 * Math.sin(timeSec * 0.55);
+          oumuamuaOrbitObj.mesh.rotation.z = -0.14 + 0.18 * Math.cos(timeSec * 0.38);
         }
       }
 
@@ -5436,10 +6040,10 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         const t = performance.now() * 0.001;
         // Gentle breathing factor (narrower amplitude so peak and trough stay balanced)
         const pulseFactor = 0.72 + 0.10 * Math.sin(t * 0.8) + 0.05 * Math.sin(t * 2.0);
-        // Smooth distance attenuation: prevents additive line stacking when zoomed out,
-        // while keeping filaments clearly visible (45% floor) at max zoom-out
-        const zoomNorm = Math.max(0.0, Math.min(1.0, (camDist - 350.0) / 4800.0));
-        const distAtten = 1.0 - 0.55 * zoomNorm;
+        // Smooth distance attenuation across the expanded Observable Universe scale,
+        // keeping filaments clearly visible (50% floor) at full horizon zoom-out
+        const zoomNorm = Math.max(0.0, Math.min(1.0, (camDist - 350.0) / 16000.0));
+        const distAtten = 1.0 - 0.50 * zoomNorm;
         const webScale = pulseFactor * distAtten;
 
         window._cosmicMaterials.core.opacity = 0.22 * webScale;
