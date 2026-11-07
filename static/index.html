@@ -176,6 +176,7 @@
       position: absolute;
       top: 0;
       left: 0;
+      display: none;
       pointer-events: auto;
       cursor: pointer;
       user-select: none;
@@ -217,11 +218,6 @@
 
 
   </header>
-
-  <!-- Hover Tooltip -->
-  <div id="hover-tooltip" class="fixed z-30 pointer-events-none hidden bg-slate-950/90 border border-slate-700/80 text-slate-100 text-xs px-2.5 py-1 rounded-md shadow-xl backdrop-blur-sm -translate-y-8 translate-x-3">
-    <span id="tooltip-text"></span>
-  </div>
 
   <!-- Sleek Glowing Minimalist Right-Edge Summon Tab (Textless) -->
   <button id="inspector-edge-tab" onclick="toggleSidebarVisibility(event)" title="Open Overview Drawer" class="fixed top-1/2 -translate-y-1/2 right-0 z-20 w-3 h-[420px] rounded-l-xl bg-cyan-950/75 hover:bg-cyan-900/90 backdrop-blur-xl border border-r-0 border-cyan-400/50 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
@@ -673,8 +669,6 @@
     const _labelWorldPos = new THREE.Vector3();
     const _labelProjVec = new THREE.Vector3();
 
-    const tooltip = document.getElementById('hover-tooltip');
-    const tooltipText = document.getElementById('tooltip-text');
     const scaleSlider = document.getElementById('scale-slider');
     const odoMetric = document.getElementById('odo-metric');
     const odoDist = document.getElementById('odo-dist');
@@ -2410,6 +2404,7 @@ const pulseItem = {
         el.className = MINOR_CELESTIAL_LABEL_IDS.has(id)
           ? "celestial-label celestial-label--minor"
           : "celestial-label";
+        el.style.display = "none";
         el.textContent = primaryName;
         el.dataset.objectId = id;
 
@@ -2602,16 +2597,11 @@ const pulseItem = {
         const resolved = resolveTargetData(intersects[0].object);
         if (resolved && resolved.data.name) {
           hoveredCelestialMesh = resolved.rootMesh;
-          tooltipText.textContent = `${resolved.data.name} (${resolved.data.distance})`;
-          tooltip.style.left = `${event.clientX}px`;
-          tooltip.style.top = `${event.clientY}px`;
-          tooltip.style.display = 'block';
           document.body.style.cursor = 'pointer';
           return;
         }
       }
       hoveredCelestialMesh = null;
-      tooltip.style.display = 'none';
       document.body.style.cursor = 'default';
     }
 
