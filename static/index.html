@@ -1800,7 +1800,7 @@
 
     async function fetchCatalog() {
       try {
-        const res = await fetch('/api/catalog');
+        const res = await fetch('./catalog.json');
         catalog = (await res.json()).filter(item => item.id !== 'voyager-1');
         renderCatalogNodes();
       } catch (err) {
@@ -6286,9 +6286,9 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       const idx = (stepIndex + tourPlaylist.length) % tourPlaylist.length;
       const text = getStepNarrationText(tourPlaylist[idx]);
       if (!text || preloadedAudioUrls.has(text)) return;
-      const url = `/api/tts?text=${encodeURIComponent(text)}`;
-      preloadedAudioUrls.set(text, url);
-      fetch(url).catch(() => {});
+      // const url = `/api/tts?text=${encodeURIComponent(text)}`;
+      // preloadedAudioUrls.set(text, url);
+      // fetch(url).catch(() => {});
     }
 
     function stopTourAudio() {
@@ -6320,12 +6320,17 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         return;
       }
 
-      const cleanText = cleanNarrationText(textToSpeak);
-      const url = `/api/tts?text=${encodeURIComponent(cleanText)}`;
-      const audio = new Audio(url);
-      audio.preload = "auto";
-      currentTourAudio = audio;
+      // const cleanText = cleanNarrationText(textToSpeak);
+      // const url = `/api/tts?text=${encodeURIComponent(cleanText)}`;
+      // const audio = new Audio(url);
+      // audio.preload = "auto";
+      // currentTourAudio = audio;
+      if (isTourActive && !isTourPaused) {
+        scheduleNextTourStep(fallbackDwellMs);
+      }
+      return;
 
+      /*
       // Advance smoothly 1.8s after narration finishes
       audio.onended = () => {
         if (currentTourAudio === audio && isTourActive && !isTourPaused) {
@@ -6355,6 +6360,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           }
         });
       }
+      */
     }
 
     // Pre-warm the first 3 tour stops shortly after startup so first run has zero delay
@@ -6366,9 +6372,9 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
             const prefix = warmupList[i].kind === "tier-intro" ? warmupList[i].data.title : warmupList[i].data.name;
             const txt = cleanNarrationText(`${prefix}. ${warmupList[i].data.summary}`);
             if (txt && !preloadedAudioUrls.has(txt)) {
-              const u = `/api/tts?text=${encodeURIComponent(txt)}`;
-              preloadedAudioUrls.set(txt, u);
-              fetch(u).catch(() => {});
+              // const u = `/api/tts?text=${encodeURIComponent(txt)}`;
+              // preloadedAudioUrls.set(txt, u);
+              // fetch(u).catch(() => {});
             }
           }
         });
