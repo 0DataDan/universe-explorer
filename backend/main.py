@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import os
 from fastapi.responses import FileResponse
 
-app = FastAPI()
+app = FastAPI(title="NOVA")
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():

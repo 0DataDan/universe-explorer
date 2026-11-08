@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Universe Explorer</title>
+  <meta name="application-name" content="NOVA" />
+  <meta name="description" content="NOVA — Interactive 3D Cosmic Simulation" />
+  <title>NOVA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
   <script type="importmap">
@@ -104,16 +106,102 @@
     }
 
 
-    /* Heavy Hydraulic Spaceship Door Slide Effect (2.2s both in & out) */
+    /* Heavy Hydraulic Spaceship Door Slide Effect (Slowed down for deliberate, cinematic motion) */
     #inspector,
     #map-key-drawer {
-      transition: transform 2200ms cubic-bezier(0.22, 0.95, 0.32, 1) !important;
+      transition: transform 3600ms cubic-bezier(0.22, 0.95, 0.32, 1) !important;
       will-change: transform;
     }
     #inspector-edge-tab,
     #map-key-summon-btn {
-      transition: transform 2000ms cubic-bezier(0.22, 0.95, 0.32, 1), opacity 1600ms ease, background-color 300ms ease, border-color 300ms ease !important;
+      transition: transform 3400ms cubic-bezier(0.22, 0.95, 0.32, 1), opacity 2600ms ease, background-color 300ms ease, border-color 300ms ease !important;
       will-change: transform, opacity;
+    }
+
+    /* Fullscreen Sidebar Tab Hover Behavior: Hidden by default in Fullscreen, appears smoothly on mouse hover */
+    #inspector-edge-tab::before {
+      content: "";
+      position: absolute;
+      top: -20px;
+      bottom: -20px;
+      right: 0;
+      width: 28px;
+      background: transparent;
+    }
+    #inspector-edge-tab.fullscreen-hover-tab {
+      opacity: 0 !important;
+      transform: translateY(-50%) translateX(8px) !important;
+      pointer-events: auto !important;
+      transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms ease, background-color 300ms ease, border-color 300ms ease !important;
+    }
+    #inspector-edge-tab.fullscreen-hover-tab:hover {
+      opacity: 1 !important;
+      transform: translateY(-50%) translateX(0px) !important;
+    }
+
+    /* Vertical Tier Menu Slide-Out Animation (Slower, graceful & smooth) */
+    #tier-vertical-menu {
+      transition: transform 1300ms cubic-bezier(0.22, 0.95, 0.32, 1), opacity 950ms ease, clip-path 1300ms cubic-bezier(0.22, 0.95, 0.32, 1) !important;
+      transform-origin: bottom center;
+      will-change: transform, opacity, clip-path;
+    }
+    #tier-vertical-menu.tier-menu-closed {
+      transform: translate(-50%, 34px) scaleY(0.15) !important;
+      opacity: 0 !important;
+      clip-path: inset(100% -20px 0% -20px);
+      pointer-events: none !important;
+    }
+    #tier-vertical-menu.tier-menu-open {
+      transform: translate(-50%, 0px) scaleY(1) !important;
+      opacity: 1 !important;
+      clip-path: inset(-20px -20px -20px -20px);
+      pointer-events: auto !important;
+    }
+
+    /* Reset Button Spiral: Single Continuous Inward Spin & Deep-Orange-to-Yellow Glow */
+    @keyframes reset-spiral-inward {
+      0% {
+        transform: rotate(0deg);
+        color: #67e8f9;
+        filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.4));
+      }
+      45% {
+        color: #ea580c;
+        filter: drop-shadow(0 0 8px #ea580c) drop-shadow(0 0 14px #f97316);
+      }
+      75% {
+        color: #fde047;
+        filter: drop-shadow(0 0 12px #facc15) drop-shadow(0 0 20px #fef08a);
+      }
+      100% {
+        transform: rotate(1080deg);
+        color: #67e8f9;
+        filter: drop-shadow(0 0 0px transparent);
+      }
+    }
+    @keyframes reset-btn-aura {
+      0% {
+        border-color: rgba(34, 211, 238, 0.6);
+        box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+      }
+      45% {
+        border-color: rgba(249, 115, 22, 0.95);
+        box-shadow: 0 0 18px rgba(234, 88, 12, 0.85), inset 0 0 10px rgba(249, 115, 22, 0.4);
+      }
+      75% {
+        border-color: rgba(253, 224, 71, 1);
+        box-shadow: 0 0 22px rgba(250, 204, 21, 0.95), inset 0 0 12px rgba(254, 240, 138, 0.5);
+      }
+      100% {
+        border-color: rgba(34, 211, 238, 0.6);
+        box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+      }
+    }
+    #btn-reset-sol.reset-animating {
+      animation: reset-btn-aura 2000ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+    }
+    #btn-reset-sol.reset-animating #reset-spiral-svg {
+      animation: reset-spiral-inward 2000ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
     }
   
     /* Minimalist Transparent Scale Slider */
@@ -212,22 +300,21 @@
 
   <!-- Top Navigation Header -->
   <header class="fixed top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
-    <div onclick="resetToSolCore()" class="pointer-events-auto cursor-pointer flex items-center px-4 py-1.5 rounded-full bg-slate-950/45 backdrop-blur-xl border border-white/10 hover:border-cyan-400/40 text-slate-200 text-xs tracking-[0.2em] uppercase font-semibold shadow-2xl transition">
-      <span class="bg-gradient-to-r from-white via-slate-200 to-cyan-200 bg-clip-text text-transparent">Universe Explorer</span>
+    <div onclick="resetToSolCore()" title="NOVA — Return to Sol Core" aria-label="NOVA" class="group pointer-events-auto cursor-pointer flex items-center px-3.5 py-2 rounded-full bg-slate-950/35 backdrop-blur-md border border-white/[0.07] hover:border-white/15 shadow-2xl transition-all duration-300">
+      <img src="./nova-logo.png" alt="NOVA" class="h-[15px] w-auto object-contain opacity-75 group-hover:opacity-95 transition-opacity duration-300 select-none" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
+      <span class="hidden text-slate-300/80 text-xs tracking-[0.28em] uppercase font-medium">NOVA</span>
     </div>
-
-
   </header>
 
-  <!-- Sleek Glowing Minimalist Right-Edge Summon Tab (Textless) -->
-  <button id="inspector-edge-tab" onclick="toggleSidebarVisibility(event)" title="Open Overview Drawer" class="fixed top-1/2 -translate-y-1/2 right-0 z-20 w-3 h-[420px] rounded-l-xl bg-cyan-950/75 hover:bg-cyan-900/90 backdrop-blur-xl border border-r-0 border-cyan-400/50 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
+  <!-- Sleek Glowing Minimalist Right-Edge Summon Tab (Textless, Independent from Bottom Overview Toggle) -->
+  <button id="inspector-edge-tab" onclick="toggleSidebarDrawerTab(event)" title="Open Overview Drawer" class="fixed top-1/2 -translate-y-1/2 right-0 z-20 w-3 h-[420px] rounded-l-xl bg-cyan-950/75 hover:bg-cyan-900/90 backdrop-blur-xl border border-r-0 border-cyan-400/50 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
     <div class="w-1 h-1/3 max-h-24 min-h-[24px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
   </button>
 
   <!-- Right-Side Astrophysical Inspector Drawer (Overflow-visible so left slide-back tab attaches cleanly) -->
   <aside id="inspector" class="fixed top-16 right-4 z-20 w-96 bg-slate-950/45 border border-white/10 rounded-2xl backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-[430px] pointer-events-auto">
-    <!-- Sleek Glowing Minimalist Attached Slide-Back Tab (Textless) -->
-    <button onclick="toggleSidebarVisibility(event)" title="Slide Overview Drawer Out" class="absolute top-0 bottom-0 -left-3.5 w-3.5 h-full rounded-l-xl bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
+    <!-- Sleek Glowing Minimalist Attached Slide-Back Tab (Textless, Independent from Bottom Overview Toggle) -->
+    <button onclick="toggleSidebarDrawerTab(event)" title="Slide Overview Drawer Out" class="absolute top-0 bottom-0 -left-3.5 w-3.5 h-full rounded-l-xl bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
       <div class="w-1 h-1/3 max-h-24 min-h-[24px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
     </button>
     <div class="max-h-[calc(100vh-7.5rem)] overflow-y-auto p-5">
@@ -344,19 +431,12 @@
     </button>
 
     <div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[11px] text-slate-200 font-medium">
-      <!-- Reset (Radar Icon matching bottom bar) -->
+      <!-- Reset (Full-Circle Spiral Icon matching bottom bar) -->
       <div class="flex items-center space-x-2">
         <span class="w-4 h-4 rounded-full bg-cyan-950/60 border border-cyan-500/50 flex items-center justify-center text-cyan-300 shrink-0">
-          <svg class="w-2.5 h-2.5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <path d="M12 12L5.2 18.8A9.5 9.5 0 0 1 2.5 12H12Z" fill="currentColor" fill-opacity="0.35" stroke="none"/>
-            <circle cx="12" cy="12" r="9.5" opacity="0.85"/>
-            <circle cx="12" cy="12" r="6.2" opacity="0.65"/>
-            <circle cx="12" cy="12" r="3" opacity="0.55"/>
-            <line x1="12" y1="1.5" x2="12" y2="22.5" opacity="0.85"/>
-            <line x1="1.5" y1="12" x2="22.5" y2="12" opacity="0.85"/>
-            <circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/>
-            <circle cx="7.2" cy="16.8" r="1.3" fill="currentColor"/>
-            <circle cx="15.8" cy="15.8" r="1.1" fill="currentColor"/>
+          <svg class="w-3.5 h-3.5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
+            <circle cx="12" cy="12" r="10.2" stroke-opacity="0.45"/>
+            <path d="M 12 12 C 12.6 11.4 13.5 11.9 13.4 12.8 C 13.2 14.1 11.5 14.6 10.4 13.9 C 8.9 13.0 8.8 10.7 10.1 9.5 C 11.8 8.0 14.6 8.5 15.8 10.5 C 17.2 12.9 16.1 16.2 13.5 17.2 C 10.4 18.4 6.8 16.6 5.9 13.4 C 4.9 9.6 7.5 5.6 11.4 4.9 C 15.8 4.1 20.0 7.4 20.5 11.9 C 21.0 16.8 17.2 21.2 12.2 21.5"/>
           </svg>
         </span>
         <span>Reset</span>
@@ -398,138 +478,181 @@
       </div>
       <!-- Fullscreen -->
       <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/></svg>
+        <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 overflow-hidden">
+          <svg class="w-full h-full" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="15" fill="rgba(15, 23, 42, 0.78)" stroke="rgba(71, 85, 105, 0.65)" stroke-width="1.6" />
+            <path d="M 1 16 A 15 15 0 0 1 31 16 Z" fill="rgba(8, 51, 68, 0.65)" />
+            <path d="M 1 16 A 15 15 0 0 1 31 16" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" />
+            <circle cx="16" cy="16" r="4.6" fill="#293548" />
+          </svg>
         </span>
         <span>Fullscreen</span>
       </div>
     </div>
   </aside>
 
-<!-- Bottom-Docked NASA Eyes Command Pill with Integrated Tier Selector -->
-  <footer id="bottom-hud" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-20 bg-slate-950/45 border border-white/10 px-4 py-2 rounded-full backdrop-blur-xl flex items-center space-x-4 pointer-events-auto shadow-[0_10px_35px_rgba(0,0,0,0.65)] transition-all duration-300">
-    <div class="flex items-center space-x-3">
-      <span class="text-[10px] font-mono uppercase tracking-widest text-slate-400 whitespace-nowrap hidden sm:inline">Scale</span>
-      <input id="scale-slider" type="range" min="1.0" max="4.0" step="0.01" value="1.0" class="w-28 sm:w-32 accent-cyan-400 cursor-pointer" />
-
-      <!-- Sol System Core Reset Radar Button matching Screenshot 1 -->
-                  <button onclick="resetToSolCore()" title="Return to Sun (Sol Core)" class="w-7 h-7 rounded-full bg-cyan-950/50 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center text-cyan-300 transition transform hover:scale-110 shadow-[0_0_10px_rgba(34,211,238,0.3)] shrink-0 cursor-pointer">
-        <svg class="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-          <!-- Sweeping radar sector (cone) -->
-          <path d="M12 12L5.2 18.8A9.5 9.5 0 0 1 2.5 12H12Z" fill="currentColor" fill-opacity="0.35" stroke="none"/>
-          <!-- Concentric radar rings -->
-          <circle cx="12" cy="12" r="9.5" opacity="0.8"/>
-          <circle cx="12" cy="12" r="6.2" opacity="0.6"/>
-          <circle cx="12" cy="12" r="3" opacity="0.5"/>
-          <!-- Orthogonal crosshairs -->
-          <line x1="12" y1="1.5" x2="12" y2="22.5" opacity="0.8"/>
-          <line x1="1.5" y1="12" x2="22.5" y2="12" opacity="0.8"/>
-          <!-- Target pips along the rings -->
-          <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/>
-          <circle cx="7.2" cy="16.8" r="1.2" fill="currentColor"/>
-          <circle cx="15.8" cy="15.8" r="1.0" fill="currentColor"/>
+<!-- Bottom-Docked Minimalist NASA Eyes Command Pill -->
+  <footer id="bottom-hud" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-20 bg-slate-950/45 border border-white/10 px-4 py-2 rounded-full backdrop-blur-xl grid grid-cols-[1fr_auto_1fr] items-center gap-4 pointer-events-auto shadow-[0_10px_35px_rgba(0,0,0,0.65)] transition-all duration-300">
+    <!-- Left Section: Relocated Reset Button & Textless Minimalist Zoom Slider -->
+    <div id="hud-left-controls" class="justify-self-start flex items-center space-x-2.5">
+      <!-- Sol System Core Reset Full-Circle Spiral Button -->
+      <button id="btn-reset-sol" onclick="resetToSolCore()" title="Return to Sun (Sol Core)" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shadow-[0_0_10px_rgba(34,211,238,0.3)] shrink-0 cursor-pointer overflow-hidden p-0">
+        <svg id="reset-spiral-svg" class="w-full h-full p-[1.5px] text-cyan-300 transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10.6" stroke-width="1.15" stroke-opacity="0.45" />
+          <path id="reset-spiral-base" pathLength="100" stroke-width="1.65" d="M 12 12 C 12.6 11.4 13.5 11.9 13.4 12.8 C 13.2 14.1 11.5 14.6 10.4 13.9 C 8.9 13.0 8.8 10.7 10.1 9.5 C 11.8 8.0 14.6 8.5 15.8 10.5 C 17.2 12.9 16.1 16.2 13.5 17.2 C 10.4 18.4 6.8 16.6 5.9 13.4 C 4.9 9.6 7.5 5.6 11.4 4.9 C 15.8 4.1 20.0 7.4 20.5 11.9 C 21.0 16.8 17.2 21.2 12.2 21.5" />
+          <circle cx="12" cy="12" r="1.25" fill="currentColor" stroke="none" />
         </svg>
       </button>
 
-      <!-- Cosmic Web Filament Button (True 8-Spoke Scalloped Spider-Web with Electric Pulses) -->
-      <button id="btn-cosmic-web" onclick="toggleCosmicWeb()" title="Toggle Cosmic Web Filaments"
-        class="relative w-7 h-7 rounded-full bg-cyan-950/50 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(34,211,238,0.3)] shrink-0">
-        <svg id="cosmic-web-svg" class="w-6 h-6 text-cyan-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-          <!-- 8 Radial Spokes extending to tips -->
-          <g stroke-width="1.15" stroke-opacity="0.85">
-            <path d="M12 1.2v21.6M1.2 12h21.6M4.4 4.4l15.2 15.2M4.4 19.6L19.6 4.4"/>
-          </g>
-          <!-- 3 Concentric Scalloped Web Rings (Dipping inward between all 8 spokes) -->
-          <g stroke-width="1.0" stroke-opacity="0.75">
-            <!-- Outer Scalloped Ring -->
-            <path d="M12 2.5 Q14.3 5.7 18.7 5.3 Q18.3 9.7 21.5 12 Q18.3 14.3 18.7 18.7 Q14.3 18.3 12 21.5 Q9.7 18.3 5.3 18.7 Q5.7 14.3 2.5 12 Q5.7 9.7 5.3 5.3 Q9.7 5.7 12 2.5Z"/>
-            <!-- Middle Scalloped Ring -->
-            <path d="M12 5.6 Q13.5 7.8 16.5 7.5 Q16.2 10.5 18.4 12 Q16.2 13.5 16.5 16.5 Q13.5 16.2 12 18.4 Q10.5 16.2 7.5 16.5 Q7.8 13.5 5.6 12 Q7.8 10.5 7.5 7.5 Q10.5 7.8 12 5.6Z"/>
-            <!-- Inner Scalloped Ring -->
-            <path d="M12 8.6 Q12.8 9.8 14.4 9.6 Q14.2 11.2 15.4 12 Q14.2 12.8 14.4 14.4 Q12.8 14.2 12 15.4 Q11.2 14.2 9.6 14.4 Q9.8 12.8 8.6 12 Q9.8 11.2 9.6 9.6 Q11.2 9.8 12 8.6Z"/>
-          </g>
-          <!-- Active Electric Surge Pulses traveling along the web -->
-          <g id="web-electric-pulse" stroke="#ffffff" stroke-width="1.4" class="drop-shadow-[0_0_6px_#f0abfc]">
-            <path d="M12 1.2v21.6M4.4 4.4l15.2 15.2" stroke-dasharray="4 10">
-              <animate attributeName="stroke-dashoffset" values="28;0" dur="0.9s" repeatCount="indefinite"/>
-            </path>
-            <path d="M12 5.6 Q13.5 7.8 16.5 7.5 Q16.2 10.5 18.4 12 Q16.2 13.5 16.5 16.5 Q13.5 16.2 12 18.4 Q10.5 16.2 7.5 16.5 Q7.8 13.5 5.6 12 Q7.8 10.5 7.5 7.5 Q10.5 7.8 12 5.6Z" stroke="#f0abfc" stroke-dasharray="5 12">
-              <animate attributeName="stroke-dashoffset" values="0;34" dur="1.1s" repeatCount="indefinite"/>
-            </path>
-          </g>
-        </svg>
-      </button>
+      <!-- Textless Minimalist Visual Zoom Slider (Left-to-Right = Zoom In, Right-to-Left = Zoom Out; circle icons unchanged) -->
+      <div class="flex items-center space-x-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-cyan-300/75 shadow-[0_0_4px_rgba(34,211,238,0.6)] shrink-0" aria-hidden="true"></span>
+        <input id="scale-slider" type="range" min="1.0" max="4.0" step="0.01" value="3.70" aria-label="Cosmic Zoom" class="w-28 sm:w-32 accent-cyan-400 cursor-pointer" />
+        <span class="w-2.5 h-2.5 rounded-full border border-cyan-300/80 bg-cyan-400/25 shadow-[0_0_6px_rgba(34,211,238,0.5)] shrink-0" aria-hidden="true"></span>
+      </div>
+    </div>
 
-      <!-- Pause/Resume Orbital Motion Button (Uniform w-6 h-6) -->
-      <button id="btn-orbits" onclick="toggleOrbitPause()" title="Toggle Orbital Motion" class="relative w-8 h-8 rounded-full bg-emerald-950/50 border border-emerald-500/40 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(16,185,129,0.3)] shrink-0">
-        <svg id="orbit-spinner-svg" class="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none">
-          <!-- Counter-clockwise arc from 1:30 (45 deg top-right) around to 4:30 (45 deg bottom-right) -->
-          <path d="M 18.36 5.64 A 9 9 0 1 0 18.36 18.36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-          <!-- Crisp, stroke-free triangular arrowhead tilted at the exact 45-degree counter-clockwise tangent -->
-          <polygon points="21.2,14.2 14.5,16.5 19.5,21.5" fill="currentColor" />
-        </svg>
-        <span id="orbit-core-dot" class="absolute w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]"></span>
-      </button>
-
-      <!-- Guided Cosmic Tour Button (Play-Orbit Hybrid Icon) -->
-      <button id="btn-cosmic-tour" onclick="toggleCosmicTour()" title="Start Tour" class="relative w-8 h-8 rounded-full bg-cyan-950/50 border border-cyan-500/50 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)] shrink-0">
+    <!-- Center Section: Dead-Centered Guided Cosmic Tour Button -->
+    <div id="hud-center-tour" class="justify-self-center flex items-center justify-center px-1">
+      <button id="btn-cosmic-tour" onclick="toggleCosmicTour()" title="Start Tour" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center cursor-pointer transition duration-300 transform hover:scale-110 shadow-[0_0_12px_rgba(6,182,212,0.35)] shrink-0">
         <span id="tour-ring-outer" class="hidden"></span>
-        <svg id="tour-compass-svg" class="w-4 h-4 text-cyan-400 transition-transform duration-500" viewBox="0 0 24 24" fill="none">
+        <svg id="tour-compass-svg" class="w-4 h-4 text-cyan-300 transition-transform duration-500" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2.5" opacity="0.75" />
           <polygon points="10,7.8 17.2,12 10,16.2" fill="currentColor" />
         </svg>
       </button>
     </div>
 
-    <!-- Minimalist No-Text SVG Tier Orb Selector & Far-Right View Controls -->
-    <div class="flex items-center space-x-3">
+    <!-- Right Section: Unified Toggle Group + Vertical Tier Menu + Fullscreen -->
+    <div id="hud-right-section" class="justify-self-end flex items-center space-x-2.5">
       <span id="odo-tier" class="hidden"></span><span id="odo-metric" class="hidden"></span><span id="odo-dist" class="hidden"></span>
 
-      <div id="bottom-tier-group" class="flex items-center space-x-1.5 pl-3 border-l border-white/15">
-        <!-- Tier 1: Solar System -->
-        <button id="btn-t1" onclick="filterTier(1)" title="Solar System" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-amber-400/60 flex items-center justify-center text-slate-400 hover:text-amber-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="7" stroke-dasharray="2 2"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg>
-        </button>
-
-        <!-- Tier 2: Stellar Neighborhood -->
-        <button id="btn-t2" onclick="filterTier(2)" title="Stellar Neighborhood" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-amber-400/60 flex items-center justify-center text-slate-400 hover:text-amber-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z"/></svg>
-        </button>
-
-        <!-- Tier 3: Galaxies -->
-        <button id="btn-t3" onclick="filterTier(3)" title="Galaxies" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-amber-400/60 flex items-center justify-center text-slate-400 hover:text-amber-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="9" ry="4.2" transform="rotate(-28 12 12)"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg>
-        </button>
-
-        <!-- Tier 4: Deep Cosmic Web -->
-        <button id="btn-t4" onclick="filterTier(4)" title="Deep Cosmic Web" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-amber-400/60 flex items-center justify-center text-slate-400 hover:text-amber-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12,3 20,8 20,16 12,21 4,16 4,8"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="4" y1="8" x2="20" y2="16"/></svg>
-        </button>
-
-        <!-- Tier 0: All Tiers -->
-        <button id="btn-t0" onclick="filterTier(0)" title="All Tiers" class="w-8 h-8 rounded-full bg-amber-950/60 border border-amber-400/70 hover:border-amber-300 flex items-center justify-center text-amber-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(251,191,36,0.3)]">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
-        </button>
-      </div>
-
-      <!-- Persistent Sidebar Toggle (|||), Labels Toggle & Fullscreen / Standard Mode Buttons -->
-      <div id="hud-right-controls" class="flex items-center space-x-2 pl-2 border-l border-white/15">
-        <button id="btn-toggle-sidebar" onclick="toggleSidebarVisibility(event)" title="Toggle Overview Sidebar" class="w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
-          <svg id="sidebar-toggle-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 5v14M12 5v14M16 5v14" />
+      <!-- Grouped & Unified Toggles: Filament, Orbits, Labels, Sidebar -->
+      <div id="hud-toggle-group" class="flex items-center space-x-1.5">
+        <!-- Cosmic Web Filament Toggle -->
+        <button id="btn-cosmic-web" onclick="toggleCosmicWeb()" title="Toggle Cosmic Web Filaments"
+          class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
+          <svg id="cosmic-web-svg" class="w-5 h-5 text-cyan-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <g stroke-width="1.15" stroke-opacity="0.85">
+              <path d="M12 1.2v21.6M1.2 12h21.6M4.4 4.4l15.2 15.2M4.4 19.6L19.6 4.4"/>
+            </g>
+            <g stroke-width="1.0" stroke-opacity="0.75">
+              <path d="M12 2.5 Q14.3 5.7 18.7 5.3 Q18.3 9.7 21.5 12 Q18.3 14.3 18.7 18.7 Q14.3 18.3 12 21.5 Q9.7 18.3 5.3 18.7 Q5.7 14.3 2.5 12 Q5.7 9.7 5.3 5.3 Q9.7 5.7 12 2.5Z"/>
+              <path d="M12 5.6 Q13.5 7.8 16.5 7.5 Q16.2 10.5 18.4 12 Q16.2 13.5 16.5 16.5 Q13.5 16.2 12 18.4 Q10.5 16.2 7.5 16.5 Q7.8 13.5 5.6 12 Q7.8 10.5 7.5 7.5 Q10.5 7.8 12 5.6Z"/>
+              <path d="M12 8.6 Q12.8 9.8 14.4 9.6 Q14.2 11.2 15.4 12 Q14.2 12.8 14.4 14.4 Q12.8 14.2 12 15.4 Q11.2 14.2 9.6 14.4 Q9.8 12.8 8.6 12 Q9.8 11.2 9.6 9.6 Q11.2 9.8 12 8.6Z"/>
+            </g>
+            <g id="web-electric-pulse" stroke="#ffffff" stroke-width="1.4" class="drop-shadow-[0_0_6px_#f0abfc]">
+              <path d="M12 1.2v21.6M4.4 4.4l15.2 15.2" stroke-dasharray="4 10">
+                <animate attributeName="stroke-dashoffset" values="28;0" dur="0.9s" repeatCount="indefinite"/>
+              </path>
+              <path d="M12 5.6 Q13.5 7.8 16.5 7.5 Q16.2 10.5 18.4 12 Q16.2 13.5 16.5 16.5 Q13.5 16.2 12 18.4 Q10.5 16.2 7.5 16.5 Q7.8 13.5 5.6 12 Q7.8 10.5 7.5 7.5 Q10.5 7.8 12 5.6Z" stroke="#f0abfc" stroke-dasharray="5 12">
+                <animate attributeName="stroke-dashoffset" values="0;34" dur="1.1s" repeatCount="indefinite"/>
+              </path>
+            </g>
           </svg>
         </button>
 
-        <button id="btn-toggle-labels" onclick="toggleLabels(event)" title="Toggle Celestial Labels" class="w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
+        <!-- Orbits Toggle -->
+        <button id="btn-orbits" onclick="toggleOrbitPause()" title="Toggle Orbital Motion"
+          class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
+          <svg id="orbit-spinner-svg" class="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none">
+            <path d="M 18.36 5.64 A 9 9 0 1 0 18.36 18.36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+            <polygon points="21.2,14.2 14.5,16.5 19.5,21.5" fill="currentColor" />
+          </svg>
+          <span id="orbit-core-dot" class="absolute w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-[0_0_6px_#22d3ee]"></span>
+        </button>
+
+        <!-- Labels Toggle -->
+        <button id="btn-toggle-labels" onclick="toggleLabels(event)" title="Toggle Celestial Labels"
+          class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
           <svg id="labels-toggle-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
             <circle cx="7" cy="7" r="1.6" fill="currentColor" stroke="none" />
           </svg>
         </button>
 
-        <button id="btn-fullscreen-zen" onclick="toggleFullscreenZen()" title="Enter Fullscreen Mode" class="w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
-          <svg id="fullscreen-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
+        <!-- Overview Sidebar Toggle (Functionally Independent from Main Sidebar Tab) -->
+        <button id="btn-toggle-sidebar" onclick="toggleSidebarVisibility(event)" title="Toggle Overview Sidebar"
+          class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
+          <svg id="sidebar-toggle-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 5v14M12 5v14M16 5v14" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Vertical Tier Menu Trigger ("All Tiers") + Vertical Pop-up Row Above + Fullscreen -->
+      <div id="hud-right-controls" class="flex items-center space-x-1.5 pl-2.5 border-l border-white/15">
+        <div id="bottom-tier-group" class="relative flex items-center">
+          <!-- Vertical Pop-up Menu containing the 4 Tier Levels with Original Geometric Icons -->
+          <div id="tier-vertical-menu" class="tier-menu-closed absolute bottom-full left-1/2 mb-3 flex flex-col-reverse items-center gap-2 p-1.5 rounded-full bg-slate-950/85 border border-white/15 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.75)] z-30">
+            <!-- Tier 1: Solar System -->
+            <button id="btn-t1" onclick="selectTierFromMenu(1, event)" title="Solar System" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="7" stroke-dasharray="2 2"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg>
+            </button>
+
+            <!-- Tier 2: Stellar Neighborhood -->
+            <button id="btn-t2" onclick="selectTierFromMenu(2, event)" title="Stellar Neighborhood" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z"/></svg>
+            </button>
+
+            <!-- Tier 3: Galaxies -->
+            <button id="btn-t3" onclick="selectTierFromMenu(3, event)" title="Galaxies" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="9" ry="4.2" transform="rotate(-28 12 12)"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg>
+            </button>
+
+            <!-- Tier 4: Deep Cosmic Web -->
+            <button id="btn-t4" onclick="selectTierFromMenu(4, event)" title="Deep Cosmic Web" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12,3 20,8 20,16 12,21 4,16 4,8"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="4" y1="8" x2="20" y2="16"/></svg>
+            </button>
+          </div>
+
+          <!-- Minimalist "All Tiers" Button Matching Application Control Buttons -->
+          <button id="btn-t0" onclick="toggleTierMenu(event)" title="All Tiers" aria-expanded="false" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <circle cx="12" cy="12" r="5" />
+              <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Fullscreen Button: Bounding Circle Cut in Half Horizontally When Inactive, Animating to Full Circle When Active (No Extra Inner Ring) -->
+        <button id="btn-fullscreen-zen" onclick="toggleFullscreenZen()" title="Enter Fullscreen Mode" class="relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
+          <svg id="fullscreen-icon" class="w-full h-full overflow-visible" viewBox="0 0 32 32" fill="none">
+            <defs>
+              <clipPath id="fs-btn-half-clip">
+                <rect id="fullscreen-bg-clip-rect" x="0" y="0" width="32" height="16" style="transition: height 550ms cubic-bezier(0.22, 1, 0.36, 1);" />
+              </clipPath>
+            </defs>
+            <!-- Lower/Base Muted Slate Bounding Circle -->
+            <circle cx="16" cy="16" r="15.2" fill="rgba(15, 23, 42, 0.78)" stroke="rgba(71, 85, 105, 0.65)" stroke-width="1.4" />
+            <!-- Active Cyan Interior Tint (Top Half when Inactive -> Full Circle when Active) -->
+            <circle cx="16" cy="16" r="15.2" fill="rgba(8, 51, 68, 0.65)" clip-path="url(#fs-btn-half-clip)" />
+            <!-- Button Bounding Circle Stroke (Cut in Half Horizontally when Inactive -> Smoothly Animates to Full Circle when Active) -->
+            <circle
+              id="fullscreen-outer-ring"
+              cx="16"
+              cy="16"
+              r="15.2"
+              fill="none"
+              stroke="#22d3ee"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              transform="rotate(90 16 16)"
+              pathLength="100"
+              stroke-dasharray="50 100"
+              stroke-dashoffset="-25"
+              style="transition: stroke-dasharray 550ms cubic-bezier(0.22, 1, 0.36, 1), stroke-dashoffset 550ms cubic-bezier(0.22, 1, 0.36, 1);"
+            />
+            <!-- Single Solid Center Circle -->
+            <circle
+              id="fullscreen-inner-dot"
+              cx="16"
+              cy="16"
+              r="4.6"
+              fill="#293548"
+              style="transition: fill 550ms cubic-bezier(0.22, 1, 0.36, 1);"
+            />
           </svg>
         </button>
       </div>
@@ -781,7 +904,19 @@
       scene.add(celestialSkyboxGroup);
     }
 
+    let resetAnimTimeout = null;
     window.resetToSolCore = function() {
+      const resetBtn = document.getElementById("btn-reset-sol");
+      if (resetBtn) {
+        resetBtn.classList.remove("reset-animating");
+        void resetBtn.offsetWidth;
+        resetBtn.classList.add("reset-animating");
+        if (resetAnimTimeout) clearTimeout(resetAnimTimeout);
+        resetAnimTimeout = setTimeout(() => {
+          resetBtn.classList.remove("reset-animating");
+        }, 2050);
+      }
+
       filterTier(0);
       setTimeout(applyCharacteristicTexturesToScene, 200);
       setTimeout(applyCharacteristicTexturesToScene, 1000);
@@ -800,8 +935,11 @@
         .easing(TWEEN.Easing.Cubic.InOut)
         .start();
 
-      scaleSlider.value = "1.0";
+      scaleSlider.value = "3.70";
     };
+
+    const UNIFIED_TOGGLE_ACTIVE_CLASS = "relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]";
+    const UNIFIED_TOGGLE_INACTIVE_CLASS = "relative w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-400 hover:text-slate-200 opacity-60 transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-lg";
 
     window.toggleCosmicWeb = function() {
       isCosmicWebVisible = !isCosmicWebVisible;
@@ -810,12 +948,12 @@
       const pulse = document.getElementById("web-electric-pulse");
 
       if (isCosmicWebVisible) {
-        if (btn) btn.className = "relative w-8 h-8 rounded-full bg-cyan-950/50 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(34,211,238,0.3)] shrink-0";
-        if (svg) svg.className.baseVal = "w-6 h-6 text-cyan-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]";
+        if (btn) btn.className = UNIFIED_TOGGLE_ACTIVE_CLASS;
+        if (svg) svg.className.baseVal = "w-5 h-5 text-cyan-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]";
         if (pulse) pulse.classList.remove("hidden");
       } else {
-        if (btn) btn.className = "relative w-8 h-8 rounded-full bg-slate-900/60 border border-fuchsia-500/25 flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 opacity-50 shrink-0";
-        if (svg) svg.className.baseVal = "w-6 h-6 text-fuchsia-400/50 transition-all duration-300";
+        if (btn) btn.className = UNIFIED_TOGGLE_INACTIVE_CLASS;
+        if (svg) svg.className.baseVal = "w-5 h-5 text-slate-400 transition-all duration-300";
         if (pulse) pulse.classList.add("hidden");
       }
 
@@ -846,17 +984,15 @@
       const dot = document.getElementById("orbit-core-dot");
       if (btn && svg && dot) {
         if (!isOrbitPaused) {
-          btn.className = "relative w-8 h-8 rounded-full bg-emerald-950/50 border border-emerald-500/40 " +
-            "flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 shadow-[0_0_10px_rgba(16,185,129,0.3)] shrink-0";
-          svg.classList.remove("orbit-paused", "text-cyan-300/50", "text-amber-400/70");
+          btn.className = UNIFIED_TOGGLE_ACTIVE_CLASS;
+          svg.classList.remove("orbit-paused", "text-cyan-300/50", "text-amber-400/70", "text-slate-400");
           svg.classList.add("text-cyan-300");
-          dot.className = "absolute w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] transition-all duration-300";
+          dot.className = "absolute w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-[0_0_6px_#22d3ee] transition-all duration-300";
         } else {
-          btn.className = "relative w-8 h-8 rounded-full bg-slate-900/60 border border-emerald-500/25 " +
-            "flex items-center justify-center cursor-pointer transition duration-300 hover:scale-110 opacity-50 shrink-0";
+          btn.className = UNIFIED_TOGGLE_INACTIVE_CLASS;
           svg.classList.remove("text-cyan-300", "text-amber-400/70");
-          svg.classList.add("orbit-paused", "text-cyan-300/50");
-          dot.className = "absolute w-1.5 h-1.5 rounded-full bg-cyan-400/60 transition-all duration-300";
+          svg.classList.add("orbit-paused", "text-slate-400");
+          dot.className = "absolute w-1.5 h-1.5 rounded-full bg-slate-400 transition-all duration-300";
         }
       }
     };
@@ -864,6 +1000,7 @@
 
     let isZenMode = false;
     let isSidebarUserHidden = false;
+    let isOverviewToggleActive = true;
 
     window.toggleLabels = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
@@ -876,10 +1013,10 @@
       if (btn) {
         if (areLabelsVisible) {
           btn.title = "Toggle Celestial Name Labels On / Off";
-          btn.className = "w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg";
+          btn.className = UNIFIED_TOGGLE_ACTIVE_CLASS;
         } else {
           btn.title = "Show Celestial Name Labels";
-          btn.className = "w-8 h-8 rounded-full bg-slate-900/60 border border-slate-800/80 hover:border-slate-600 flex items-center justify-center text-slate-500 hover:text-slate-300 opacity-50 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg";
+          btn.className = UNIFIED_TOGGLE_INACTIVE_CLASS;
         }
       }
     };
@@ -923,28 +1060,22 @@
       const edgeTab = document.getElementById("inspector-edge-tab");
       const mapKeySummon = document.getElementById("map-key-summon-btn");
       const mapKeyDrawer = document.getElementById("map-key-drawer");
-      const sidebarBtn = document.getElementById("btn-toggle-sidebar");
       if (!inspector) return;
 
       const isVisible = !inspector.classList.contains("translate-x-[430px]");
       const inFullscreen = isZenMode || !!document.fullscreenElement;
 
-      if (sidebarBtn) {
-        if (isVisible) {
-          sidebarBtn.title = "Hide Overview Sidebar";
-          sidebarBtn.className = "w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/70 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.3)]";
-        } else {
-          sidebarBtn.title = "Toggle Overview Sidebar On / Off";
-          sidebarBtn.className = "w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg";
-        }
-      }
-
       if (edgeTab) {
-        // Hide the right-edge summon tab whenever the sidebar is open OR when in Fullscreen/Zen mode
-        if (isVisible || inFullscreen) {
+        // The Overview Sidebar tab (#inspector-edge-tab) is always visible when the drawer is closed in Standard mode,
+        // and hidden by default with hover-reveal (.fullscreen-hover-tab) in Fullscreen mode.
+        if (isVisible) {
+          edgeTab.classList.remove("fullscreen-hover-tab");
           edgeTab.classList.add("translate-x-full", "opacity-0", "pointer-events-none");
-        } else {
+        } else if (inFullscreen) {
           edgeTab.classList.remove("translate-x-full", "opacity-0", "pointer-events-none");
+          edgeTab.classList.add("fullscreen-hover-tab");
+        } else {
+          edgeTab.classList.remove("translate-x-full", "opacity-0", "pointer-events-none", "fullscreen-hover-tab");
         }
       }
 
@@ -958,7 +1089,8 @@
       }
     }
 
-    window.toggleSidebarVisibility = function(e) {
+    // Main Sidebar Tab handler (right-edge tab & attached drawer tab): opens/closes the Overview drawer WITHOUT changing #btn-toggle-sidebar state
+    window.toggleSidebarDrawerTab = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
       const inspector = document.getElementById("inspector");
       if (!inspector) return;
@@ -981,13 +1113,53 @@
       updateSidebarToggleStyle();
     };
 
+    // Bottom-bar Overview Toggle Button handler: toggles the sidebar overview drawer on/off without hiding the Overview Sidebar tab itself
+    window.toggleSidebarVisibility = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      const sidebarBtn = document.getElementById("btn-toggle-sidebar");
+      const inspector = document.getElementById("inspector");
+      if (!inspector) return;
+
+      const currentlyHidden = inspector.classList.contains("translate-x-[430px]");
+      if (currentlyHidden) {
+        isOverviewToggleActive = true;
+        isSidebarUserHidden = false;
+        if (!activeTarget && !isTourActive && typeof celestialObjects !== "undefined" && celestialObjects.length > 0) {
+          const sunMesh = celestialObjects.find(m => m.userData && m.userData.id === "sun") || celestialObjects[0];
+          if (sunMesh) {
+            activeTargetMesh = sunMesh;
+            openInspector(sunMesh.userData);
+          }
+        } else {
+          inspector.classList.remove("translate-x-[430px]");
+        }
+      } else {
+        isOverviewToggleActive = false;
+        isSidebarUserHidden = true;
+        inspector.classList.add("translate-x-[430px]");
+      }
+
+      if (sidebarBtn) {
+        if (isOverviewToggleActive) {
+          sidebarBtn.title = "Toggle Overview Sidebar";
+          sidebarBtn.className = UNIFIED_TOGGLE_ACTIVE_CLASS;
+        } else {
+          sidebarBtn.title = "Show Overview Sidebar";
+          sidebarBtn.className = UNIFIED_TOGGLE_INACTIVE_CLASS;
+        }
+      }
+      updateSidebarToggleStyle();
+    };
+
     function applyZenUI(zen, keepSidebarForTour = false) {
       isZenMode = zen;
       const headerEl = document.querySelector("header");
       const odoGroup = document.getElementById("odometer-group");
       const inspector = document.getElementById("inspector");
       const bottomHud = document.getElementById("bottom-hud");
-      const icon = document.getElementById("fullscreen-icon");
+      const outerRing = document.getElementById("fullscreen-outer-ring");
+      const bgClipRect = document.getElementById("fullscreen-bg-clip-rect");
+      const innerDot = document.getElementById("fullscreen-inner-dot");
       const fsBtn = document.getElementById("btn-fullscreen-zen");
 
       if (zen) {
@@ -997,29 +1169,43 @@
           inspector.classList.add("translate-x-[430px]");
         }
         if (bottomHud) {
-          bottomHud.classList.remove("left-4", "right-4", "justify-between");
-          bottomHud.classList.add("left-1/2", "-translate-x-1/2", "w-auto", "space-x-4");
+          bottomHud.classList.remove("left-4", "right-4", "justify-between", "space-x-4", "space-x-6");
+          bottomHud.classList.add("left-1/2", "-translate-x-1/2", "w-auto");
         }
-        if (icon) {
-          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M9 9L4 4m0 0v4m0-4h4m7 5l5-5m0 0v4m0-4h-4M9 15l-5 5m0 0v-4m0 4h4m7-5l5 5m0 0v-4m0 4h-4"/>';
+        if (outerRing) {
+          outerRing.setAttribute("stroke-dasharray", "100 100");
+          outerRing.setAttribute("stroke-dashoffset", "0");
+        }
+        if (bgClipRect) {
+          bgClipRect.setAttribute("height", "32");
+        }
+        if (innerDot) {
+          innerDot.setAttribute("fill", "#1cb5d8");
         }
         if (fsBtn) {
           fsBtn.title = "Return to Standard Mode";
-          fsBtn.className = "w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/70 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.3)]";
+          fsBtn.className = "relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-[0_0_12px_rgba(34,211,238,0.28)]";
         }
       } else {
         if (headerEl) headerEl.classList.remove("hidden");
         if (odoGroup) odoGroup.classList.remove("hidden");
         if (bottomHud) {
-          bottomHud.classList.add("left-1/2", "-translate-x-1/2", "space-x-6");
-          bottomHud.classList.remove("left-4", "right-4", "justify-between");
+          bottomHud.classList.add("left-1/2", "-translate-x-1/2");
+          bottomHud.classList.remove("left-4", "right-4", "justify-between", "space-x-4", "space-x-6");
         }
-        if (icon) {
-          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/>';
+        if (outerRing) {
+          outerRing.setAttribute("stroke-dasharray", "50 100");
+          outerRing.setAttribute("stroke-dashoffset", "-25");
+        }
+        if (bgClipRect) {
+          bgClipRect.setAttribute("height", "16");
+        }
+        if (innerDot) {
+          innerDot.setAttribute("fill", "#293548");
         }
         if (fsBtn) {
           fsBtn.title = "Enter Fullscreen Mode";
-          fsBtn.className = "w-8 h-8 rounded-full bg-slate-900 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg";
+          fsBtn.className = "relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0";
         }
       }
       updateSidebarToggleStyle();
@@ -4024,15 +4210,58 @@
         .start();
     };
 
+    let isTierMenuOpen = false;
+
+    function setTierMenuOpen(open) {
+      isTierMenuOpen = open;
+      const menu = document.getElementById("tier-vertical-menu");
+      const btn0 = document.getElementById("btn-t0");
+      if (!menu) return;
+      if (open) {
+        menu.classList.remove("tier-menu-closed", "hidden", "opacity-0", "translate-y-2", "pointer-events-none");
+        menu.classList.add("tier-menu-open");
+        if (btn0) btn0.setAttribute("aria-expanded", "true");
+      } else {
+        menu.classList.remove("tier-menu-open", "opacity-100", "translate-y-0", "pointer-events-auto");
+        menu.classList.add("tier-menu-closed");
+        if (btn0) btn0.setAttribute("aria-expanded", "false");
+      }
+    }
+
+    window.closeTierMenu = function() {
+      setTierMenuOpen(false);
+    };
+
+    window.toggleTierMenu = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      const nextOpen = !isTierMenuOpen;
+      setTierMenuOpen(nextOpen);
+      window.filterTier(0);
+    };
+
+    window.selectTierFromMenu = function(tier, e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      const nextTier = (manualTierLock === tier) ? 0 : tier;
+      window.filterTier(nextTier);
+    };
+
+    document.addEventListener("pointerdown", (e) => {
+      if (!isTierMenuOpen) return;
+      const group = document.getElementById("bottom-tier-group");
+      if (group && !group.contains(e.target)) {
+        setTierMenuOpen(false);
+      }
+    });
+
     window.filterTier = function(tier) {
       manualTierLock = tier;
       for (let i = 0; i <= 4; i++) {
         const btn = document.getElementById(`btn-t${i}`);
         if (!btn) continue;
-        if (i === tier) {
-          btn.className = "w-8 h-8 rounded-full bg-amber-950/60 border border-amber-400/70 hover:border-amber-300 flex items-center justify-center text-amber-300 hover:text-white transition transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(251,191,36,0.3)]";
+        if (i === tier || (i === 0 && isTierMenuOpen && tier === 0)) {
+          btn.className = UNIFIED_TOGGLE_ACTIVE_CLASS;
         } else {
-          btn.className = "w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-amber-400/60 flex items-center justify-center text-slate-400 hover:text-amber-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg";
+          btn.className = "relative w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-lg";
         }
       }
 
@@ -4068,9 +4297,9 @@
 
     function onScaleSliderInput(val) {
       isDraggingSlider = true;
-      const sliderVal = parseFloat(val); // 1.0 to 4.0
-      // Smooth continuous exponential (logarithmic) scale mapping
-      const t = (sliderVal - 1.0) / 3.0;
+      const sliderVal = parseFloat(val); // 1.0 (left: zoomed out) to 4.0 (right: zoomed in)
+      // Inverted exponential scale mapping: dragging left-to-right zooms in, right-to-left zooms out
+      const t = (4.0 - sliderVal) / 3.0;
       const targetDist = minZoomDist * Math.pow(maxZoomDist / minZoomDist, t);
 
       const diff = camera.position.clone().sub(controls.target);
@@ -4090,7 +4319,7 @@
       const currentDist = camera.position.distanceTo(controls.target);
       const clampedDist = Math.max(minZoomDist, Math.min(maxZoomDist, currentDist));
       const t = Math.log(clampedDist / minZoomDist) / Math.log(maxZoomDist / minZoomDist);
-      const sliderVal = 1.0 + t * 3.0;
+      const sliderVal = 4.0 - t * 3.0;
       slider.value = sliderVal.toFixed(3);
     }
 
@@ -4249,7 +4478,8 @@
       }
 
       if (!isUserDraggingSlider) {
-        scaleSlider.value = Math.min(4.0, Math.max(1.0, tVal)).toFixed(2);
+        const clampedT = Math.min(4.0, Math.max(1.0, tVal));
+        scaleSlider.value = (5.0 - clampedT).toFixed(2);
         updateOdometerReadout(camDist, tVal);
       }
 
@@ -5906,7 +6136,7 @@
         obj.userData._nasaTextured = true;
         texturedCount++;
       });
-      console.log(`[Universe Explorer] Applied 3D fBm & PBR materials to ${texturedCount} celestial bodies.`);
+      console.log(`[NOVA] Applied 3D fBm & PBR materials to ${texturedCount} celestial bodies.`);
       buildVolumetricCelestialStructures();
     }
 
