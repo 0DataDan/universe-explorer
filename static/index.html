@@ -7099,7 +7099,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       }
 
       // Pure monochrome starfield warp canvas (Zero color tints, pure white stars)
-      function runStarfieldWarp(cx, cy, duration = 5600) {
+      function runStarfieldWarp(cx, cy, duration = 6200) {
         const canvas = document.getElementById("nova-warp-canvas");
         if (!canvas) return null;
         const ctx = canvas.getContext("2d");
@@ -7127,7 +7127,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           const elapsed = now - startTime;
           const progress = Math.min(1.0, elapsed / duration);
           const decel = Math.pow(1.0 - progress, 2.8);
-          const speed = 1.8 + decel * 65;
+          const speed = 1.5 + decel * 58;
 
           ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
           ctx.fillRect(0, 0, w, h);
@@ -7177,6 +7177,133 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         };
       }
 
+      // Wave First, Followed 0.6s Later by Seamless Overlapping Tunnel Zoom
+      function runStaggeredRippleAndZoom(onTunnelCleared, onStartWarp) {
+        const svgEl = document.getElementById("nova-boot-svg");
+        const portalO = document.getElementById("nova-portal-o");
+
+        const pathIds = [
+          "nova-base-n",
+          "nova-svg-o-top",
+          "nova-svg-o-bot",
+          "nova-base-v",
+          "nova-base-a"
+        ];
+        const sampledPaths = [];
+
+        pathIds.forEach(id => {
+          const el = document.getElementById(id);
+          if (!el || typeof el.getTotalLength !== "function") return;
+          const totalLen = el.getTotalLength();
+          const numPts = Math.max(64, Math.ceil(totalLen / 1.5));
+          const pts = [];
+          for (let i = 0; i <= numPts; i++) {
+            const pt = el.getPointAtLength((i / numPts) * totalLen);
+            pts.push({ x: pt.x, y: pt.y });
+          }
+          sampledPaths.push({ el, pts });
+        });
+
+        const dotEl = document.getElementById("nova-base-a-dot");
+        const dotOrig = { cx: 657.5, cy: 71.5, r: 11.5 };
+
+        const originX = 278.0;
+        const originY = 72.5;
+
+        const waveDuration = 2200;  // Deliberate gravitational wave lifecycle
+        const zoomDelayMs = 600;    // Zoom begins 0.6s in, while letters are mid-wobble
+        const zoomDuration = 2400;  // Long, silky-smooth continuous glide
+        let warpStarted = false;
+        let tunnelCleared = false;
+        const startTime = performance.now();
+
+        function displaceVertex(px, py, tWave) {
+          const dx = px - originX;
+          const dy = py - originY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const nx = dist > 0.0001 ? dx / dist : 0;
+          const ny = dist > 0.0001 ? dy / dist : 0;
+
+          const waveSpeed = 420.0;
+          const waveFront = tWave * 1.5 * waveSpeed;
+          const distFromFront = dist - waveFront;
+
+          const packetWidth = 115.0;
+          const env = Math.exp(-(distFromFront * distFromFront) / (2.0 * packetWidth * packetWidth));
+          const timeEnvelope = Math.sin(Math.min(1.0, tWave) * Math.PI);
+          const activeEnv = env * timeEnvelope;
+
+          // Pronounced wobble / gravitational crest & trough
+          const radialWave = Math.sin((distFromFront / packetWidth) * Math.PI * 2.2);
+          const radialOffset = radialWave * 26.0 * activeEnv;
+          const verticalOffset = Math.cos((dist * 0.024) - (tWave * 7.0)) * 22.0 * activeEnv;
+
+          return {
+            x: px + nx * radialOffset,
+            y: py + ny * (radialOffset * 0.5) + verticalOffset,
+            scale: 1.0 + radialWave * 0.32 * activeEnv
+          };
+        }
+
+        function stepFrame(now) {
+          const elapsed = now - startTime;
+          const tWave = Math.min(1.0, elapsed / waveDuration);
+
+          // 1. Update wave wobble deformation
+          if (elapsed <= waveDuration + 100) {
+            sampledPaths.forEach(item => {
+              const pts = item.pts;
+              let dStr = "";
+              for (let i = 0; i < pts.length; i++) {
+                const p = displaceVertex(pts[i].x, pts[i].y, tWave);
+                dStr += (i === 0 ? "M " : " L ") + p.x.toFixed(2) + " " + p.y.toFixed(2);
+              }
+              item.el.setAttribute("d", dStr);
+            });
+
+            if (dotEl) {
+              const dp = displaceVertex(dotOrig.cx, dotOrig.cy, tWave);
+              dotEl.setAttribute("cx", dp.x.toFixed(2));
+              dotEl.setAttribute("cy", dp.y.toFixed(2));
+              dotEl.setAttribute("r", Math.max(4.0, dotOrig.r * dp.scale).toFixed(2));
+            }
+          }
+
+          // 2. Start exponential tunnel zoom 0.6 seconds in (mid-wobble), running concurrently with the wave
+          if (elapsed >= zoomDelayMs) {
+            const zoomElapsed = elapsed - zoomDelayMs;
+            const pZoom = Math.min(1.0, zoomElapsed / zoomDuration);
+            // Ultra-smooth cubic acceleration curve into the aperture
+            const expCurve = Math.pow(pZoom, 2.6);
+            const scale = 1.0 + expCurve * 135.0;
+            const opacity = pZoom < 0.78 ? 1.0 : Math.max(0.0, 1.0 - (pZoom - 0.78) / 0.22);
+
+            if (svgEl) {
+              svgEl.style.transform = `scale(${scale.toFixed(3)})`;
+              svgEl.style.opacity = opacity.toFixed(3);
+            }
+
+            const viewCenterX = window.innerWidth / 2;
+            const viewCenterY = window.innerHeight / 2;
+            if (!warpStarted && pZoom >= 0.22) {
+              warpStarted = true;
+              onStartWarp(viewCenterX, viewCenterY, 6200);
+            }
+
+            if (!tunnelCleared && pZoom >= 0.90) {
+              tunnelCleared = true;
+              onTunnelCleared();
+            }
+          }
+
+          if (elapsed < zoomDelayMs + zoomDuration) {
+            requestAnimationFrame(stepFrame);
+          }
+        }
+
+        requestAnimationFrame(stepFrame);
+      }
+
       let isWormholeRunning = false;
       function onPortalTriggerClick(e) {
         if (isWormholeRunning) return;
@@ -7195,25 +7322,17 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           arcs.forEach(arc => {
             arc.style.animation = "none";
             arc.style.stroke = "#ffffff";
-            arc.style.filter = "drop-shadow(0 0 14px rgba(255, 255, 255, 0.95))";
+            arc.style.filter = "drop-shadow(0 0 18px rgba(255, 255, 255, 0.98))";
           });
         }
 
-        // Lock transform-origin dead-center on the letter 'O' using precise SVG percentages (37.87% X, 50.35% Y)
         if (svgEl) {
           svgEl.style.transformOrigin = "37.87% 50.35%";
         }
         if (splashContainer) {
           splashContainer.style.transformOrigin = "37.87% 50.35%";
+          splashContainer.style.pointerEvents = "none";
         }
-
-        const viewCenterX = window.innerWidth / 2;
-        const viewCenterY = window.innerHeight / 2;
-
-        let zoomStart = performance.now();
-        let zoomDuration = 1500;
-        let warpStarted = false;
-        let stopWarp = null;
 
         // Prepare 3D Solar System destination state
         if (typeof filterTier === "function") filterTier(0);
@@ -7239,35 +7358,19 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           camera.updateProjectionMatrix();
         }
 
-        function stepTunnelZoom(now) {
-          const elapsed = now - zoomStart;
-          const p = Math.min(1.0, elapsed / zoomDuration);
-          const expCurve = Math.pow(p, 3.2);
-          const scale = 1.0 + expCurve * 120.0;
-          const opacity = p < 0.72 ? 1.0 : Math.max(0.0, 1.0 - (p - 0.72) / 0.28);
+        let stopWarp = null;
 
-          if (svgEl) {
-            svgEl.style.transform = `scale(${scale.toFixed(3)})`;
-            svgEl.style.opacity = opacity.toFixed(3);
-          }
-
-          if (!warpStarted && p >= 0.35) {
-            warpStarted = true;
-            stopWarp = runStarfieldWarp(viewCenterX, viewCenterY, 5600);
-          }
-
-          if (p < 1.0) {
-            requestAnimationFrame(stepTunnelZoom);
-          } else {
+        runStaggeredRippleAndZoom(
+          () => {
             if (typeof camera !== "undefined" && typeof TWEEN !== "undefined") {
               new TWEEN.Tween(camera.position)
-                .to({ x: 0, y: 54, z: 76.8 }, 1400)
+                .to({ x: 0, y: 54, z: 76.8 }, 1600)
                 .easing(TWEEN.Easing.Quadratic.In)
                 .start();
 
               setTimeout(() => {
                 new TWEEN.Tween(camera.position)
-                  .to({ x: 0, y: 22.5, z: 32 }, 4400)
+                  .to({ x: 0, y: 22.5, z: 32 }, 4800)
                   .easing(TWEEN.Easing.Cubic.Out)
                   .onComplete(() => {
                     if (typeof controls !== "undefined") {
@@ -7282,25 +7385,25 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
                 const fovState = { fov: 56 };
                 new TWEEN.Tween(fovState)
-                  .to({ fov: 50 }, 4400)
+                  .to({ fov: 50 }, 4800)
                   .easing(TWEEN.Easing.Cubic.Out)
                   .onUpdate(() => {
                     camera.fov = fovState.fov;
                     camera.updateProjectionMatrix();
                   })
                   .start();
-              }, 1400);
+              }, 1600);
             }
 
             if (overlay) {
               overlay.style.pointerEvents = "none";
-              overlay.style.transition = "opacity 1100ms ease-out";
+              overlay.style.transition = "opacity 1200ms ease-out";
               overlay.style.opacity = "0";
             }
             if (warpCanvas) {
               warpCanvas.style.pointerEvents = "none";
-              warpCanvas.style.transition = "opacity 1600ms ease-out";
-              setTimeout(() => { warpCanvas.style.opacity = "0"; }, 400);
+              warpCanvas.style.transition = "opacity 1800ms ease-out";
+              setTimeout(() => { warpCanvas.style.opacity = "0"; }, 500);
             }
 
             setTimeout(() => {
@@ -7315,7 +7418,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
               ];
               hudElements.forEach(el => {
                 if (el) {
-                  el.style.transition = "opacity 1200ms cubic-bezier(0.16, 1, 0.3, 1)";
+                  el.style.transition = "opacity 1400ms cubic-bezier(0.16, 1, 0.3, 1)";
                   el.style.opacity = "1";
                   el.style.visibility = "visible";
                 }
@@ -7323,7 +7426,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
               if (typeof updateSidebarToggleStyle === "function") {
                 updateSidebarToggleStyle();
               }
-            }, 3400);
+            }, 3800);
 
             setTimeout(() => {
               if (overlay) {
@@ -7353,11 +7456,12 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
               try {
                 localStorage.setItem("hasBootedSession", "true");
               } catch (e) {}
-            }, 5800);
+            }, 6200);
+          },
+          (cx, cy, duration) => {
+            stopWarp = runStarfieldWarp(cx, cy, duration);
           }
-        }
-
-        requestAnimationFrame(stepTunnelZoom);
+        );
       }
     })();
 </script>
