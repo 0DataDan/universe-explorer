@@ -374,13 +374,13 @@
       justify-content: center;
     }
     #nova-boot-svg {
-      width: 480px !important;
+      width: 520px !important;
       max-width: 85vw !important;
       height: auto !important;
       overflow: visible !important;
     }
 
-    /* Base Wordmark: Permanently locked to opacity: 1, completely immune to script hiding */
+    /* Base Wordmark: Statically rendered on initial frame, matching reference image 100% */
     #nova-base-wordmark {
       opacity: 1 !important;
       visibility: visible !important;
@@ -389,7 +389,7 @@
     .nova-base-vector {
       fill: none !important;
       stroke: #ffffff !important;
-      stroke-width: 10px !important;
+      stroke-width: 9.6px !important;
       stroke-linecap: round !important;
       stroke-linejoin: round !important;
       opacity: 1 !important;
@@ -401,42 +401,15 @@
       visibility: visible !important;
     }
 
-    /* Glow Trace Layer: Strictly isolated duplicate SVG overlay */
-    #nova-glow-layer {
-      pointer-events: none;
-      will-change: opacity;
-    }
-    .nova-glow-vector {
-      fill: none;
-      stroke: #ffffff;
-      stroke-width: 10.5px;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 16px rgba(255, 255, 255, 0.8));
-      opacity: 0;
-      will-change: stroke-dashoffset, opacity;
-    }
-
-    /* Glow Dot inside A: soft blooming illumination */
-    #nova-glow-a-dot {
-      fill: #ffffff;
-      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 1)) drop-shadow(0 0 22px rgba(255, 255, 255, 0.85));
-      opacity: 0;
-      will-change: opacity, transform;
-    }
-
     /* Portal 'O' Affordance: completely transparent center, breathing luminescent pulse on arcs */
     #nova-portal-o {
-      transform-origin: 280px 74px;
-      cursor: default;
+      transform-origin: 278px 72.5px;
+      cursor: pointer;
     }
     #nova-portal-glow {
       fill: transparent !important;
     }
-    #nova-portal-o.portal-ready {
-      cursor: pointer;
-    }
-    #nova-portal-o.portal-ready .nova-portal-arc {
+    #nova-portal-o .nova-portal-arc {
       animation: portal-arc-breathe 2.8s ease-in-out infinite alternate;
       transition: filter 350ms ease, stroke 350ms ease;
     }
@@ -451,7 +424,7 @@
       }
     }
     /* Hover state: smoothly intensify brightness and glow without filling center */
-    #nova-portal-o.portal-ready:hover .nova-portal-arc {
+    #nova-portal-o:hover .nova-portal-arc {
       animation: none !important;
       stroke: #ffffff !important;
       filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 28px rgba(255, 255, 255, 0.6)) !important;
@@ -479,46 +452,27 @@
     <!-- Centered Logo & Portal Container -->
     <div id="nova-boot-center-container" class="relative z-20 flex flex-col items-center justify-center will-change-transform">
       <div id="nova-boot-svg-wrapper" class="relative flex items-center justify-center will-change-transform">
-        <svg id="nova-boot-svg" viewBox="0 0 739 149" class="w-[320px] sm:w-[440px] md:w-[540px] h-auto overflow-visible select-none" xmlns="http://www.w3.org/2000/svg">
-          <!-- BASE LAYER: Static crisp wordmark rendered immediately on load (Zero FOUC) -->
+        <svg id="nova-boot-svg" viewBox="0 0 734 144" class="w-[320px] sm:w-[460px] md:w-[600px] lg:w-[720px] h-auto overflow-visible select-none" xmlns="http://www.w3.org/2000/svg">
+          <!-- BASE LAYER: Static crisp wordmark matching reference image 100% (Zero FOUC, No Startup Animation) -->
           <g id="nova-base-wordmark" style="opacity: 1 !important; visibility: visible !important;">
-            <!-- Letter N -->
-            <path id="nova-base-n" class="nova-base-vector" style="opacity: 1 !important; visibility: visible !important;" d="M 14 135 L 14 34 C 14 18, 22 12, 35 12 C 45 12, 52 18, 56 26 L 93 120 C 97 130, 108 136, 117 136 C 126 136, 135 128, 135 116 L 135 12" />
+            <!-- Letter N: Smooth, continuous rounded top-left arch and bottom-right U-turn curve with vertical stems -->
+            <path id="nova-base-n" class="nova-base-vector" d="M 12 132.5 L 12 39 C 12 22, 21 12.5, 34 12.5 C 46.5 12.5, 54 22, 56 35 L 89 110 C 91 123, 100 132.5, 112.5 132.5 C 125 132.5, 133 123, 133 109 L 133 12" />
 
-            <!-- Letter O: The Interactive Portal Trigger (Transparent center with breathing arcs) -->
-            <g id="nova-portal-o" style="opacity: 1 !important; visibility: visible !important;">
-              <circle id="nova-portal-glow" cx="280" cy="74" r="54" fill="transparent" />
+            <!-- Letter O: The Interactive Portal Trigger (Circular ring with symmetrical horizontal gaps) -->
+            <g id="nova-portal-o" class="portal-ready" style="opacity: 1 !important; visibility: visible !important;">
+              <circle id="nova-portal-glow" cx="278" cy="72.5" r="54" fill="transparent" />
               <!-- Top Arc -->
-              <path id="nova-svg-o-top" class="nova-base-vector nova-portal-arc" style="opacity: 1 !important; visibility: visible !important;" d="M 221 64 A 59 59 0 0 1 339 64" />
+              <path id="nova-svg-o-top" class="nova-base-vector nova-portal-arc" d="M 218.58 64.15 A 60 60 0 0 1 337.42 64.15" />
               <!-- Bottom Arc -->
-              <path id="nova-svg-o-bot" class="nova-base-vector nova-portal-arc" style="opacity: 1 !important; visibility: visible !important;" d="M 339 84 A 59 59 0 0 1 221 84" />
+              <path id="nova-svg-o-bot" class="nova-base-vector nova-portal-arc" d="M 337.42 80.85 A 60 60 0 0 1 218.58 80.85" />
             </g>
 
-            <!-- Letter V -->
-            <path id="nova-base-v" class="nova-base-vector" style="opacity: 1 !important; visibility: visible !important;" d="M 420.5 12 L 468 116 C 472 127, 484 127, 488 116 L 535.5 12" />
+            <!-- Letter V: Wide, symmetrical angled legs meeting in a smooth, rounded bottom vertex -->
+            <path id="nova-base-v" class="nova-base-vector" d="M 416.5 12 L 460 123 C 464 136, 488 136, 492 123 L 535.5 12" />
 
-            <!-- Letter A with Center Dot -->
-            <path id="nova-base-a" class="nova-base-vector" style="opacity: 1 !important; visibility: visible !important;" d="M 595 135 L 647 30 C 652 17, 666 17, 671 30 L 723 135" />
-            <circle id="nova-base-a-dot" cx="659" cy="74.5" r="11" style="opacity: 1 !important; visibility: visible !important;" />
-          </g>
-
-          <!-- GLOW TRACE LAYER: Duplicate paths with soft luminescent white glow that trace in sequence -->
-          <g id="nova-glow-layer" class="pointer-events-none" style="opacity: 1;">
-            <!-- Glow N -->
-            <path id="nova-glow-n" class="nova-glow-vector" style="opacity: 0; stroke-dasharray: 450 450; stroke-dashoffset: 450;" d="M 14 135 L 14 34 C 14 18, 22 12, 35 12 C 45 12, 52 18, 56 26 L 93 120 C 97 130, 108 136, 117 136 C 126 136, 135 128, 135 116 L 135 12" />
-
-            <!-- Glow O Top & Bottom -->
-            <path id="nova-glow-o-top" class="nova-glow-vector" style="opacity: 0; stroke-dasharray: 200 200; stroke-dashoffset: 200;" d="M 221 64 A 59 59 0 0 1 339 64" />
-            <path id="nova-glow-o-bot" class="nova-glow-vector" style="opacity: 0; stroke-dasharray: 200 200; stroke-dashoffset: 200;" d="M 339 84 A 59 59 0 0 1 221 84" />
-
-            <!-- Glow V -->
-            <path id="nova-glow-v" class="nova-glow-vector" style="opacity: 0; stroke-dasharray: 300 300; stroke-dashoffset: 300;" d="M 420.5 12 L 468 116 C 472 127, 484 127, 488 116 L 535.5 12" />
-
-            <!-- Glow A -->
-            <path id="nova-glow-a" class="nova-glow-vector" style="opacity: 0; stroke-dasharray: 300 300; stroke-dashoffset: 300;" d="M 595 135 L 647 30 C 652 17, 666 17, 671 30 L 723 135" />
-
-            <!-- Glow Dot inside A -->
-            <circle id="nova-glow-a-dot" cx="659" cy="74.5" r="11" class="nova-glow-dot" style="opacity: 0;" />
+            <!-- Letter A: Inverted-V outer arch with rounded peak and solid white circular dot -->
+            <path id="nova-base-a" class="nova-base-vector" d="M 593.5 132.5 L 634.5 29 C 640.5 10.5, 674.5 10.5, 680.5 29 L 721.5 132.5" />
+            <circle id="nova-base-a-dot" cx="657.5" cy="71.5" r="11.5" />
           </g>
         </svg>
       </div>
@@ -7128,10 +7082,10 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         return;
       }
 
-      // Cold Start Mode:
+      // Cold Start Mode: Render static NOVA wordmark immediately with zero flashing or delay
       document.documentElement.classList.add("is-booting");
 
-      // 1. Ensure primary static base layer is strictly locked and untouched
+      // 1. Primary static base layer is rendered immediately on the first frame
       const baseWordmark = document.getElementById("nova-base-wordmark");
       if (baseWordmark) {
         baseWordmark.style.opacity = "1";
@@ -7139,95 +7093,12 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         baseWordmark.style.display = "block";
       }
 
-      // 2. Prepare duplicate glow paths on overlay layer only
-      const glowN = document.getElementById("nova-glow-n");
-      const glowOTop = document.getElementById("nova-glow-o-top");
-      const glowOBot = document.getElementById("nova-glow-o-bot");
-      const glowV = document.getElementById("nova-glow-v");
-      const glowA = document.getElementById("nova-glow-a");
-      const glowDot = document.getElementById("nova-glow-a-dot");
-      const glowLayer = document.getElementById("nova-glow-layer");
-
-      const glowElements = [glowN, glowOTop, glowOBot, glowV, glowA].filter(Boolean);
-      glowElements.forEach(path => {
-        let len = 450;
-        try {
-          const m = Math.ceil(path.getTotalLength());
-          if (m && m > 0) len = m + 4;
-        } catch (e) {}
-        path.style.strokeDasharray = `${len} ${len}`;
-        path.style.strokeDashoffset = `${len}`;
-      });
-
-      // 3. Sequential Glow Trace Animation (N → O → V → A → Dot)
-      // Begins immediately on next paint frame with zero initial delay or flash
-      requestAnimationFrame(() => {
-        if (glowN) {
-          glowN.style.opacity = "1";
-          glowN.style.transition = "stroke-dashoffset 400ms cubic-bezier(0.4, 0, 0.2, 1)";
-          glowN.style.strokeDashoffset = "0";
-        }
-      });
-
-      // Step B: Letter O glow traces top and bottom arcs (360ms -> 740ms)
-      setTimeout(() => {
-        if (glowOTop) {
-          glowOTop.style.opacity = "1";
-          glowOTop.style.transition = "stroke-dashoffset 380ms cubic-bezier(0.4, 0, 0.2, 1)";
-          glowOTop.style.strokeDashoffset = "0";
-        }
-        if (glowOBot) {
-          glowOBot.style.opacity = "1";
-          glowOBot.style.transition = "stroke-dashoffset 380ms cubic-bezier(0.4, 0, 0.2, 1)";
-          glowOBot.style.strokeDashoffset = "0";
-        }
-      }, 360);
-
-      // Step C: Letter V glow traces (700ms -> 1080ms)
-      setTimeout(() => {
-        if (glowV) {
-          glowV.style.opacity = "1";
-          glowV.style.transition = "stroke-dashoffset 380ms cubic-bezier(0.4, 0, 0.2, 1)";
-          glowV.style.strokeDashoffset = "0";
-        }
-      }, 700);
-
-      // Step D: Letter A glow traces (1040ms -> 1440ms)
-      setTimeout(() => {
-        if (glowA) {
-          glowA.style.opacity = "1";
-          glowA.style.transition = "stroke-dashoffset 400ms cubic-bezier(0.4, 0, 0.2, 1)";
-          glowA.style.strokeDashoffset = "0";
-        }
-      }, 1040);
-
-      // Step E: Dot inside 'A' illuminates as final completion step (1440ms -> 1720ms)
-      setTimeout(() => {
-        if (glowDot) {
-          glowDot.style.transition = "opacity 260ms cubic-bezier(0.16, 1, 0.3, 1), transform 260ms cubic-bezier(0.16, 1, 0.3, 1)";
-          glowDot.style.opacity = "1";
-          glowDot.style.transform = "scale(1.25)";
-          glowDot.style.transformOrigin = "659px 74.5px";
-        }
-      }, 1440);
-
-      // 4. Return to Static State: Smoothly fade opacity of glowing duplicate overlay paths to 0 (1720ms -> 2160ms)
-      setTimeout(() => {
-        if (glowLayer) {
-          glowLayer.style.transition = "opacity 440ms ease-out";
-          glowLayer.style.opacity = "0";
-        }
-      }, 1720);
-
-      // 5. Preserve 'O' Interactivity: Activate idle breathing pulse and click affordance on letter O (2160ms)
-      setTimeout(() => {
-        if (glowLayer) glowLayer.style.display = "none";
-        const portalO = document.getElementById("nova-portal-o");
-        if (portalO) {
-          portalO.classList.add("portal-ready");
-          portalO.addEventListener("click", onPortalTriggerClick, { once: true });
-        }
-      }, 2160);
+      // 2. Letter 'O' is interactive immediately upon static load with breathing pulse and click handler
+      const portalO = document.getElementById("nova-portal-o");
+      if (portalO) {
+        portalO.classList.add("portal-ready");
+        portalO.addEventListener("click", onPortalTriggerClick, { once: true });
+      }
 
       // Forward-moving starfield/warp traversal animation on canvas with subtle, muted stars
       function runStarfieldWarp(cx, cy, duration = 2800) {
