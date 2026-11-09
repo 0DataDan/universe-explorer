@@ -8,6 +8,16 @@
   <title>NOVA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+  <script>
+    (function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const forceBoot = urlParams.has("boot") || urlParams.has("intro");
+      const hasBooted = !forceBoot && localStorage.getItem("hasBootedSession") === "true";
+      if (!hasBooted) {
+        document.documentElement.classList.add("is-booting");
+      }
+    })();
+  </script>
   <script type="importmap">
     {
       "imports": {
@@ -17,7 +27,7 @@
     }
   </script>
   <style>
-    body { margin: 0; overflow: hidden; background-color: #02040a; color: #f8fafc; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+    body { margin: 0; overflow: hidden; background-color: #000000; color: #f8fafc; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
     canvas { display: block; }
     @keyframes mycelial-spin {
       0% { transform: rotate(0deg) scale(1); }
@@ -257,7 +267,7 @@
       position: fixed;
       inset: 0;
       z-index: 10;
-      pointer-events: none;
+      pointer-events: none !important;
       overflow: hidden;
     }
     .celestial-label {
@@ -291,17 +301,237 @@
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.45), 0 1px 4px rgba(0, 0, 0, 0.98);
     }
 
+    /* ==========================================================================
+       Cinematic Boot Sequence & Wormhole Transition
+       ========================================================================== */
+    /* Header nav container must never block canvas mouse/trackpad events */
+    header#header-nav {
+      pointer-events: none !important;
+    }
+    #header-nova-pill {
+      pointer-events: auto !important;
+    }
+
+    html.is-booting header#header-nav,
+    html.is-booting #bottom-hud,
+    html.is-booting #inspector-edge-tab,
+    html.is-booting #map-key-summon-btn,
+    html.is-booting #map-key-drawer,
+    html.is-booting #celestial-labels-layer,
+    html.is-booting #odometer-group {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+    }
+
+    #nova-boot-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #000000;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #nova-boot-overlay.boot-completed,
+    #nova-boot-overlay.pointer-events-none,
+    html:not(.is-booting) #nova-boot-overlay {
+      display: none !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+    }
+
+    /* ==========================================================================
+       Cinematic Boot Sequence: Locked Static Base Wordmark & Isolated Glow Trace
+       ========================================================================== */
+    /* Container layout locked against layout shifts before external scripts run */
+    #nova-boot-center-container {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #nova-boot-center-container.boot-completed,
+    #nova-boot-center-container.pointer-events-none,
+    .boot-completed #nova-boot-center-container,
+    html:not(.is-booting) #nova-boot-center-container {
+      display: none !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+    }
+    #nova-boot-svg-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #nova-boot-svg {
+      width: 480px !important;
+      max-width: 85vw !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+
+    /* Base Wordmark: Permanently locked to opacity: 1, completely immune to script hiding */
+    #nova-base-wordmark {
+      opacity: 1 !important;
+      visibility: visible !important;
+      display: block !important;
+    }
+    .nova-base-vector {
+      fill: none !important;
+      stroke: #ffffff !important;
+      stroke-width: 10px !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+    #nova-base-a-dot {
+      fill: #ffffff !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+
+    /* Glow Trace Layer: Strictly isolated duplicate SVG overlay */
+    #nova-glow-layer {
+      pointer-events: none;
+      will-change: opacity;
+    }
+    .nova-glow-vector {
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 10.5px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 16px rgba(255, 255, 255, 0.8));
+      opacity: 0;
+      will-change: stroke-dashoffset, opacity;
+    }
+
+    /* Glow Dot inside A: soft blooming illumination */
+    #nova-glow-a-dot {
+      fill: #ffffff;
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 1)) drop-shadow(0 0 22px rgba(255, 255, 255, 0.85));
+      opacity: 0;
+      will-change: opacity, transform;
+    }
+
+    /* Portal 'O' Affordance: completely transparent center, breathing luminescent pulse on arcs */
+    #nova-portal-o {
+      transform-origin: 280px 74px;
+      cursor: default;
+    }
+    #nova-portal-glow {
+      fill: transparent !important;
+    }
+    #nova-portal-o.portal-ready {
+      cursor: pointer;
+    }
+    #nova-portal-o.portal-ready .nova-portal-arc {
+      animation: portal-arc-breathe 2.8s ease-in-out infinite alternate;
+      transition: filter 350ms ease, stroke 350ms ease;
+    }
+    @keyframes portal-arc-breathe {
+      0% {
+        filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.35));
+        stroke: rgba(255, 255, 255, 0.9);
+      }
+      100% {
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.75));
+        stroke: rgba(255, 255, 255, 1);
+      }
+    }
+    /* Hover state: smoothly intensify brightness and glow without filling center */
+    #nova-portal-o.portal-ready:hover .nova-portal-arc {
+      animation: none !important;
+      stroke: #ffffff !important;
+      filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 28px rgba(255, 255, 255, 0.6)) !important;
+    }
+
+    /* Starfield warp canvas */
+    #nova-warp-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
   </style>
 </head>
 <body class="relative w-screen h-screen overflow-hidden select-none">
+
+  <!-- Cinematic Boot Sequence & Wormhole Transition Overlay -->
+  <div id="nova-boot-overlay">
+    <!-- Forward-moving Starfield Traversal Canvas -->
+    <canvas id="nova-warp-canvas" class="pointer-events-none absolute inset-0 z-10 opacity-0"></canvas>
+
+    <!-- Centered Logo & Portal Container -->
+    <div id="nova-boot-center-container" class="relative z-20 flex flex-col items-center justify-center will-change-transform">
+      <div id="nova-boot-svg-wrapper" class="relative flex items-center justify-center will-change-transform">
+        <svg id="nova-boot-svg" viewBox="0 0 739 149" class="w-[320px] sm:w-[440px] md:w-[540px] h-auto overflow-visible select-none" xmlns="http://www.w3.org/2000/svg">
+          <!-- BASE LAYER: Static crisp wordmark rendered immediately on load (Zero FOUC) -->
+          <g id="nova-base-wordmark" style="opacity: 1 !important; visibility: visible !important;">
+            <!-- Letter N -->
+            <path id="nova-base-n" class="nova-base-vector" style="opacity: 1 !important; visibility: visible !important;" d="M 14 135 L 14 34 C 14 18, 22 12, 35 12 C 45 12, 52 18, 56 26 L 93 120 C 97 130, 108 136, 117 136 C 126 136, 135 128, 135 116 L 135 12" />
+
+            <!-- Letter O: The Interactive Portal Trigger (Transparent center with breathing arcs) -->
+            <g id="nova-portal-o" style="opacity: 1 !important; visibility: visible !important;">
+              <circle id="nova-portal-glow" cx="280" cy="74" r="54" fill="transparent" />
+              <!-- Top Arc -->
+              <path id="nova-svg-o-top" class="nova-base-vector nova-portal-arc" style="opacity: 1 !important; visibility: visible !important;" d="M 221 64 A 59 59 0 0 1 339 64" />
+              <!-- Bottom Arc -->
+              <path id="nova-svg-o-bot" class="nova-base-vector nova-portal-arc" style="opacity: 1 !important; visibility: visible !important;" d="M 339 84 A 59 59 0 0 1 221 84" />
+            </g>
+
+            <!-- Letter V -->
+            <path id="nova-base-v" class="nova-base-vector" style="opacity: 1 !important; visibility: visible !important;" d="M 420.5 12 L 468 116 C 472 127, 484 127, 488 116 L 535.5 12" />
+
+            <!-- Letter A with Center Dot -->
+            <path id="nova-base-a" class="nova-base-vector" style="opacity: 1 !important; visibility: visible !important;" d="M 595 135 L 647 30 C 652 17, 666 17, 671 30 L 723 135" />
+            <circle id="nova-base-a-dot" cx="659" cy="74.5" r="11" style="opacity: 1 !important; visibility: visible !important;" />
+          </g>
+
+          <!-- GLOW TRACE LAYER: Duplicate paths with soft luminescent white glow that trace in sequence -->
+          <g id="nova-glow-layer" class="pointer-events-none" style="opacity: 1;">
+            <!-- Glow N -->
+            <path id="nova-glow-n" class="nova-glow-vector" style="opacity: 0; stroke-dasharray: 450 450; stroke-dashoffset: 450;" d="M 14 135 L 14 34 C 14 18, 22 12, 35 12 C 45 12, 52 18, 56 26 L 93 120 C 97 130, 108 136, 117 136 C 126 136, 135 128, 135 116 L 135 12" />
+
+            <!-- Glow O Top & Bottom -->
+            <path id="nova-glow-o-top" class="nova-glow-vector" style="opacity: 0; stroke-dasharray: 200 200; stroke-dashoffset: 200;" d="M 221 64 A 59 59 0 0 1 339 64" />
+            <path id="nova-glow-o-bot" class="nova-glow-vector" style="opacity: 0; stroke-dasharray: 200 200; stroke-dashoffset: 200;" d="M 339 84 A 59 59 0 0 1 221 84" />
+
+            <!-- Glow V -->
+            <path id="nova-glow-v" class="nova-glow-vector" style="opacity: 0; stroke-dasharray: 300 300; stroke-dashoffset: 300;" d="M 420.5 12 L 468 116 C 472 127, 484 127, 488 116 L 535.5 12" />
+
+            <!-- Glow A -->
+            <path id="nova-glow-a" class="nova-glow-vector" style="opacity: 0; stroke-dasharray: 300 300; stroke-dashoffset: 300;" d="M 595 135 L 647 30 C 652 17, 666 17, 671 30 L 723 135" />
+
+            <!-- Glow Dot inside A -->
+            <circle id="nova-glow-a-dot" cx="659" cy="74.5" r="11" class="nova-glow-dot" style="opacity: 0;" />
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
 
   <!-- 3D-Tracked NASA Eyes Minimalist Celestial Name Labels Layer -->
   <div id="celestial-labels-layer" aria-hidden="true"></div>
 
   <!-- Top Navigation Header -->
-  <header class="fixed top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
-    <div onclick="resetToSolCore()" title="NOVA — Return to Sol Core" aria-label="NOVA" class="group pointer-events-auto cursor-pointer flex items-center px-3.5 py-2 rounded-full bg-slate-950/35 backdrop-blur-md border border-white/[0.07] hover:border-white/15 shadow-2xl transition-all duration-300">
-      <img src="./nova-logo.png" alt="NOVA" class="h-[15px] w-auto object-contain opacity-75 group-hover:opacity-95 transition-opacity duration-300 select-none" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
+  <header id="header-nav" class="fixed top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
+    <div id="header-nova-pill" onclick="handleHeaderLogoClick(event)" title="NOVA — Return to Sol Core (Shift+Click to Replay Boot Sequence)" aria-label="NOVA" class="group pointer-events-auto cursor-pointer flex items-center px-3.5 py-2 rounded-full bg-slate-950/35 backdrop-blur-md border border-white/[0.07] hover:border-white/15 shadow-2xl transition-all duration-300">
+      <img id="header-nova-logo" src="./nova-logo.png" alt="NOVA" class="h-[15px] w-auto object-contain opacity-75 group-hover:opacity-95 transition-opacity duration-300 select-none" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
       <span class="hidden text-slate-300/80 text-xs tracking-[0.28em] uppercase font-medium">NOVA</span>
     </div>
   </header>
@@ -803,6 +1033,7 @@
 
     function init() {
       scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x000000);
 
       camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.05, 95000);
       camera.position.set(0, 22.5, 32);
@@ -812,6 +1043,7 @@
         powerPreference: "high-performance",
         logarithmicDepthBuffer: true
       });
+      renderer.setClearColor(0x000000, 1.0);
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       document.body.appendChild(renderer.domElement);
@@ -3516,8 +3748,14 @@
             alpha = 0.0;
           }
         } else {
-          // Tier 2, 3, 4 primary objects: softly muted when camera is deep inside inner Solar System, crisp when zoomed out or approaching
-          alpha = camDist < 65 && distToCam > 130 ? 0.58 : 0.88;
+          // Tier 2, 3, 4 primary objects: completely hidden when camera is inside inner Solar System, softly fading in when zooming out to stellar/galactic tiers
+          if (camDist < 130) {
+            alpha = 0.0;
+          } else if (camDist < 360) {
+            alpha = entry.tier === 2 ? 0.85 : 0.0;
+          } else {
+            alpha = 0.88;
+          }
         }
 
         if (isFocusedOrHovered) {
@@ -6831,6 +7069,418 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           requestAnimationFrame(syncTabHeight);
           return res;
         };
+      }
+    })();
+
+    /* ==========================================================================
+       NOVA Cinematic Boot Sequence & Interactive Wormhole Transition Controller
+       ========================================================================== */
+    window.handleHeaderLogoClick = function(event) {
+      if (event && (event.shiftKey || event.altKey)) {
+        window.replayBootSequence();
+        return;
+      }
+      resetToSolCore();
+    };
+
+    window.replayBootSequence = function() {
+      try {
+        localStorage.removeItem("hasBootedSession");
+      } catch (e) {}
+      const url = new URL(window.location.href);
+      url.searchParams.set("boot", "1");
+      window.location.href = url.toString();
+    };
+
+    (function initNovaCinematicBoot() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const forceBoot = urlParams.has("boot") || urlParams.has("intro");
+      const hasBooted = !forceBoot && (localStorage.getItem("hasBootedSession") === "true");
+
+      const overlay = document.getElementById("nova-boot-overlay");
+      if (hasBooted) {
+        if (overlay) {
+          overlay.style.display = "none";
+          overlay.style.pointerEvents = "none";
+          overlay.classList.add("boot-completed");
+        }
+        const splashContainer = document.getElementById("nova-boot-center-container");
+        if (splashContainer) {
+          splashContainer.style.display = "none";
+          splashContainer.style.pointerEvents = "none";
+          splashContainer.classList.add("boot-completed");
+        }
+        const warpCanvas = document.getElementById("nova-warp-canvas");
+        if (warpCanvas) {
+          warpCanvas.style.display = "none";
+          warpCanvas.style.pointerEvents = "none";
+        }
+        document.documentElement.classList.remove("is-booting");
+        const headerLogo = document.getElementById("header-nova-logo");
+        if (headerLogo) headerLogo.style.opacity = "";
+        if (typeof controls !== "undefined" && controls) {
+          controls.enabled = true;
+          controls.enableRotate = true;
+          controls.enableZoom = true;
+          controls.enablePan = true;
+          controls.update();
+        }
+        return;
+      }
+
+      // Cold Start Mode:
+      document.documentElement.classList.add("is-booting");
+
+      // 1. Ensure primary static base layer is strictly locked and untouched
+      const baseWordmark = document.getElementById("nova-base-wordmark");
+      if (baseWordmark) {
+        baseWordmark.style.opacity = "1";
+        baseWordmark.style.visibility = "visible";
+        baseWordmark.style.display = "block";
+      }
+
+      // 2. Prepare duplicate glow paths on overlay layer only
+      const glowN = document.getElementById("nova-glow-n");
+      const glowOTop = document.getElementById("nova-glow-o-top");
+      const glowOBot = document.getElementById("nova-glow-o-bot");
+      const glowV = document.getElementById("nova-glow-v");
+      const glowA = document.getElementById("nova-glow-a");
+      const glowDot = document.getElementById("nova-glow-a-dot");
+      const glowLayer = document.getElementById("nova-glow-layer");
+
+      const glowElements = [glowN, glowOTop, glowOBot, glowV, glowA].filter(Boolean);
+      glowElements.forEach(path => {
+        let len = 450;
+        try {
+          const m = Math.ceil(path.getTotalLength());
+          if (m && m > 0) len = m + 4;
+        } catch (e) {}
+        path.style.strokeDasharray = `${len} ${len}`;
+        path.style.strokeDashoffset = `${len}`;
+      });
+
+      // 3. Sequential Glow Trace Animation (N → O → V → A → Dot)
+      // Begins immediately on next paint frame with zero initial delay or flash
+      requestAnimationFrame(() => {
+        if (glowN) {
+          glowN.style.opacity = "1";
+          glowN.style.transition = "stroke-dashoffset 400ms cubic-bezier(0.4, 0, 0.2, 1)";
+          glowN.style.strokeDashoffset = "0";
+        }
+      });
+
+      // Step B: Letter O glow traces top and bottom arcs (360ms -> 740ms)
+      setTimeout(() => {
+        if (glowOTop) {
+          glowOTop.style.opacity = "1";
+          glowOTop.style.transition = "stroke-dashoffset 380ms cubic-bezier(0.4, 0, 0.2, 1)";
+          glowOTop.style.strokeDashoffset = "0";
+        }
+        if (glowOBot) {
+          glowOBot.style.opacity = "1";
+          glowOBot.style.transition = "stroke-dashoffset 380ms cubic-bezier(0.4, 0, 0.2, 1)";
+          glowOBot.style.strokeDashoffset = "0";
+        }
+      }, 360);
+
+      // Step C: Letter V glow traces (700ms -> 1080ms)
+      setTimeout(() => {
+        if (glowV) {
+          glowV.style.opacity = "1";
+          glowV.style.transition = "stroke-dashoffset 380ms cubic-bezier(0.4, 0, 0.2, 1)";
+          glowV.style.strokeDashoffset = "0";
+        }
+      }, 700);
+
+      // Step D: Letter A glow traces (1040ms -> 1440ms)
+      setTimeout(() => {
+        if (glowA) {
+          glowA.style.opacity = "1";
+          glowA.style.transition = "stroke-dashoffset 400ms cubic-bezier(0.4, 0, 0.2, 1)";
+          glowA.style.strokeDashoffset = "0";
+        }
+      }, 1040);
+
+      // Step E: Dot inside 'A' illuminates as final completion step (1440ms -> 1720ms)
+      setTimeout(() => {
+        if (glowDot) {
+          glowDot.style.transition = "opacity 260ms cubic-bezier(0.16, 1, 0.3, 1), transform 260ms cubic-bezier(0.16, 1, 0.3, 1)";
+          glowDot.style.opacity = "1";
+          glowDot.style.transform = "scale(1.25)";
+          glowDot.style.transformOrigin = "659px 74.5px";
+        }
+      }, 1440);
+
+      // 4. Return to Static State: Smoothly fade opacity of glowing duplicate overlay paths to 0 (1720ms -> 2160ms)
+      setTimeout(() => {
+        if (glowLayer) {
+          glowLayer.style.transition = "opacity 440ms ease-out";
+          glowLayer.style.opacity = "0";
+        }
+      }, 1720);
+
+      // 5. Preserve 'O' Interactivity: Activate idle breathing pulse and click affordance on letter O (2160ms)
+      setTimeout(() => {
+        if (glowLayer) glowLayer.style.display = "none";
+        const portalO = document.getElementById("nova-portal-o");
+        if (portalO) {
+          portalO.classList.add("portal-ready");
+          portalO.addEventListener("click", onPortalTriggerClick, { once: true });
+        }
+      }, 2160);
+
+      // Forward-moving starfield/warp traversal animation on canvas with subtle, muted stars
+      function runStarfieldWarp(cx, cy, duration = 2800) {
+        const canvas = document.getElementById("nova-warp-canvas");
+        if (!canvas) return null;
+        const ctx = canvas.getContext("2d");
+        const w = (canvas.width = window.innerWidth);
+        const h = (canvas.height = window.innerHeight);
+
+        canvas.style.opacity = "1";
+        canvas.style.transition = "none";
+
+        const numStars = 220; // Reduced count for minimalist subtlety
+        const stars = [];
+        for (let i = 0; i < numStars; i++) {
+          stars.push({
+            x: (Math.random() - 0.5) * w * 2.5,
+            y: (Math.random() - 0.5) * h * 2.5,
+            z: Math.random() * 1000 + 1,
+            size: Math.random() * 0.9 + 0.4
+          });
+        }
+
+        let startTime = performance.now();
+        let animId = null;
+
+        function frame(now) {
+          const elapsed = now - startTime;
+          const progress = Math.min(1.0, elapsed / duration);
+
+          // Decelerating velocity curve: steep drop-off to smooth into the momentum zoom
+          const decel = Math.pow(1.0 - progress, 2.5);
+          const speed = 2.0 + decel * 75;
+
+          // Pure black motion trail background matching deep space #000000
+          ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+          ctx.fillRect(0, 0, w, h);
+
+          for (let i = 0; i < numStars; i++) {
+            const s = stars[i];
+            const prevZ = s.z;
+            s.z -= speed;
+
+            if (s.z <= 1) {
+              s.z = 1000;
+              s.x = (Math.random() - 0.5) * w * 2.5;
+              s.y = (Math.random() - 0.5) * h * 2.5;
+              continue;
+            }
+
+            const k = 460 / s.z;
+            const px = cx + s.x * k;
+            const py = cy + s.y * k;
+
+            const prevK = 460 / prevZ;
+            const prevPx = cx + s.x * prevK;
+            const prevPy = cy + s.y * prevK;
+
+            if (px >= 0 && px <= w && py >= 0 && py <= h) {
+              // Gracefully fade stars out early as camera enters 3D space
+              const starFade = progress > 0.40 ? Math.max(0, 1.0 - (progress - 0.40) / 0.40) : 1.0;
+              // Muted subtle opacity capped at 0.38
+              const alpha = Math.min(0.38, (1000 - s.z) / 1000 * 0.45) * starFade;
+              // Soft celestial starlight tint instead of harsh white
+              ctx.strokeStyle = `rgba(200, 220, 245, ${alpha.toFixed(3)})`;
+              ctx.lineWidth = Math.min(1.2, s.size * (0.6 + speed / 80));
+              ctx.beginPath();
+              ctx.moveTo(prevPx, prevPy);
+              ctx.lineTo(px, py);
+              ctx.stroke();
+            }
+          }
+
+          if (progress < 1.0) {
+            animId = requestAnimationFrame(frame);
+          } else {
+            ctx.clearRect(0, 0, w, h);
+          }
+        }
+
+        animId = requestAnimationFrame(frame);
+        return function stopWarp() {
+          if (animId) cancelAnimationFrame(animId);
+          if (ctx) ctx.clearRect(0, 0, w, h);
+        };
+      }
+
+      let isWormholeRunning = false;
+      function onPortalTriggerClick(e) {
+        if (isWormholeRunning) return;
+        isWormholeRunning = true;
+        if (e && e.stopPropagation) e.stopPropagation();
+
+        const portalO = document.getElementById("nova-portal-o");
+        const splashContainer = document.getElementById("nova-boot-center-container");
+        const warpCanvas = document.getElementById("nova-warp-canvas");
+
+        if (portalO) {
+          portalO.style.pointerEvents = "none";
+          portalO.classList.remove("portal-ready");
+        }
+
+        // 1. Calculate exact center of letter "O" in viewport screen coordinates
+        const oRect = portalO.getBoundingClientRect();
+        const oCenterX = oRect.left + oRect.width / 2;
+        const oCenterY = oRect.top + oRect.height / 2;
+
+        // 2. Set transform origin on splash container centered on "O" and scale outward through aperture
+        if (splashContainer) {
+          splashContainer.style.transformOrigin = `${oCenterX}px ${oCenterY}px`;
+          splashContainer.style.transition = "transform 1100ms cubic-bezier(0.19, 1, 0.22, 1), opacity 650ms ease-out";
+          splashContainer.style.transform = "scale(120)";
+          splashContainer.style.opacity = "0";
+          splashContainer.style.pointerEvents = "none";
+        }
+
+        // 3. Launch forward starfield warp traversal with muted, subtle stars
+        const stopWarp = runStarfieldWarp(oCenterX, oCenterY, 2800);
+
+        // 4. Ensure 3D simulation lands cleanly at the exact Solar System view
+        if (typeof filterTier === "function") filterTier(0);
+        const slider = document.getElementById("scale-slider");
+        if (slider) slider.value = "3.70";
+        if (typeof controls !== "undefined") {
+          controls.target.set(0, 0, 0);
+          controls.enabled = false;
+        }
+        if (typeof lastTrackedTargetPos !== "undefined") {
+          lastTrackedTargetPos.set(0, 0, 0);
+        }
+        if (typeof sunMeshRef !== "undefined" && sunMeshRef) {
+          activeTargetMesh = sunMeshRef;
+          activeTarget = sunMeshRef.userData;
+        }
+        if (typeof applyCharacteristicTexturesToScene === "function") {
+          applyCharacteristicTexturesToScene();
+        }
+
+        // 5. Two-Stage Travel Transition with Momentum Zoom:
+        // Waypoint coordinates along direct line of sight toward Sun (0, 0, 0):
+        // Sol rest view: (0, 22.5, 32) -> distance 39.12
+        // Momentum waypoint: (0, 48, 68.3) -> distance 83.45
+        // Warp entry: (0, 95, 135) -> distance 165.08
+        if (typeof camera !== "undefined" && typeof TWEEN !== "undefined") {
+          camera.position.set(0, 95, 135);
+          camera.fov = 55;
+          camera.updateProjectionMatrix();
+
+          // Stage 1: Fast rush into the aperture during initial wormhole expansion
+          new TWEEN.Tween(camera.position)
+            .to({ x: 0, y: 48, z: 68.3 }, 700)
+            .easing(TWEEN.Easing.Quadratic.In)
+            .start();
+
+          // Stage 2: Momentum Zoom toward the Sun immediately upon splash screen clearing!
+          // Carries forward speed from warp, then smoothly decelerates into Sol core view
+          setTimeout(() => {
+            new TWEEN.Tween(camera.position)
+              .to({ x: 0, y: 22.5, z: 32 }, 2200)
+              .easing(TWEEN.Easing.Cubic.Out)
+              .onComplete(() => {
+                if (typeof controls !== "undefined") {
+                  controls.enabled = true;
+                  controls.enableRotate = true;
+                  controls.enableZoom = true;
+                  controls.enablePan = true;
+                  controls.update();
+                }
+              })
+              .start();
+
+            const fovState = { fov: 55 };
+            new TWEEN.Tween(fovState)
+              .to({ fov: 50 }, 2200)
+              .easing(TWEEN.Easing.Cubic.Out)
+              .onUpdate(() => {
+                camera.fov = fovState.fov;
+                camera.updateProjectionMatrix();
+              })
+              .start();
+          }, 700);
+        }
+
+        // 6. As camera clears the 'O' aperture (~380ms), fade out boot overlay into pure black space and disable pointer events
+        setTimeout(() => {
+          if (overlay) {
+            overlay.style.pointerEvents = "none";
+            overlay.style.transition = "opacity 600ms ease-out";
+            overlay.style.opacity = "0";
+          }
+          if (splashContainer) {
+            splashContainer.style.pointerEvents = "none";
+          }
+          if (warpCanvas) {
+            warpCanvas.style.pointerEvents = "none";
+            warpCanvas.style.transition = "opacity 750ms ease-out";
+            warpCanvas.style.opacity = "0";
+          }
+        }, 380);
+
+        // 7. Progressively fade in navigation and HUD during final gentle float (~1700ms)
+        setTimeout(() => {
+          document.documentElement.classList.remove("is-booting");
+          const hudElements = [
+            document.getElementById("header-nav"),
+            document.getElementById("bottom-hud"),
+            document.getElementById("map-key-summon-btn"),
+            document.getElementById("inspector-edge-tab"),
+            document.getElementById("celestial-labels-layer"),
+            document.getElementById("odometer-group")
+          ];
+          hudElements.forEach(el => {
+            if (el) {
+              el.style.transition = "opacity 1000ms cubic-bezier(0.16, 1, 0.3, 1)";
+              el.style.opacity = "1";
+              el.style.visibility = "visible";
+            }
+          });
+          if (typeof updateSidebarToggleStyle === "function") {
+            updateSidebarToggleStyle();
+          }
+        }, 1700);
+
+        // 8. Complete transition, guarantee OrbitControls are enabled, clean up, and cache session in localStorage (2950ms)
+        setTimeout(() => {
+          if (overlay) {
+            overlay.style.display = "none";
+            overlay.style.pointerEvents = "none";
+            overlay.classList.add("boot-completed");
+          }
+          if (splashContainer) {
+            splashContainer.style.display = "none";
+            splashContainer.style.pointerEvents = "none";
+            splashContainer.classList.add("boot-completed");
+          }
+          if (warpCanvas) {
+            warpCanvas.style.display = "none";
+            warpCanvas.style.pointerEvents = "none";
+            warpCanvas.classList.add("boot-completed");
+          }
+          if (typeof controls !== "undefined") {
+            controls.enabled = true;
+            controls.enableRotate = true;
+            controls.enableZoom = true;
+            controls.enablePan = true;
+            controls.update();
+          }
+          if (stopWarp) stopWarp();
+          isWormholeRunning = false;
+          try {
+            localStorage.setItem("hasBootedSession", "true");
+          } catch (e) {}
+        }, 2950);
       }
     })();
 </script>
