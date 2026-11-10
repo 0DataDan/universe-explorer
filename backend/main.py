@@ -6,6 +6,15 @@ from fastapi.responses import FileResponse
 
 app = FastAPI(title="NOVA")
 
+@app.middleware("http")
+async def disable_cache(request, call_next):
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     favicon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static", "favicon.ico"))
@@ -103,7 +112,8 @@ def inquire_object(req: InquireRequest):
         "telemetry": telemetry
     }
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static"))
+app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn

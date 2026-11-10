@@ -484,21 +484,21 @@
 
   <!-- Top Navigation Header -->
   <header id="header-nav" class="fixed top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
-    <div id="header-nova-pill" onclick="handleHeaderLogoClick(event)" title="NOVA — Return to Sol Core (Shift+Click to Replay Boot Sequence)" aria-label="NOVA" class="group pointer-events-auto cursor-pointer flex items-center px-3.5 py-2 rounded-full bg-slate-950/35 backdrop-blur-md border border-white/[0.07] hover:border-white/15 shadow-2xl transition-all duration-300">
+    <div id="header-nova-pill" onclick="handleHeaderLogoClick(event)" aria-label="NOVA" class="group pointer-events-auto cursor-pointer flex items-center px-3.5 py-2 rounded-full bg-slate-950/35 backdrop-blur-md border border-white/[0.07] hover:border-white/15 shadow-2xl transition-all duration-300">
       <img id="header-nova-logo" src="./nova-logo.png" alt="NOVA" class="h-[15px] w-auto object-contain opacity-75 group-hover:opacity-95 transition-opacity duration-300 select-none" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
       <span class="hidden text-slate-300/80 text-xs tracking-[0.28em] uppercase font-medium">NOVA</span>
     </div>
   </header>
 
   <!-- Sleek Glowing Minimalist Right-Edge Summon Tab (Textless, Independent from Bottom Overview Toggle) -->
-  <button id="inspector-edge-tab" onclick="toggleSidebarDrawerTab(event)" title="Open Overview Drawer" class="fixed top-1/2 -translate-y-1/2 right-0 z-20 w-3 h-[420px] rounded-l-xl bg-cyan-950/75 hover:bg-cyan-900/90 backdrop-blur-xl border border-r-0 border-cyan-400/50 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
+  <button id="inspector-edge-tab" onclick="toggleSidebarDrawerTab(event)" class="fixed top-1/2 -translate-y-1/2 right-0 z-20 w-3 h-[420px] rounded-l-xl bg-cyan-950/75 hover:bg-cyan-900/90 backdrop-blur-xl border border-r-0 border-cyan-400/50 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
     <div class="w-1 h-1/3 max-h-24 min-h-[24px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
   </button>
 
   <!-- Right-Side Astrophysical Inspector Drawer (Overflow-visible so left slide-back tab attaches cleanly) -->
   <aside id="inspector" class="fixed top-16 right-4 z-20 w-96 bg-slate-950/45 border border-white/10 rounded-2xl backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-[430px] pointer-events-auto">
     <!-- Sleek Glowing Minimalist Attached Slide-Back Tab (Textless, Independent from Bottom Overview Toggle) -->
-    <button onclick="toggleSidebarDrawerTab(event)" title="Slide Overview Drawer Out" class="absolute top-0 bottom-0 -left-3.5 w-3.5 h-full rounded-l-xl bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
+    <button onclick="toggleSidebarDrawerTab(event)" class="absolute top-0 bottom-0 -left-3.5 w-3.5 h-full rounded-l-xl bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
       <div class="w-1 h-1/3 max-h-24 min-h-[24px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
     </button>
     <div class="max-h-[calc(100vh-7.5rem)] overflow-y-auto p-5">
@@ -512,31 +512,31 @@
         </div>
         <div class="flex items-center space-x-1.5">
           <!-- Minimalist Prev Orb -->
-          <button onclick="prevTourStep(event)" title="Previous Celestial Stop" class="w-6 h-6 rounded-full bg-slate-900/60 border border-slate-600/60 hover:border-cyan-400/70 flex items-center justify-center text-slate-300 hover:text-cyan-300 transition transform hover:scale-110 cursor-pointer">
+          <button onclick="prevTourStep(event)" class="w-6 h-6 rounded-full bg-slate-900/60 border border-slate-600/60 hover:border-cyan-400/70 flex items-center justify-center text-slate-300 hover:text-cyan-300 transition transform hover:scale-110 cursor-pointer">
             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <!-- Minimalist Pause/Resume Orb -->
-          <button id="btn-tour-pause" onclick="togglePauseCosmicTour(event)" title="Pause / Resume Tour" class="relative w-6 h-6 rounded-full bg-cyan-950/50 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center text-cyan-300 transition transform hover:scale-110 shadow-[0_0_8px_rgba(6,182,212,0.3)] cursor-pointer">
+          <button id="btn-tour-pause" onclick="togglePauseCosmicTour(event)" class="relative w-6 h-6 rounded-full bg-cyan-950/50 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center text-cyan-300 transition transform hover:scale-110 shadow-[0_0_8px_rgba(6,182,212,0.3)] cursor-pointer">
             <svg id="icon-tour-pause" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6" />
             </svg>
           </button>
           <!-- Minimalist Next Orb -->
-          <button onclick="nextTourStep(event)" title="Next Celestial Stop" class="w-6 h-6 rounded-full bg-slate-900/60 border border-slate-600/60 hover:border-cyan-400/70 flex items-center justify-center text-slate-300 hover:text-cyan-300 transition transform hover:scale-110 cursor-pointer">
+          <button onclick="nextTourStep(event)" class="w-6 h-6 rounded-full bg-slate-900/60 border border-slate-600/60 hover:border-cyan-400/70 flex items-center justify-center text-slate-300 hover:text-cyan-300 transition transform hover:scale-110 cursor-pointer">
             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
           <!-- Minimalist Voice Mute/Unmute Orb -->
-          <button id="btn-tour-voice" onclick="toggleTourVoice(event)" title="Toggle Tour Narration Voice" class="relative w-6 h-6 rounded-full bg-cyan-950/50 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center text-cyan-300 transition transform hover:scale-110 shadow-[0_0_8px_rgba(6,182,212,0.3)] cursor-pointer">
+          <button id="btn-tour-voice" onclick="toggleTourVoice(event)" class="relative w-6 h-6 rounded-full bg-cyan-950/50 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center text-cyan-300 transition transform hover:scale-110 shadow-[0_0_8px_rgba(6,182,212,0.3)] cursor-pointer">
             <svg id="icon-tour-voice" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
             </svg>
           </button>
           <!-- Minimalist Exit Tour Orb -->
-          <button onclick="stopCosmicTour(event)" title="Exit Guided Tour" class="w-6 h-6 rounded-full bg-rose-950/40 border border-rose-500/40 hover:border-rose-400 flex items-center justify-center text-rose-300 hover:text-rose-200 transition transform hover:scale-110 cursor-pointer">
+          <button onclick="stopCosmicTour(event)" class="w-6 h-6 rounded-full bg-rose-950/40 border border-rose-500/40 hover:border-rose-400 flex items-center justify-center text-rose-300 hover:text-rose-200 transition transform hover:scale-110 cursor-pointer">
             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -590,7 +590,7 @@
         <label class="block text-[10px] font-mono uppercase tracking-wider text-cyan-400 mb-1.5 font-semibold">Observatory Telemetry Uplink</label>
         <div class="flex items-center space-x-2">
           <input id="custom-query-input" type="text" placeholder="Ask about rings, composition, moons, orbit..." class="w-full bg-slate-900/60 border border-white/15 rounded-lg px-3 py-1.5 text-[13px] text-slate-100 placeholder-slate-400 focus:outline-none focus:border-cyan-400" onkeydown="if(event.key==='Enter') queryGemini()" />
-          <button onclick="queryGemini()" title="Submit Inquiry" class="relative w-7 h-7 rounded-full bg-cyan-950/60 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)] shrink-0 cursor-pointer">
+          <button onclick="queryGemini()" class="relative w-7 h-7 rounded-full bg-cyan-950/60 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)] shrink-0 cursor-pointer">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 5l7 7-7 7" />
             </svg>
@@ -603,14 +603,14 @@
   </aside>
 
   <!-- Bottom-Right Map Key Summon Tab -->
-  <button id="map-key-summon-btn" onclick="toggleMapKey(event)" title="Open Map Key" class="fixed bottom-5 right-0 z-20 w-3.5 h-[116px] rounded-l-xl bg-cyan-950/80 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
+  <button id="map-key-summon-btn" onclick="toggleMapKey(event)" class="fixed bottom-5 right-0 z-20 w-3.5 h-[116px] rounded-l-xl bg-cyan-950/80 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
     <div class="w-1 h-1/3 max-h-12 min-h-[20px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
   </button>
 
   <!-- Bottom-Right Slide-In/Out Compact Map Key Drawer -->
   <aside id="map-key-drawer" class="fixed bottom-5 right-4 z-20 w-64 bg-slate-950/55 border border-white/10 rounded-2xl p-3.5 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-[300px] pointer-events-auto">
     <!-- Attached Left-Edge Full-Height Slide-Back Tab -->
-    <button id="map-key-attached-tab" onclick="toggleMapKey(event)" title="Close Map Key" class="absolute top-0 bottom-0 -left-3.5 w-3.5 h-full rounded-l-xl bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
+    <button id="map-key-attached-tab" onclick="toggleMapKey(event)" class="absolute top-0 bottom-0 -left-3.5 w-3.5 h-full rounded-l-xl bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
       <div class="w-1 h-1/3 max-h-12 min-h-[20px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
     </button>
 
@@ -680,7 +680,7 @@
     <!-- Left Section: Relocated Reset Button & Textless Minimalist Zoom Slider -->
     <div id="hud-left-controls" class="justify-self-start flex items-center space-x-2.5">
       <!-- Sol System Core Reset Full-Circle Spiral Button -->
-      <button id="btn-reset-sol" onclick="resetToSolCore()" title="Return to Sun (Sol Core)" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shadow-[0_0_10px_rgba(34,211,238,0.3)] shrink-0 cursor-pointer overflow-hidden p-0">
+      <button id="btn-reset-sol" onclick="resetToSolCore()" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shadow-[0_0_10px_rgba(34,211,238,0.3)] shrink-0 cursor-pointer overflow-hidden p-0">
         <svg id="reset-spiral-svg" class="w-full h-full p-[1.5px] text-cyan-300 transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
           <circle cx="12" cy="12" r="10.6" stroke-width="1.15" stroke-opacity="0.45" />
           <path id="reset-spiral-base" pathLength="100" stroke-width="1.65" d="M 12 12 C 12.6 11.4 13.5 11.9 13.4 12.8 C 13.2 14.1 11.5 14.6 10.4 13.9 C 8.9 13.0 8.8 10.7 10.1 9.5 C 11.8 8.0 14.6 8.5 15.8 10.5 C 17.2 12.9 16.1 16.2 13.5 17.2 C 10.4 18.4 6.8 16.6 5.9 13.4 C 4.9 9.6 7.5 5.6 11.4 4.9 C 15.8 4.1 20.0 7.4 20.5 11.9 C 21.0 16.8 17.2 21.2 12.2 21.5" />
@@ -698,7 +698,7 @@
 
     <!-- Center Section: Dead-Centered Guided Cosmic Tour Button -->
     <div id="hud-center-tour" class="justify-self-center flex items-center justify-center px-1">
-      <button id="btn-cosmic-tour" onclick="toggleCosmicTour()" title="Start Tour" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center cursor-pointer transition duration-300 transform hover:scale-110 shadow-[0_0_12px_rgba(6,182,212,0.35)] shrink-0">
+      <button id="btn-cosmic-tour" onclick="toggleCosmicTour()" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center cursor-pointer transition duration-300 transform hover:scale-110 shadow-[0_0_12px_rgba(6,182,212,0.35)] shrink-0">
         <span id="tour-ring-outer" class="hidden"></span>
         <svg id="tour-compass-svg" class="w-4 h-4 text-cyan-300 transition-transform duration-500" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2.5" opacity="0.75" />
@@ -714,7 +714,7 @@
       <!-- Grouped & Unified Toggles: Filament, Orbits, Labels, Sidebar -->
       <div id="hud-toggle-group" class="flex items-center space-x-1.5">
         <!-- Cosmic Web Filament Toggle -->
-        <button id="btn-cosmic-web" onclick="toggleCosmicWeb()" title="Toggle Cosmic Web Filaments"
+        <button id="btn-cosmic-web" onclick="toggleCosmicWeb()"
           class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
           <svg id="cosmic-web-svg" class="w-5 h-5 text-cyan-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
             <g stroke-width="1.15" stroke-opacity="0.85">
@@ -737,7 +737,7 @@
         </button>
 
         <!-- Orbits Toggle -->
-        <button id="btn-orbits" onclick="toggleOrbitPause()" title="Toggle Orbital Motion"
+        <button id="btn-orbits" onclick="toggleOrbitPause()"
           class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
           <svg id="orbit-spinner-svg" class="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none">
             <path d="M 18.36 5.64 A 9 9 0 1 0 18.36 18.36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
@@ -747,7 +747,7 @@
         </button>
 
         <!-- Labels Toggle -->
-        <button id="btn-toggle-labels" onclick="toggleLabels(event)" title="Toggle Celestial Labels"
+        <button id="btn-toggle-labels" onclick="toggleLabels(event)"
           class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
           <svg id="labels-toggle-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
@@ -756,7 +756,7 @@
         </button>
 
         <!-- Overview Sidebar Toggle (Functionally Independent from Main Sidebar Tab) -->
-        <button id="btn-toggle-sidebar" onclick="toggleSidebarVisibility(event)" title="Toggle Overview Sidebar"
+        <button id="btn-toggle-sidebar" onclick="toggleSidebarVisibility(event)"
           class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
           <svg id="sidebar-toggle-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 5v14M12 5v14M16 5v14" />
@@ -770,28 +770,28 @@
           <!-- Vertical Pop-up Menu containing the 4 Tier Levels with Original Geometric Icons -->
           <div id="tier-vertical-menu" class="tier-menu-closed absolute bottom-full left-1/2 mb-3 flex flex-col-reverse items-center gap-2 p-1.5 rounded-full bg-slate-950/85 border border-white/15 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.75)] z-30">
             <!-- Tier 1: Solar System -->
-            <button id="btn-t1" onclick="selectTierFromMenu(1, event)" title="Solar System" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
+            <button id="btn-t1" onclick="selectTierFromMenu(1, event)" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="7" stroke-dasharray="2 2"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg>
             </button>
 
             <!-- Tier 2: Stellar Neighborhood -->
-            <button id="btn-t2" onclick="selectTierFromMenu(2, event)" title="Stellar Neighborhood" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
+            <button id="btn-t2" onclick="selectTierFromMenu(2, event)" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z"/></svg>
             </button>
 
             <!-- Tier 3: Galaxies -->
-            <button id="btn-t3" onclick="selectTierFromMenu(3, event)" title="Galaxies" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
+            <button id="btn-t3" onclick="selectTierFromMenu(3, event)" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="9" ry="4.2" transform="rotate(-28 12 12)"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg>
             </button>
 
             <!-- Tier 4: Deep Cosmic Web -->
-            <button id="btn-t4" onclick="selectTierFromMenu(4, event)" title="Deep Cosmic Web" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
+            <button id="btn-t4" onclick="selectTierFromMenu(4, event)" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12,3 20,8 20,16 12,21 4,16 4,8"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="4" y1="8" x2="20" y2="16"/></svg>
             </button>
           </div>
 
           <!-- Minimalist "All Tiers" Button Matching Application Control Buttons -->
-          <button id="btn-t0" onclick="toggleTierMenu(event)" title="All Tiers" aria-expanded="false" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
+          <button id="btn-t0" onclick="toggleTierMenu(event)" aria-expanded="false" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="9" />
               <circle cx="12" cy="12" r="5" />
@@ -801,7 +801,7 @@
         </div>
 
         <!-- Fullscreen Button: Bounding Circle Cut in Half Horizontally When Inactive, Animating to Full Circle When Active (No Extra Inner Ring) -->
-        <button id="btn-fullscreen-zen" onclick="toggleFullscreenZen()" title="Enter Fullscreen Mode" class="relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
+        <button id="btn-fullscreen-zen" onclick="toggleFullscreenZen()" class="relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
           <svg id="fullscreen-icon" class="w-full h-full overflow-visible" viewBox="0 0 32 32" fill="none">
             <defs>
               <clipPath id="fs-btn-half-clip">
@@ -3801,12 +3801,12 @@
         const resolved = resolveTargetData(intersects[0].object);
         if (resolved && resolved.data.name) {
           hoveredCelestialMesh = resolved.rootMesh;
-          document.body.style.cursor = 'pointer';
+          document.body.classList.add('nova-cursor-hover');
           return;
         }
       }
       hoveredCelestialMesh = null;
-      document.body.style.cursor = 'default';
+      document.body.classList.remove('nova-cursor-hover');
     }
 
     function onPointerDown(event) {
@@ -4186,7 +4186,7 @@
         type: "Gravity-Dominated Planetary Regime • 0.05 AU to 120 AU",
         distance: "0.00 to 160 AU (Heliospheric Boundary)",
         scale_order: "10^9 m to 10^13 m",
-        summary: "Our cosmic voyage begins inside the Sun's gravitational and magnetic domain. Within the Heliosphere orbit the four rocky terrestrial planets, the dwarf planet Ceres, our moon, the four giant planets, periodic comets, and detached outer trans-Neptunian worlds.", 
+        summary: "Our cosmic voyage begins inside the Sun's gravitational and magnetic domain. Within the Heliosphere orbit the four rocky terrestrial planets, the dwarf planet Ceres, our moon, the four giant planets, periodic comets, and detached outer trans-Neptunian worlds.", 
         metrics: [["Central Anchor", "The Sun (99.86% Mass)"], ["Ecliptic Span", "~60 AU (Neptune/Kuiper)"], ["Heliopause Boundary", "~120 AU (Interstellar Medium)"], ["Gravitational Edge", "~50,000 AU (Oort Cloud)"]],
         facts: [
           "Planetary orbits lie within ~7° of the ecliptic plane, sculpted from a collapsing protoplanetary disk 4.568 billion years ago.",
@@ -7464,6 +7464,188 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         );
       }
     })();
+
 </script>
+
+
+
+
+
+
+<style>
+  /* Hide the default system cursor across the app and interactive elements */
+  *, *::before, *::after, html, body, canvas, div, span, a, button, [role="button"], input, select {
+    cursor: none !important;
+  }
+  #tooltip, .tooltip, [id*="tooltip"], [class*="tooltip"] {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  #nova-cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    pointer-events: none !important;
+    z-index: 99999;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.8),
+                0 0 16px 4px rgba(56, 189, 248, 0.35);
+    transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  #nova-cursor-halo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 26px;
+    height: 26px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 50%;
+    pointer-events: none !important;
+    z-index: 99998;
+    transform: translate(-50%, -50%);
+    transition: width 0.25s ease-out, height 0.25s ease-out, border-color 0.25s ease, background-color 0.25s ease;
+  }
+
+  body.nova-cursor-hover #nova-cursor-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #38bdf8;
+    box-shadow: 0 0 12px 3px rgba(56, 189, 248, 0.9);
+  }
+
+  body.nova-cursor-hover #nova-cursor-halo {
+    width: 40px;
+    height: 40px;
+    border-color: rgba(56, 189, 248, 0.65);
+    background-color: rgba(56, 189, 248, 0.06);
+  }
+
+  #nova-trail-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none !important;
+    z-index: 99997;
+  }
+</style>
+
+<div id="nova-cursor-dot" style="pointer-events: none !important;"></div>
+<div id="nova-cursor-halo" style="pointer-events: none !important;"></div>
+<canvas id="nova-trail-canvas" style="pointer-events: none !important;"></canvas>
+
+<script>
+  (function() {
+    console.log('NOVA CUSTOM CURSOR LOADED v3');
+    const dot = document.getElementById('nova-cursor-dot');
+    const halo = document.getElementById('nova-cursor-halo');
+    const canvas = document.getElementById('nova-trail-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    let mouse = { x: width / 2, y: height / 2 };
+    let haloPos = { x: width / 2, y: height / 2 };
+    const particles = [];
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      dot.style.left = `${mouse.x}px`;
+      dot.style.top = `${mouse.y}px`;
+
+      if (Math.random() > 0.25) {
+        particles.push({
+          x: mouse.x + (Math.random() - 0.5) * 4,
+          y: mouse.y + (Math.random() - 0.5) * 4,
+          size: Math.random() * 1.6 + 0.4,
+          alpha: 0.55,
+          vx: (Math.random() - 0.5) * 0.25,
+          vy: (Math.random() - 0.5) * 0.25
+        });
+      }
+    });
+
+    const interactiveSelectors = 'a, button, [role="button"], input, select, .interactive';
+    document.addEventListener('mouseover', (e) => {
+      if (e.target && e.target.hasAttribute && e.target.hasAttribute('title')) {
+        e.target.removeAttribute('title');
+      }
+      if (e.target.closest && e.target.closest(interactiveSelectors)) {
+        document.body.classList.add('nova-cursor-hover');
+      }
+      if (e.target && e.target.classList && (e.target.classList.contains('label') || e.target.classList.contains('planet-label') || e.target.tagName === 'SPAN')) {
+        document.body.classList.add('nova-cursor-hover');
+      }
+    });
+    document.addEventListener('mouseout', (e) => {
+      if (e.target.closest && e.target.closest(interactiveSelectors)) {
+        document.body.classList.remove('nova-cursor-hover');
+      }
+      if (e.target && e.target.classList && (e.target.classList.contains('label') || e.target.classList.contains('planet-label') || e.target.tagName === 'SPAN')) {
+        document.body.classList.remove('nova-cursor-hover');
+      }
+    });
+
+    document.querySelectorAll('[title]').forEach(el => el.removeAttribute('title'));
+
+    function animateCursor() {
+      ctx.clearRect(0, 0, width, height);
+      haloPos.x += (mouse.x - haloPos.x) * 0.16;
+      haloPos.y += (mouse.y - haloPos.y) * 0.16;
+      halo.style.left = `${haloPos.x}px`;
+      halo.style.top = `${haloPos.y}px`;
+
+      const dx = mouse.x - haloPos.x;
+      const dy = mouse.y - haloPos.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 4) {
+        ctx.beginPath();
+        ctx.moveTo(mouse.x, mouse.y);
+        ctx.lineTo(haloPos.x, haloPos.y);
+        ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(dist / 120, 0.2)})`;
+        ctx.lineWidth = 0.75;
+        ctx.stroke();
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= 0.018;
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(220, 240, 255, ${p.alpha})`;
+        ctx.fill();
+      }
+
+      requestAnimationFrame(animateCursor);
+    }
+
+    animateCursor();
+  })();
+</script>
+
 </body>
 </html>
