@@ -214,52 +214,64 @@
       animation: reset-spiral-inward 2000ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
     }
   
-    /* Minimalist Transparent Scale Slider */
+    /* Trackless Morphing Zoom Singularity & Eclipse Resonance Docking */
     input[type="range"]#scale-slider,
     input[type="range"].scale-slider,
     div[class*="bottom-"] input[type="range"] {
       -webkit-appearance: none !important;
       appearance: none !important;
-      background: rgba(34, 211, 238, 0.14) !important;
-      height: 3px !important;
-      border-radius: 9999px !important;
-      border: 1px solid rgba(34, 211, 238, 0.25) !important;
+      background: transparent !important;
+      height: 24px !important;
+      border: none !important;
       outline: none !important;
-      box-shadow: inset 0 0 6px rgba(34, 211, 238, 0.15) !important;
-      transition: background 0.25s ease, border-color 0.25s ease !important;
+      box-shadow: none !important;
+      cursor: none !important;
     }
-    input[type="range"]#scale-slider:hover,
-    div[class*="bottom-"] input[type="range"]:hover {
-      background: rgba(34, 211, 238, 0.24) !important;
-      border-color: rgba(34, 211, 238, 0.45) !important;
+    input[type="range"]#scale-slider::-webkit-slider-runnable-track {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      cursor: none !important;
     }
     input[type="range"]#scale-slider::-webkit-slider-thumb,
     div[class*="bottom-"] input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none !important;
       appearance: none !important;
-      width: 11px !important;
-      height: 11px !important;
+      width: 18px !important;
+      height: 18px !important;
       border-radius: 9999px !important;
-      background: rgba(34, 211, 238, 0.85) !important;
-      border: 1.5px solid rgba(224, 242, 254, 0.9) !important;
-      box-shadow: 0 0 10px rgba(34, 211, 238, 0.75) !important;
-      cursor: pointer !important;
-      transition: transform 0.15s ease, background 0.15s ease !important;
-    }
-    input[type="range"]#scale-slider::-webkit-slider-thumb:hover,
-    div[class*="bottom-"] input[type="range"]::-webkit-slider-thumb:hover {
-      transform: scale(1.25) !important;
-      background: rgba(103, 232, 249, 1) !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      cursor: none !important;
     }
     input[type="range"]#scale-slider::-moz-range-thumb,
     div[class*="bottom-"] input[type="range"]::-moz-range-thumb {
-      width: 11px !important;
-      height: 11px !important;
+      width: 18px !important;
+      height: 18px !important;
       border-radius: 9999px !important;
-      background: rgba(34, 211, 238, 0.85) !important;
-      border: 1.5px solid rgba(224, 242, 254, 0.9) !important;
-      box-shadow: 0 0 10px rgba(34, 211, 238, 0.75) !important;
-      cursor: pointer !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      cursor: none !important;
+    }
+
+    @keyframes eclipse-dock-ripple {
+      0% {
+        transform: translate(-50%, -50%) scale(0.95);
+        opacity: 0.95;
+        border-color: rgba(165, 243, 252, 0.95);
+        box-shadow: 0 0 10px rgba(34, 211, 238, 0.85);
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(2.65);
+        opacity: 0;
+        border-color: rgba(34, 211, 238, 0);
+        box-shadow: 0 0 0px rgba(34, 211, 238, 0);
+      }
+    }
+    .eclipse-ripple-active {
+      animation: eclipse-dock-ripple 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     /* --- NASA Eyes on the Solar System Minimalist Celestial Labels --- */
@@ -648,8 +660,12 @@
       </div>
       <!-- Overview (matches Sidebar toggle on/off button icon) -->
       <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5v14M12 5v14M16 5v14"/></svg>
+        <span class="w-4 h-4 rounded-full bg-slate-900 flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="14.5" fill="rgba(10, 15, 28, 0.9)" stroke="rgba(71, 85, 105, 0.65)" stroke-width="2" />
+            <path d="M 16 1.5 A 14.5 14.5 0 0 0 16 30.5" fill="rgba(6, 78, 102, 0.55)" stroke="#22d3ee" stroke-width="2.2" stroke-linecap="round" />
+            <rect x="12.5" y="8.5" width="2.6" height="15" rx="0.6" fill="#22d3ee" />
+          </svg>
         </span>
         <span>Overview</span>
       </div>
@@ -688,11 +704,30 @@
         </svg>
       </button>
 
-      <!-- Textless Minimalist Visual Zoom Slider (Left-to-Right = Zoom In, Right-to-Left = Zoom Out; circle icons unchanged) -->
-      <div class="flex items-center space-x-2">
-        <span class="w-1.5 h-1.5 rounded-full bg-cyan-300/75 shadow-[0_0_4px_rgba(34,211,238,0.6)] shrink-0" aria-hidden="true"></span>
-        <input id="scale-slider" type="range" min="1.0" max="4.0" step="0.01" value="3.70" aria-label="Cosmic Zoom" class="w-28 sm:w-32 accent-cyan-400 cursor-pointer" />
-        <span class="w-2.5 h-2.5 rounded-full border border-cyan-300/80 bg-cyan-400/25 shadow-[0_0_6px_rgba(34,211,238,0.5)] shrink-0" aria-hidden="true"></span>
+      <!-- Vertical Separator matching right-side HUD dividers -->
+      <div class="h-5 w-[1px] bg-white/15 mx-0.5"></div>
+
+      <!-- Trackless Morphing Zoom Singularity with Comet Trail & Eclipse Resonance Docking -->
+      <div id="zoom-orb-channel" class="relative flex items-center w-32 sm:w-36 h-8 select-none">
+        <!-- Faint Trail Canvas Behind Moving Circle -->
+        <canvas id="zoom-trail-canvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+
+        <!-- Left Anchor (Small Pinpoint Circle - Far Cosmic Horizon) -->
+        <span id="zoom-anchor-left" class="absolute left-[5px] top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-cyan-300/40 shadow-[0_0_4px_rgba(34,211,238,0.35)] pointer-events-none transition-all duration-300" aria-hidden="true"></span>
+        <span id="zoom-ripple-left" class="
+          absolute left-[5px] top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full border border-cyan-300 pointer-events-none opacity-0" aria-hidden="true"></span>
+
+        <!-- Right Anchor (Larger Hollow Circle - Planetary Core) -->
+        <span id="zoom-anchor-right" class="absolute right-[7px] top-1/2 translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-cyan-300/50 bg-cyan-400/10 shadow-[0_0_6px_rgba(34,211,238,0.3)] pointer-events-none transition-all duration-300" aria-hidden="true"></span>
+        <span id="zoom-ripple-right" class="absolute right-[7px] top-1/2 translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-cyan-300 pointer-events-none opacity-0" aria-hidden="true"></span>
+
+        <!-- Active Morphing Circle (Slides & Grows Left->Right, Shrinks Right->Left) -->
+        <span id="zoom-morph-orb" class="
+          absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+          style="width: 10px; height: 10px; left: 85%; background: rgba(103, 232, 249, 0.92); border: 1.5px solid rgba(224, 242, 254, 0.95); box-shadow: 0 0 10px rgba(34, 211, 238, 0.85);"></span>
+
+        <!-- Invisible Interactive Range Input Overlaying Entire Channel -->
+        <input id="scale-slider" type="range" min="1.0" max="4.0" step="0.005" value="3.70" aria-label="Cosmic Zoom" class="relative z-10 w-full h-full opacity-0" />
       </div>
     </div>
 
@@ -755,17 +790,7 @@
           </svg>
         </button>
 
-        <!-- Overview Sidebar Toggle (Functionally Independent from Main Sidebar Tab) -->
-        <button id="btn-toggle-sidebar" onclick="toggleSidebarVisibility(event)"
-          class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
-          <svg id="sidebar-toggle-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 5v14M12 5v14M16 5v14" />
-          </svg>
-        </button>
-      </div>
-
-      <!-- Vertical Tier Menu Trigger ("All Tiers") + Vertical Pop-up Row Above + Fullscreen -->
-      <div id="hud-right-controls" class="flex items-center space-x-1.5 pl-2.5 border-l border-white/15">
+        <!-- Swapped: Vertical Tier Menu Trigger ("All Tiers") + Vertical Pop-up Row Above -->
         <div id="bottom-tier-group" class="relative flex items-center">
           <!-- Vertical Pop-up Menu containing the 4 Tier Levels with Original Geometric Icons -->
           <div id="tier-vertical-menu" class="tier-menu-closed absolute bottom-full left-1/2 mb-3 flex flex-col-reverse items-center gap-2 p-1.5 rounded-full bg-slate-950/85 border border-white/15 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.75)] z-30">
@@ -799,6 +824,31 @@
             </svg>
           </button>
         </div>
+      </div>
+
+      <!-- Swapped: Overview Sidebar Toggle + Fullscreen -->
+      <div id="hud-right-controls" class="flex items-center space-x-1.5 pl-2.5 border-l border-white/15">
+        <!-- Overview Sidebar Toggle: Matches TabToggleOff.png (right cyan arc) -> Slides Left from both sides to TabToggleOn.png (left half-circle + vertical bar) -->
+        <button id="btn-toggle-sidebar" onclick="toggleSidebarVisibility(event)"
+          class="relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
+          <svg id="sidebar-toggle-icon" class="w-full h-full overflow-visible" viewBox="0 0 32 32" fill="none">
+            <defs>
+              <clipPath id="sb-left-half-clip">
+                <rect id="sb-bg-clip-rect" x="0" y="0" width="0" height="32" style="transition: width 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
+              </clipPath>
+            </defs>
+            <!-- Base Dark Slate Circle (Matches TabToggleOff.png / TabToggleOn.png outer ring) -->
+            <circle cx="16" cy="16" r="15.2" fill="rgba(10, 15, 28, 0.85)" stroke="rgba(71, 85, 105, 0.55)" stroke-width="1.5" />
+            <!-- Left-Half Cyan Ambient Glow Fill (Slides in when Toggled On) -->
+            <circle cx="16" cy="16" r="15.2" fill="rgba(6, 78, 102, 0.58)" clip-path="url(#sb-left-half-clip)" />
+            <!-- Upper Rim Path (3 o'clock -> 12 o'clock -> 9 o'clock, pathLength=100) -->
+            <path id="sb-arc-top" d="M 31.2 16 A 15.2 15.2 0 0 0 0.8 16" pathLength="100" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="22 100" stroke-dashoffset="0" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.65)); transition: stroke-dasharray 600ms cubic-bezier(0.22, 1, 0.36, 1), stroke-dashoffset 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
+            <!-- Lower Rim Path (3 o'clock -> 6 o'clock -> 9 o'clock, pathLength=100) -->
+            <path id="sb-arc-bot" d="M 31.2 16 A 15.2 15.2 0 0 1 0.8 16" pathLength="100" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="22 100" stroke-dashoffset="0" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.65)); transition: stroke-dasharray 600ms cubic-bezier(0.22, 1, 0.36, 1), stroke-dashoffset 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
+            <!-- Vertical Cyan Bar inside Left Half (Slides left & fades in when Toggled On) -->
+            <rect id="sb-inner-bar" x="12.8" y="8.2" width="2.3" height="15.6" rx="0.6" fill="#22d3ee" style="opacity: 0; transform: translateX(6px) scaleY(0.75); transform-origin: 14px 16px; filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.8)); transition: opacity 480ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
+          </svg>
+        </button>
 
         <!-- Fullscreen Button: Bounding Circle Cut in Half Horizontally When Inactive, Animating to Full Circle When Active (No Extra Inner Ring) -->
         <button id="btn-fullscreen-zen" onclick="toggleFullscreenZen()" class="relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
@@ -1250,6 +1300,38 @@
 
       const isVisible = !inspector.classList.contains("translate-x-[430px]");
       const inFullscreen = isZenMode || !!document.fullscreenElement;
+      isOverviewToggleActive = isVisible;
+
+      const sbArcTop = document.getElementById("sb-arc-top");
+      const sbArcBot = document.getElementById("sb-arc-bot");
+      const sbClipRect = document.getElementById("sb-bg-clip-rect");
+      const sbInnerBar = document.getElementById("sb-inner-bar");
+      const sidebarBtn = document.getElementById("btn-toggle-sidebar");
+
+      if (sidebarBtn) {
+        sidebarBtn.className = "relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 " + (isVisible ? "shadow-[0_0_12px_rgba(34,211,238,0.35)]" : "shadow-[0_0_8px_rgba(34,211,238,0.15)]");
+      }
+      if (sbArcTop && sbArcBot && sbClipRect && sbInnerBar) {
+        if (isVisible) {
+          // TabToggleOn.png state: cyan arcs slide left from both top & bottom to form left half-circle (12 o'clock to 6 o'clock via 9 o'clock)
+          sbArcTop.setAttribute("stroke-dasharray", "50 100");
+          sbArcTop.setAttribute("stroke-dashoffset", "-50");
+          sbArcBot.setAttribute("stroke-dasharray", "50 100");
+          sbArcBot.setAttribute("stroke-dashoffset", "-50");
+          sbClipRect.setAttribute("width", "16");
+          sbInnerBar.style.opacity = "1";
+          sbInnerBar.style.transform = "translateX(0px) scaleY(1)";
+        } else {
+          // TabToggleOff.png state: cyan arcs slide back to right edge
+          sbArcTop.setAttribute("stroke-dasharray", "22 100");
+          sbArcTop.setAttribute("stroke-dashoffset", "0");
+          sbArcBot.setAttribute("stroke-dasharray", "22 100");
+          sbArcBot.setAttribute("stroke-dashoffset", "0");
+          sbClipRect.setAttribute("width", "0");
+          sbInnerBar.style.opacity = "0";
+          sbInnerBar.style.transform = "translateX(6px) scaleY(0.75)";
+        }
+      }
 
       if (edgeTab) {
         // The Overview Sidebar tab (#inspector-edge-tab) is always visible when the drawer is closed in Standard mode,
@@ -1325,15 +1407,6 @@
         inspector.classList.add("translate-x-[430px]");
       }
 
-      if (sidebarBtn) {
-        if (isOverviewToggleActive) {
-          sidebarBtn.title = "Toggle Overview Sidebar";
-          sidebarBtn.className = UNIFIED_TOGGLE_ACTIVE_CLASS;
-        } else {
-          sidebarBtn.title = "Show Overview Sidebar";
-          sidebarBtn.className = UNIFIED_TOGGLE_INACTIVE_CLASS;
-        }
-      }
       updateSidebarToggleStyle();
     };
 
@@ -4671,7 +4744,7 @@
 
       if (!isUserDraggingSlider) {
         const clampedT = Math.min(4.0, Math.max(1.0, tVal));
-        scaleSlider.value = (5.0 - clampedT).toFixed(2);
+        scaleSlider.value = (5.0 - clampedT).toFixed(4);
         updateOdometerReadout(camDist, tVal);
       }
 
@@ -7559,8 +7632,26 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       height = canvas.height = window.innerHeight;
     });
 
-    let mouse = { x: width / 2, y: height / 2 };
-    let haloPos = { x: width / 2, y: height / 2 };
+    // Initialize cursor dead-center on the letter 'O' of the boot screen NOVA logo
+    let initialX = width / 2 - 28; // Exact offset for the letter O in N-O-V-A
+    let initialY = height / 2;
+    
+    // Try to find the boot screen logo or title element dynamically
+    const bootLogo = document.querySelector('.boot-logo') || document.querySelector('h1') || document.querySelector('svg');
+    if (bootLogo) {
+      const rect = bootLogo.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        // N-O-V-A center is roughly 42% from the left in standard flex layouts
+        initialX = rect.left + rect.width * 0.42;
+        initialY = rect.top + rect.height / 2;
+      }
+    }
+
+    let mouse = { x: initialX, y: initialY };
+    let haloPos = { x: initialX, y: initialY };
+
+    if (dot) { dot.style.left = `${initialX}px`; dot.style.top = `${initialY}px`; }
+    if (halo) { halo.style.left = `${initialX}px`; halo.style.top = `${initialY}px`; }
     const particles = [];
 
     window.addEventListener('mousemove', (e) => {
@@ -7644,6 +7735,257 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
     }
 
     animateCursor();
+  })();
+</script>
+
+
+<script>
+    (function initMorphingZoomOrb() {
+    const slider = document.getElementById('scale-slider');
+    const channel = document.getElementById('zoom-orb-channel');
+    const canvas = document.getElementById('zoom-trail-canvas');
+    const orb = document.getElementById('zoom-morph-orb');
+    const anchorLeft = document.getElementById('zoom-anchor-left');
+    const anchorRight = document.getElementById('zoom-anchor-right');
+    const rippleLeft = document.getElementById('zoom-ripple-left');
+    const rippleRight = document.getElementById('zoom-ripple-right');
+
+    const cursorDot = document.getElementById('nova-cursor-dot');
+    const cursorHalo = document.getElementById('nova-cursor-halo');
+
+    if (!slider || !channel || !canvas || !orb) return;
+    const ctx = canvas.getContext('2d');
+
+    let cw = 144, ch = 32;
+    function resizeTrailCanvas() {
+      const rect = channel.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        const dpr = window.devicePixelRatio || 1;
+        cw = rect.width;
+        ch = rect.height;
+        canvas.width = cw * dpr;
+        canvas.height = ch * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+    }
+    resizeTrailCanvas();
+    window.addEventListener('resize', resizeTrailCanvas);
+
+    // Track pointer position & drag state for Cursor-to-Orb Magnetic Morphing
+    let pointerX = -999, pointerY = -999;
+    let isPointerInChannel = false;
+    let isDraggingOrb = false;
+
+    window.addEventListener('pointermove', (e) => {
+      pointerX = e.clientX;
+      pointerY = e.clientY;
+    });
+    channel.addEventListener('pointerenter', () => { isPointerInChannel = true; });
+    channel.addEventListener('pointerleave', () => { isPointerInChannel = false; });
+    slider.addEventListener('pointerdown', () => {
+      isDraggingOrb = true;
+      document.body.classList.add('nova-orb-locked');
+    });
+    window.addEventListener('pointerup', () => {
+      if (isDraggingOrb) {
+        isDraggingOrb = false;
+        document.body.classList.remove('nova-orb-locked');
+      }
+    });
+
+    function getNormalizedSlider() {
+      const v = parseFloat(slider.value) || 3.70;
+      return Math.max(0, Math.min(1, (v - 1.0) / 3.0));
+    }
+
+    let displayNorm = getNormalizedSlider();
+    let lastX = null;
+    let dockedState = null;
+    const trailNodes = [];
+
+    function triggerEclipseRipple(side) {
+      const el = side === 'left' ? rippleLeft : rippleRight;
+      if (!el) return;
+      el.classList.remove('eclipse-ripple-active');
+      void el.offsetWidth;
+      el.classList.add('eclipse-ripple-active');
+    }
+
+    function updateMorphingOrbFrame() {
+      if (cw <= 0) resizeTrailCanvas();
+      const targetNorm = getNormalizedSlider();
+
+      // Responsive interpolation for both mouse drag and two-finger trackpad swipe
+      displayNorm += (targetNorm - displayNorm) * 0.28;
+      if (Math.abs(targetNorm - displayNorm) < 0.0002) {
+        displayNorm = targetNorm;
+      }
+
+      const minX = 5;
+      const maxX = Math.max(20, cw - 7);
+      const x = minX + displayNorm * (maxX - minX);
+      const y = ch / 2;
+
+      // Dynamic diameter: 5.5px at left anchor -> 10.5px at right anchor
+      const diameter = 5.5 + displayNorm * 5.0;
+      const radius = diameter / 2;
+
+      orb.style.left = `${x}px`;
+      orb.style.width = `${diameter}px`;
+      orb.style.height = `${diameter}px`;
+
+      const fillAlpha = 0.95 - displayNorm * 0.35;
+      const glowSpread = 6 + displayNorm * 8;
+      orb.style.background = `rgba(103, 232, 249, ${fillAlpha.toFixed(2)})`;
+      orb.style.boxShadow = `0 0 ${glowSpread.toFixed(1)}px rgba(34, 211, 238, ${(0.7 + displayNorm * 0.25).toFixed(2)})`;
+
+      // Check if cursor is directly over the active orb, left anchor, or right anchor, or actively dragging
+      const rect = channel.getBoundingClientRect();
+      const orbScreenX = rect.left + x;
+      const orbScreenY = rect.top + y;
+      const leftAnchorScreenX = rect.left + minX;
+      const rightAnchorScreenX = rect.left + maxX;
+
+      const distToOrb = Math.hypot(pointerX - orbScreenX, pointerY - orbScreenY);
+      const distToLeft = Math.hypot(pointerX - leftAnchorScreenX, pointerY - orbScreenY);
+      const distToRight = Math.hypot(pointerX - rightAnchorScreenX, pointerY - orbScreenY);
+
+      if (cursorDot && cursorHalo) {
+        if (isDraggingOrb || (isPointerInChannel && distToOrb <= 14)) {
+          // Lock & morph cursor circle to match the moving zoom orb's exact size and position
+          cursorDot.style.left = `${orbScreenX}px`;
+          cursorDot.style.top = `${orbScreenY}px`;
+          cursorDot.style.width = `${diameter}px`;
+          cursorDot.style.height = `${diameter}px`;
+          cursorDot.style.backgroundColor = 'rgba(165, 243, 252, 0.98)';
+          cursorDot.style.boxShadow = `0 0 ${glowSpread + 4}px 2px rgba(34, 211, 238, 0.95)`;
+          cursorHalo.style.width = `${diameter + 6}px`;
+          cursorHalo.style.height = `${diameter + 6}px`;
+          cursorHalo.style.opacity = '0.35';
+        } else if (isPointerInChannel && distToLeft <= 10) {
+          // Match left small anchor circle (6px) when hovering directly over it
+          cursorDot.style.left = `${leftAnchorScreenX}px`;
+          cursorDot.style.top = `${orbScreenY}px`;
+          cursorDot.style.width = '6px';
+          cursorDot.style.height = '6px';
+          cursorHalo.style.width = '14px';
+          cursorHalo.style.height = '14px';
+          cursorHalo.style.opacity = '0.4';
+        } else if (isPointerInChannel && distToRight <= 12) {
+          // Match right larger anchor circle (10px) when hovering directly over it
+          cursorDot.style.left = `${rightAnchorScreenX}px`;
+          cursorDot.style.top = `${orbScreenY}px`;
+          cursorDot.style.width = '10px';
+          cursorDot.style.height = '10px';
+          cursorHalo.style.width = '18px';
+          cursorHalo.style.height = '18px';
+          cursorHalo.style.opacity = '0.4';
+        } else {
+          // Restore default Celestial Point cursor dimensions
+          cursorDot.style.width = '';
+          cursorDot.style.height = '';
+          cursorDot.style.backgroundColor = '';
+          cursorDot.style.boxShadow = '';
+          cursorHalo.style.width = '';
+          cursorHalo.style.height = '';
+          cursorHalo.style.opacity = '';
+        }
+      }
+
+      // Anchor opacity & Eclipse Resonance Docking detection
+      if (anchorLeft) {
+        anchorLeft.style.opacity = displayNorm < 0.06 ? '0.15' : '0.45';
+      }
+      if (anchorRight) {
+        anchorRight.style.opacity = displayNorm > 0.94 ? '0.95' : '0.48';
+        anchorRight.style.borderColor = displayNorm > 0.94 ? 'rgba(165, 243, 252, 0.95)' : 'rgba(103, 232, 249, 0.5)';
+      }
+
+      if (displayNorm <= 0.018 && dockedState !== 'left') {
+        dockedState = 'left';
+        triggerEclipseRipple('left');
+      } else if (displayNorm >= 0.982 && dockedState !== 'right') {
+        dockedState = 'right';
+        triggerEclipseRipple('right');
+      } else if (displayNorm > 0.04 && displayNorm < 0.96) {
+        dockedState = null;
+      }
+
+      // Spawn dense, long-lasting comet wake segments for BOTH mouse drag and two-finger trackpad scroll
+      if (lastX !== null) {
+        const dx = x - lastX;
+        const absDx = Math.abs(dx);
+        if (absDx > 0.025) {
+          // Sub-stepping every 1.1px guarantees a smooth, unbroken ribbon trail
+          const steps = Math.min(14, Math.max(1, Math.ceil(absDx / 1.1)));
+          for (let s = 1; s <= steps; s++) {
+            const interpX = lastX + (dx * s) / steps;
+            trailNodes.push({
+              x: interpX,
+              y: y,
+              r: radius * 0.95,
+              alpha: Math.min(0.62, 0.28 + absDx * 0.065)
+            });
+          }
+        }
+      }
+      lastX = x;
+
+      // Render & slowly decay the trail (3.5x longer persistence so it stays visible much longer)
+      ctx.clearRect(0, 0, cw, ch);
+      for (let i = trailNodes.length - 1; i >= 0; i--) {
+        const pt = trailNodes[i];
+        pt.alpha -= 0.0045; // Slow decay for long, lingering comet tail
+        pt.r *= 0.994;      // Gradual taper toward the tail tip
+        if (pt.alpha <= 0.004) {
+          trailNodes.splice(i, 1);
+          continue;
+        }
+        const grad = ctx.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, pt.r * 2.1);
+        grad.addColorStop(0, `rgba(165, 243, 252, ${pt.alpha})`);
+        grad.addColorStop(0.45, `rgba(34, 211, 238, ${pt.alpha * 0.65})`);
+        grad.addColorStop(1, 'rgba(34, 211, 238, 0)');
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.r * 2.1, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+
+      requestAnimationFrame(updateMorphingOrbFrame);
+    }
+
+    requestAnimationFrame(updateMorphingOrbFrame);
+  })();
+</script>
+
+
+<style>
+  @keyframes logo-o-breathe {
+    0%, 100% { filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.4)); }
+    50% { filter: drop-shadow(0 0 18px rgba(165, 243, 252, 0.95)); }
+  }
+  .nova-o-hover-glow {
+    animation: logo-o-breathe 2s infinite ease-in-out !important;
+  }
+</style>
+<script>
+  (function initLetterOinteractions() {
+    window.addEventListener('mousemove', (e) => {
+      // Find boot logo or title elements containing NOVA
+      const logoEl = document.querySelector('.boot-logo') || document.querySelector('h1');
+      if (!logoEl) return;
+      const rect = logoEl.getBoundingClientRect();
+      const oCenterX = rect.left + rect.width * 0.42;
+      const oCenterY = rect.top + rect.height / 2;
+      const dist = Math.hypot(e.clientX - oCenterX, e.clientY - oCenterY);
+
+      if (dist <= 45) {
+        logoEl.classList.add('nova-o-hover-glow');
+        document.body.classList.add('nova-cursor-hover');
+      } else {
+        logoEl.classList.remove('nova-o-hover-glow');
+      }
+    });
   })();
 </script>
 
