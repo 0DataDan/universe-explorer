@@ -416,7 +416,45 @@
     /* Portal 'O' Affordance: completely transparent center, breathing luminescent pulse on arcs */
     #nova-portal-o {
       transform-origin: 278px 72.5px;
-      cursor: pointer;
+      cursor: none !important;
+      pointer-events: all !important;
+    }
+    @keyframes nova-cursor-dot-pulse {
+      0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        background-color: #ffffff;
+        box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.55);
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.18);
+        background-color: #ffffff;
+        box-shadow: 0 0 11px 2.5px rgba(255, 255, 255, 0.9);
+      }
+    }
+    @keyframes nova-cursor-halo-pulse {
+      0%, 100% {
+        transform: translate(-50%, -50%) scale(0.94);
+        border-color: rgba(255, 255, 255, 0.24);
+        background-color: rgba(255, 255, 255, 0.01);
+        box-shadow: 0 0 6px rgba(255, 255, 255, 0.08);
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.08);
+        border-color: rgba(255, 255, 255, 0.55);
+        background-color: rgba(255, 255, 255, 0.05);
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.22);
+      }
+    }
+    body.nova-portal-o-active #nova-cursor-dot {
+      width: 6px !important;
+      height: 6px !important;
+      background-color: #ffffff !important;
+      animation: nova-cursor-dot-pulse 2.2s ease-in-out infinite !important;
+    }
+    body.nova-portal-o-active #nova-cursor-halo {
+      width: 26px !important;
+      height: 26px !important;
+      animation: nova-cursor-halo-pulse 2.2s ease-in-out infinite !important;
     }
     #nova-portal-glow {
       fill: transparent !important;
@@ -472,7 +510,7 @@
 
             <!-- Letter O: The Interactive Portal Trigger (Circular ring with symmetrical horizontal gaps) -->
             <g id="nova-portal-o" class="portal-ready" style="opacity: 1 !important; visibility: visible !important;">
-              <circle id="nova-portal-glow" cx="278" cy="72.5" r="54" fill="transparent" />
+              <circle id="nova-portal-glow" cx="278" cy="72.5" r="60" fill="rgba(0,0,0,0.001)" style="pointer-events: all !important; cursor: none !important;" />
               <!-- Top Arc -->
               <path id="nova-svg-o-top" class="nova-base-vector nova-portal-arc" d="M 218.58 64.15 A 60 60 0 0 1 337.42 64.15" />
               <!-- Bottom Arc -->
@@ -710,7 +748,7 @@
       <!-- Trackless Morphing Zoom Singularity with Comet Trail & Eclipse Resonance Docking -->
       <div id="zoom-orb-channel" class="relative flex items-center w-32 sm:w-36 h-8 select-none">
         <!-- Faint Trail Canvas Behind Moving Circle -->
-        <canvas id="zoom-trail-canvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+        <canvas id="zoom-trail-canvas" class="absolute top-0 h-full pointer-events-none" style="left: -18px; width: calc(100% + 36px);"></canvas>
 
         <!-- Left Anchor (Small Pinpoint Circle - Far Cosmic Horizon) -->
         <span id="zoom-anchor-left" class="absolute left-[5px] top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-cyan-300/40 shadow-[0_0_4px_rgba(34,211,238,0.35)] pointer-events-none transition-all duration-300" aria-hidden="true"></span>
@@ -718,13 +756,13 @@
           absolute left-[5px] top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full border border-cyan-300 pointer-events-none opacity-0" aria-hidden="true"></span>
 
         <!-- Right Anchor (Larger Hollow Circle - Planetary Core) -->
-        <span id="zoom-anchor-right" class="absolute right-[7px] top-1/2 translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border border-cyan-300/50 bg-cyan-400/10 shadow-[0_0_6px_rgba(34,211,238,0.3)] pointer-events-none transition-all duration-300" aria-hidden="true"></span>
+        <span id="zoom-anchor-right" class="absolute right-[7px] top-1/2 translate-x-1/2 -translate-y-1/2 w-3 h-3 box-border rounded-full bg-cyan-300/40 border border-cyan-300/80 shadow-[0_0_6px_rgba(34,211,238,0.4)] pointer-events-none transition-all duration-300" aria-hidden="true"></span>
         <span id="zoom-ripple-right" class="absolute right-[7px] top-1/2 translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-cyan-300 pointer-events-none opacity-0" aria-hidden="true"></span>
 
         <!-- Active Morphing Circle (Slides & Grows Left->Right, Shrinks Right->Left) -->
         <span id="zoom-morph-orb" class="
           absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
-          style="width: 10px; height: 10px; left: 85%; background: rgba(103, 232, 249, 0.92); border: 1.5px solid rgba(224, 242, 254, 0.95); box-shadow: 0 0 10px rgba(34, 211, 238, 0.85);"></span>
+          style="box-sizing: border-box; width: 8.5px; height: 8.5px; left: 85%; background: rgba(103, 232, 249, 0.92); border: 1px solid rgba(224, 242, 254, 0.9); box-shadow: 0 0 6px rgba(34, 211, 238, 0.65);"></span>
 
         <!-- Invisible Interactive Range Input Overlaying Entire Channel -->
         <input id="scale-slider" type="range" min="1.0" max="4.0" step="0.005" value="3.70" aria-label="Cosmic Zoom" class="relative z-10 w-full h-full opacity-0" />
@@ -3862,29 +3900,71 @@
     }
 
     function onPointerMove(event) {
+      // Do not strip hover if pointer is directly over a celestial label or interactive HUD element
+      const overLabelOrHud = event.target && event.target.closest && event.target.closest('.celestial-label, button, a, input, select, [role="button"], .interactive, #nova-portal-o');
+      if (overLabelOrHud) {
+        document.body.classList.add('nova-cursor-hover');
+        return;
+      }
+
+      const inspectorEl = document.getElementById('inspector');
+      const isSidebarOpen = inspectorEl && !inspectorEl.classList.contains('translate-x-[430px]');
+      const rightLimit = isSidebarOpen ? window.innerWidth - 410 : window.innerWidth;
+
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
       raycaster.setFromCamera(mouse, camera);
 
       const visibleCandidates = celestialObjects.filter(obj => isNodeVisible(obj));
-      const intersects = raycaster.intersectObjects(visibleCandidates, false);
+      const intersects = raycaster.intersectObjects(visibleCandidates, true);
 
-      if (intersects.length > 0 && event.clientX < window.innerWidth - 410) {
-        const resolved = resolveTargetData(intersects[0].object);
-        if (resolved && resolved.data.name) {
-          hoveredCelestialMesh = resolved.rootMesh;
+      if (event.clientX < rightLimit) {
+        for (let i = 0; i < intersects.length; i++) {
+          const resolved = resolveTargetData(intersects[i].object);
+          if (resolved && resolved.data && resolved.data.name) {
+            hoveredCelestialMesh = resolved.rootMesh;
+            document.body.classList.add('nova-cursor-hover');
+            return;
+          }
+        }
+
+        // Screen-space proximity fallback so small/distant 3D bodies (Mercury, Ceres, Oumuamua, Uranus, stars) always highlight reliably
+        let closestMesh = null;
+        let closestDist = 18; // 18px screen hit radius around any visible object center
+        const projVec = new THREE.Vector3();
+        for (let i = 0; i < visibleCandidates.length; i++) {
+          const obj = visibleCandidates[i];
+          const resolved = resolveTargetData(obj);
+          if (!resolved || !resolved.data || !resolved.data.name) continue;
+          obj.getWorldPosition(projVec);
+          projVec.project(camera);
+          if (projVec.z > -1 && projVec.z < 1) {
+            const sx = (projVec.x * 0.5 + 0.5) * window.innerWidth;
+            const sy = (-projVec.y * 0.5 + 0.5) * window.innerHeight;
+            const d = Math.hypot(event.clientX - sx, event.clientY - sy);
+            if (d < closestDist) {
+              closestDist = d;
+              closestMesh = resolved.rootMesh;
+            }
+          }
+        }
+        if (closestMesh) {
+          hoveredCelestialMesh = closestMesh;
           document.body.classList.add('nova-cursor-hover');
           return;
         }
       }
+
       hoveredCelestialMesh = null;
       document.body.classList.remove('nova-cursor-hover');
     }
 
     function onPointerDown(event) {
       if (event.target && event.target.closest && event.target.closest('header, footer, aside, #cosmic-tour-hud, button, input, .celestial-label')) return;
-      if (event.clientY < 60 || event.clientX > window.innerWidth - 410) return;
+      const inspectorEl = document.getElementById('inspector');
+      const isSidebarOpen = inspectorEl && !inspectorEl.classList.contains('translate-x-[430px]');
+      if (event.clientY < 60 || (isSidebarOpen && event.clientX > window.innerWidth - 410)) return;
 
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -3892,11 +3972,21 @@
       raycaster.setFromCamera(mouse, camera);
 
       const visibleCandidates = celestialObjects.filter(obj => isNodeVisible(obj));
-      const intersects = raycaster.intersectObjects(visibleCandidates, false);
+      const intersects = raycaster.intersectObjects(visibleCandidates, true);
 
-      if (intersects.length > 0) {
-        const resolved = resolveTargetData(intersects[0].object);
-        if (resolved && resolved.data.id) {
+      for (let i = 0; i < intersects.length; i++) {
+        const resolved = resolveTargetData(intersects[i].object);
+        if (resolved && resolved.data && resolved.data.id) {
+          activeTargetMesh = resolved.rootMesh;
+          openInspector(resolved.data);
+          smoothFlyToTarget();
+          return;
+        }
+      }
+
+      if (hoveredCelestialMesh) {
+        const resolved = resolveTargetData(hoveredCelestialMesh);
+        if (resolved && resolved.data && resolved.data.id) {
           activeTargetMesh = resolved.rootMesh;
           openInspector(resolved.data);
           smoothFlyToTarget();
@@ -6350,6 +6440,260 @@
       item.position[2] = (uz / norm) * targetDist;
     }
 
+    
+    // === REAL-TIME ANIMATED SOLAR PHOTOSPHERE, GRANULATION & LIMB SPICULE SHADER ===
+    window.sunShaderUniforms = {
+      uTime: { value: 0.0 }
+    };
+
+    function createAnimatedSunMaterial() {
+      return new THREE.ShaderMaterial({
+        uniforms: window.sunShaderUniforms,
+        vertexShader: `
+          varying vec3 vNormal;
+          varying vec3 vPosition;
+          varying vec3 vWorldNormal;
+          varying vec3 vViewDir;
+          uniform float uTime;
+
+          float hash31(vec3 p) {
+            p = fract(p * 0.1031);
+            p += dot(p, p.yzx + 33.33);
+            return fract((p.x + p.y) * p.z);
+          }
+          float vNoise(vec3 x) {
+            vec3 i = floor(x);
+            vec3 f = fract(x);
+            f = f * f * (3.0 - 2.0 * f);
+            return mix(
+              mix(mix(hash31(i + vec3(0,0,0)), hash31(i + vec3(1,0,0)), f.x),
+                  mix(hash31(i + vec3(0,1,0)), hash31(i + vec3(1,1,0)), f.x), f.y),
+              mix(mix(hash31(i + vec3(0,0,1)), hash31(i + vec3(1,0,1)), f.x),
+                  mix(hash31(i + vec3(0,1,1)), hash31(i + vec3(1,1,1)), f.x), f.y), f.z
+            );
+          }
+
+          void main() {
+            vNormal = normalize(normal);
+            vPosition = normalize(position);
+
+            // Subtle limb-visible photospheric plasma boiling undulation
+            float boil = vNoise(vPosition * 18.0 + vec3(uTime * 0.85, -uTime * 0.65, uTime * 0.75)) * 0.65
+                       + vNoise(vPosition * 36.0 - vec3(uTime * 1.35, uTime * 1.1, -uTime * 0.95)) * 0.35;
+            vec3 displaced = position + normal * ((boil - 0.5) * 0.032);
+
+            vec4 worldPos = modelMatrix * vec4(displaced, 1.0);
+            vWorldNormal = normalize(mat3(modelMatrix) * normal);
+            vViewDir = normalize(cameraPosition - worldPos.xyz);
+
+            gl_Position = projectionMatrix * viewMatrix * worldPos;
+          }
+        `,
+        fragmentShader: `
+          varying vec3 vNormal;
+          varying vec3 vPosition;
+          varying vec3 vWorldNormal;
+          varying vec3 vViewDir;
+          uniform float uTime;
+
+          float hash(vec3 p) {
+            p = fract(p * vec3(443.897, 441.423, 437.195));
+            p += dot(p, p.yzx + 19.19);
+            return fract((p.x + p.y) * p.z);
+          }
+
+          float noise3D(vec3 p) {
+            vec3 i = floor(p);
+            vec3 f = fract(p);
+            f = f * f * (3.0 - 2.0 * f);
+            return mix(
+              mix(mix(hash(i + vec3(0,0,0)), hash(i + vec3(1,0,0)), f.x),
+                  mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+              mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
+                  mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z
+            );
+          }
+
+          // Multi-octave fBm plasma turbulence
+          float fbm(vec3 p) {
+            float v = 0.0;
+            float a = 0.5;
+            for (int i = 0; i < 5; i++) {
+              v += a * noise3D(p);
+              p = p * 2.08 + vec3(13.7, -9.2, 17.4);
+              a *= 0.5;
+            }
+            return v;
+          }
+
+          // Sharp cellular ridge noise for bubbling Bénard solar convection cells
+          // (bright hot upwelling granule centers + dark cooled intergranular downflow lanes)
+          float granulationCells(vec3 p) {
+            float n1 = 1.0 - abs(noise3D(p) * 2.0 - 1.0);
+            float n2 = 1.0 - abs(noise3D(p * 2.12 + vec3(7.3, -4.1, 11.8)) * 2.0 - 1.0);
+            float n3 = 1.0 - abs(noise3D(p * 4.25 - vec3(3.7, 9.4, -6.2)) * 2.0 - 1.0);
+            return pow(n1 * 0.52 + n2 * 0.33 + n3 * 0.15, 1.45);
+          }
+
+          void main() {
+            // Noticeable, organic convective churning speed
+            float t = uTime * 0.72;
+            vec3 p = normalize(vPosition);
+
+            // 3D fluid domain-warping so plasma filaments & convection cells swirl and evolve continuously
+            vec3 warp = vec3(
+              fbm(p * 5.0 + vec3(t * 0.55, -t * 0.42, t * 0.25)),
+              fbm(p * 5.0 + vec3(-t * 0.48, t * 0.52, 8.3 - t * 0.3)),
+              fbm(p * 5.0 + vec3(4.1 + t * 0.35, -t * 0.5, t * 0.45))
+            );
+
+            // Multi-scale solar granulation (fine granules + mesogranulation + supergranulation)
+            float fineCells = granulationCells(p * 28.0 + warp * 2.8 + vec3(t * 1.15, -t * 0.95, t * 1.05));
+            float medCells  = granulationCells(p * 13.0 + warp * 2.0 - vec3(t * 0.75, t * 0.65, -t * 0.8));
+            float macroFlow = fbm(p * 4.2 + warp * 1.1 + vec3(0.0, t * 0.3, 0.0));
+
+            // Realistic Sunspot Active Belts (+/- 12° to 28° solar latitude)
+            float latBelt = exp(-pow((abs(p.y) - 0.26) * 4.5, 2.0));
+            float activeField = fbm(p * 6.0 + warp * 0.55 + vec3(t * 0.16, 0.0, -t * 0.14));
+            float spotMetric = activeField * (0.68 + 0.42 * latBelt);
+            float umbra    = smoothstep(0.67, 0.77, spotMetric);
+            float penumbra = smoothstep(0.56, 0.68, spotMetric);
+
+            // Bright white-hot magnetic faculae / plage filaments threading around active regions
+            float filamentNoise = granulationCells(p * 34.0 - warp * 3.2 + vec3(t * 1.4));
+            float faculae = smoothstep(0.47, 0.60, spotMetric) * (1.0 - penumbra) * pow(filamentNoise, 0.85);
+
+            // Combine photospheric thermal intensity
+            float heat = fineCells * 0.50 + medCells * 0.32 + macroFlow * 0.18;
+            heat = pow(clamp(heat, 0.0, 1.0), 0.92);
+            heat += faculae * 0.48;
+            heat -= penumbra * 0.42;
+            heat -= umbra * 0.58;
+            heat = clamp(heat, 0.0, 1.35);
+
+            // Physical Eddington Limb Darkening + Fiery Chromospheric Spicule Rim (matching reference video)
+            float mu = clamp(dot(normalize(vWorldNormal), normalize(vViewDir)), 0.0, 1.0);
+            float limbDarkening = pow(mu, 0.48);
+            float rimFactor = pow(1.0 - mu, 2.35);
+
+            // Dynamic flickering plasma spicules & micro-prominences along the solar limb
+            float spiculeWave = granulationCells(p * 38.0 + vec3(uTime * 1.9, -uTime * 1.6, uTime * 1.7));
+            float rimSpicules = rimFactor * (0.6 + 0.95 * spiculeWave);
+
+            // High-dynamic-range SDO / Photosphere / Chromosphere palette
+            vec3 colUmbra    = vec3(0.12, 0.015, 0.002); // Dark magnetic sunspot core
+            vec3 colDarkLane = vec3(0.72, 0.16, 0.01);   // Deep crimson-orange intergranular downflow lanes
+            vec3 colPhoto    = vec3(0.98, 0.52, 0.05);   // Rich solar amber-orange photosphere
+            vec3 colGranule  = vec3(1.00, 0.84, 0.32);   // Bright golden-yellow upwelling granule tops
+            vec3 colFaculae  = vec3(1.00, 0.98, 0.88);   // Incandescent white-hot magnetic faculae/plages
+            vec3 colChromo   = vec3(1.00, 0.26, 0.02);   // Fiery chromospheric rim
+
+            vec3 baseColor;
+            if (heat < 0.25) {
+              baseColor = mix(colUmbra, colDarkLane, heat / 0.25);
+            } else if (heat < 0.56) {
+              baseColor = mix(colDarkLane, colPhoto, (heat - 0.25) / 0.31);
+            } else if (heat < 0.84) {
+              baseColor = mix(colPhoto, colGranule, (heat - 0.56) / 0.28);
+            } else {
+              baseColor = mix(colGranule, colFaculae, clamp((heat - 0.84) / 0.38, 0.0, 1.0));
+            }
+
+            // Apply realistic limb darkening toward the edges while keeping magnetic faculae bright near the limb
+            vec3 limbTinted = mix(colChromo * 0.82, baseColor, 0.28 + 0.72 * limbDarkening);
+            vec3 finalColor = limbTinted
+                            + colChromo * rimSpicules * 0.65
+                            + colFaculae * (faculae * (1.0 - mu * 0.6) * 0.52);
+
+            gl_FragColor = vec4(finalColor, 1.0);
+          }
+        `
+      });
+    }
+
+    function createAnimatedCoronaLayer(sunRadius) {
+      const coronaGeo = new THREE.SphereGeometry(sunRadius * 1.055, 64, 64);
+      const coronaMat = new THREE.ShaderMaterial({
+        uniforms: window.sunShaderUniforms,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.BackSide,
+        vertexShader: `
+          varying vec3 vPos;
+          varying vec3 vWorldNormal;
+          varying vec3 vViewDir;
+          uniform float uTime;
+
+          float hash31(vec3 p) {
+            p = fract(p * 0.1031);
+            p += dot(p, p.yzx + 33.33);
+            return fract((p.x + p.y) * p.z);
+          }
+          float vNoise(vec3 x) {
+            vec3 i = floor(x);
+            vec3 f = fract(x);
+            f = f * f * (3.0 - 2.0 * f);
+            return mix(
+              mix(mix(hash31(i + vec3(0,0,0)), hash31(i + vec3(1,0,0)), f.x),
+                  mix(hash31(i + vec3(0,1,0)), hash31(i + vec3(1,1,0)), f.x), f.y),
+              mix(mix(hash31(i + vec3(0,0,1)), hash31(i + vec3(1,0,1)), f.x),
+                  mix(hash31(i + vec3(0,1,1)), hash31(i + vec3(1,1,1)), f.x), f.y), f.z
+            );
+          }
+
+          void main() {
+            vPos = normalize(position);
+            // Animated spicule/prominence tongues dancing along the outer limb
+            float tongue = vNoise(vPos * 20.0 + vec3(uTime * 1.2, -uTime * 0.9, uTime * 1.0));
+            vec3 displaced = position + normal * (tongue * 0.045);
+            vec4 worldPos = modelMatrix * vec4(displaced, 1.0);
+            vWorldNormal = normalize(mat3(modelMatrix) * normal);
+            vViewDir = normalize(cameraPosition - worldPos.xyz);
+            gl_Position = projectionMatrix * viewMatrix * worldPos;
+          }
+        `,
+        fragmentShader: `
+          varying vec3 vPos;
+          varying vec3 vWorldNormal;
+          varying vec3 vViewDir;
+          uniform float uTime;
+
+          float hash(vec3 p) {
+            p = fract(p * vec3(443.897, 441.423, 437.195));
+            p += dot(p, p.yzx + 19.19);
+            return fract((p.x + p.y) * p.z);
+          }
+          float noise3D(vec3 p) {
+            vec3 i = floor(p);
+            vec3 f = fract(p);
+            f = f * f * (3.0 - 2.0 * f);
+            return mix(
+              mix(mix(hash(i + vec3(0,0,0)), hash(i + vec3(1,0,0)), f.x),
+                  mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+              mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
+                  mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z
+            );
+          }
+
+          void main() {
+            float ndotv = abs(dot(normalize(vWorldNormal), normalize(vViewDir)));
+            float rim = pow(clamp(1.0 - ndotv, 0.0, 1.0), 1.95);
+            float spicule1 = 1.0 - abs(noise3D(vPos * 24.0 + vec3(uTime * 1.35, -uTime * 1.05, uTime * 0.95)) * 2.0 - 1.0);
+            float spicule2 = 1.0 - abs(noise3D(vPos * 46.0 - vec3(uTime * 2.1, uTime * 1.7, -uTime * 1.5)) * 2.0 - 1.0);
+            float prominence = pow(spicule1 * 0.6 + spicule2 * 0.4, 1.4);
+            float alpha = rim * (0.32 + 0.65 * prominence);
+            vec3 col = mix(vec3(1.0, 0.24, 0.02), vec3(1.0, 0.85, 0.35), prominence);
+            gl_FragColor = vec4(col, clamp(alpha, 0.0, 0.92));
+          }
+        `
+      });
+      const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
+      coronaMesh.name = "sun-chromosphere-spicules";
+      coronaMesh.raycast = () => {};
+      return coronaMesh;
+    }
+
     function applyCharacteristicTexturesToScene() {
       ensurePhotorealisticLighting();
       let texturedCount = 0;
@@ -6373,15 +6717,20 @@
         const bumpTex = nasaBumpCache[kind];
         const isSelfLuminous = (kind === 'sun' || kind.startsWith('star-') || kind === 'stephenson' || kind.startsWith('nebula-') || kind.startsWith('galaxy-'));
 
-        if (isSelfLuminous) {
-          obj.material = new THREE.MeshStandardMaterial({
-            map: procTex,
-            emissiveMap: procTex,
-            emissive: new THREE.Color(0xffffff),
-            emissiveIntensity: 1.15,
-            roughness: 0.9,
-            metalness: 0.0
-          });
+        if (kind === 'sun') {
+              obj.material = createAnimatedSunMaterial();
+              if (!obj.getObjectByName("sun-chromosphere-spicules")) {
+                obj.add(createAnimatedCoronaLayer((meta && meta.size) ? meta.size : 2.5));
+              }
+            } else if (isSelfLuminous) {
+              obj.material = new THREE.MeshStandardMaterial({
+                map: procTex,
+                emissiveMap: procTex,
+                emissive: new THREE.Color(0xffffff),
+                emissiveIntensity: 1.15,
+                roughness: 0.9,
+                metalness: 0.0
+              });
         } else {
           const isOceanWorld = (kind === 'earth');
           const isGasGiant = (kind === 'jupiter' || kind === 'saturn' || kind === 'uranus' || kind === 'neptune' || kind === 'venus');
@@ -6410,6 +6759,15 @@
       TWEEN.update(time);
 
       const timeSec = time * 0.001;
+      if (window.sunShaderUniforms) {
+        window.sunShaderUniforms.uTime.value = timeSec;
+      }
+      if (sunMeshRef && (!sunMeshRef.material || sunMeshRef.material.type !== 'ShaderMaterial') && typeof createAnimatedSunMaterial === 'function') {
+        sunMeshRef.material = createAnimatedSunMaterial();
+        if (!sunMeshRef.getObjectByName("sun-chromosphere-spicules")) {
+          sunMeshRef.add(createAnimatedCoronaLayer((sunMeshRef.userData && sunMeshRef.userData.size) ? sunMeshRef.userData.size : 2.5));
+        }
+      }
       const camDist = camera.position.distanceTo(controls.target);
       updateAdaptiveScale(camDist);
 
@@ -6418,7 +6776,7 @@
       }
 
       rotatableObjects.forEach(obj => {
-        obj.rotation.y += 0.003;
+        obj.rotation.y += (obj === sunMeshRef) ? 0.0006 : 0.003;
       });
 
       if (crabPulsarBeams) {
@@ -7381,6 +7739,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       function onPortalTriggerClick(e) {
         if (isWormholeRunning) return;
         isWormholeRunning = true;
+            document.body.classList.remove('nova-portal-o-active', 'nova-cursor-hover');
         if (e && e.stopPropagation) e.stopPropagation();
 
         const portalO = document.getElementById("nova-portal-o");
@@ -7632,33 +7991,103 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       height = canvas.height = window.innerHeight;
     });
 
-    // Initialize cursor dead-center on the letter 'O' of the boot screen NOVA logo
-    let initialX = width / 2 - 28; // Exact offset for the letter O in N-O-V-A
-    let initialY = height / 2;
-    
-    // Try to find the boot screen logo or title element dynamically
-    const bootLogo = document.querySelector('.boot-logo') || document.querySelector('h1') || document.querySelector('svg');
-    if (bootLogo) {
-      const rect = bootLogo.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        // N-O-V-A center is roughly 42% from the left in standard flex layouts
-        initialX = rect.left + rect.width * 0.42;
-        initialY = rect.top + rect.height / 2;
+    // Initialize cursor dead-center inside #nova-portal-o on the boot screen
+    function getPortalOCenterAndRadius() {
+      const portalEl = document.getElementById('nova-portal-o') || document.getElementById('nova-portal-glow');
+      const bootOverlay = document.getElementById('nova-boot-overlay');
+      const isBootVisible = bootOverlay && !bootOverlay.classList.contains('boot-completed') && bootOverlay.style.display !== 'none';
+      if (portalEl && isBootVisible) {
+        const rect = portalEl.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          return {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+            r: Math.max(rect.width, rect.height) / 2,
+            active: true
+          };
+        }
       }
+      return { x: width / 2, y: height / 2, r: 0, active: false };
     }
+
+    const initPortal = getPortalOCenterAndRadius();
+    let initialX = initPortal.x;
+    let initialY = initPortal.y;
 
     let mouse = { x: initialX, y: initialY };
     let haloPos = { x: initialX, y: initialY };
+    let hasUserMovedPointer = false;
 
     if (dot) { dot.style.left = `${initialX}px`; dot.style.top = `${initialY}px`; }
     if (halo) { halo.style.left = `${initialX}px`; halo.style.top = `${initialY}px`; }
+    if (initPortal.active) {
+      document.body.classList.add('nova-portal-o-active');
+      document.body.classList.remove('nova-cursor-hover');
+    }
+
+    // Re-sync exact center across layout/font/SVG settle frames until the user moves the mouse
+    function syncInitialPortalCenter() {
+      if (hasUserMovedPointer) return;
+      const p = getPortalOCenterAndRadius();
+      if (p.active) {
+        mouse.x = haloPos.x = p.x;
+        mouse.y = haloPos.y = p.y;
+        if (dot) { dot.style.left = `${p.x}px`; dot.style.top = `${p.y}px`; }
+        if (halo) { halo.style.left = `${p.x}px`; halo.style.top = `${p.y}px`; }
+        document.body.classList.add('nova-portal-o-active');
+      document.body.classList.remove('nova-cursor-hover');
+      }
+    }
+    requestAnimationFrame(syncInitialPortalCenter);
+    setTimeout(syncInitialPortalCenter, 60);
+    setTimeout(syncInitialPortalCenter, 200);
+    window.addEventListener('resize', syncInitialPortalCenter);
+
+    // Check on every pointer move whether the cursor is anywhere inside or on the letter O circle
+    window.addEventListener('mousemove', (e) => {
+      hasUserMovedPointer = true;
+      const p = getPortalOCenterAndRadius();
+      if (p.active) {
+        const dist = Math.hypot(e.clientX - p.x, e.clientY - p.y);
+        const portalEl = document.getElementById('nova-portal-o');
+        // Full outer radius of the O ring + stroke padding
+        if (dist <= p.r + 6) {
+          document.body.classList.add('nova-portal-o-active');
+      document.body.classList.remove('nova-cursor-hover');
+          if (portalEl) {
+            portalEl.querySelectorAll('.nova-portal-arc').forEach(arc => {
+              arc.style.stroke = '#ffffff';
+              arc.style.filter = 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.85)) drop-shadow(0 0 22px rgba(255, 255, 255, 0.35))';
+            });
+          }
+        } else {
+          document.body.classList.remove('nova-portal-o-active');
+          if (portalEl) {
+            portalEl.querySelectorAll('.nova-portal-arc').forEach(arc => {
+              arc.style.stroke = '';
+              arc.style.filter = '';
+            });
+          }
+        }
+      } else {
+        document.body.classList.remove('nova-portal-o-active');
+      }
+    });
     const particles = [];
+    let isPointerMoving = false;
+    let pointerStopTimer = null;
 
     window.addEventListener('mousemove', (e) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
       dot.style.left = `${mouse.x}px`;
       dot.style.top = `${mouse.y}px`;
+
+      isPointerMoving = true;
+      if (pointerStopTimer) clearTimeout(pointerStopTimer);
+      pointerStopTimer = setTimeout(() => {
+        isPointerMoving = false;
+      }, 65);
 
       if (Math.random() > 0.25) {
         particles.push({
@@ -7672,7 +8101,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       }
     });
 
-    const interactiveSelectors = 'a, button, [role="button"], input, select, .interactive';
+    const interactiveSelectors = '#nova-portal-o, #nova-portal-glow, .celestial-label, a, button, [role="button"], input, select, .interactive';
     document.addEventListener('mouseover', (e) => {
       if (e.target && e.target.hasAttribute && e.target.hasAttribute('title')) {
         e.target.removeAttribute('title');
@@ -7697,20 +8126,35 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
     function animateCursor() {
       ctx.clearRect(0, 0, width, height);
-      haloPos.x += (mouse.x - haloPos.x) * 0.16;
-      haloPos.y += (mouse.y - haloPos.y) * 0.16;
+
+      // Check if an interactive element or 3D celestial object is currently highlighted
+      const isHighlighted =
+        document.body.classList.contains('nova-cursor-hover') ||
+        document.body.classList.contains('nova-portal-o-active') ||
+        document.body.classList.contains('nova-orb-locked');
+
+      // Longer trail behind cursor while moving (0.065); rapid snap to cursor when stopped or highlighted (0.42)
+      const haloLerp = (!isPointerMoving || isHighlighted) ? 0.42 : 0.065;
+      haloPos.x += (mouse.x - haloPos.x) * haloLerp;
+      haloPos.y += (mouse.y - haloPos.y) * haloLerp;
+
+      if (Math.hypot(mouse.x - haloPos.x, mouse.y - haloPos.y) < 0.75) {
+        haloPos.x = mouse.x;
+        haloPos.y = mouse.y;
+      }
+
       halo.style.left = `${haloPos.x}px`;
       halo.style.top = `${haloPos.y}px`;
 
       const dx = mouse.x - haloPos.x;
       const dy = mouse.y - haloPos.y;
       const dist = Math.hypot(dx, dy);
-      if (dist > 4) {
+      if (dist > 2.5) {
         ctx.beginPath();
         ctx.moveTo(mouse.x, mouse.y);
         ctx.lineTo(haloPos.x, haloPos.y);
-        ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(dist / 120, 0.2)})`;
-        ctx.lineWidth = 0.75;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(dist / 95, 0.28)})`;
+        ctx.lineWidth = 0.85;
         ctx.stroke();
       }
 
@@ -7757,15 +8201,16 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
     const ctx = canvas.getContext('2d');
 
     let cw = 144, ch = 32;
+    const canvasPadX = 18;
     function resizeTrailCanvas() {
       const rect = channel.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0) {
         const dpr = window.devicePixelRatio || 1;
         cw = rect.width;
         ch = rect.height;
-        canvas.width = cw * dpr;
+        canvas.width = (cw + canvasPadX * 2) * dpr;
         canvas.height = ch * dpr;
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.setTransform(dpr, 0, 0, dpr, canvasPadX * dpr, 0);
       }
     }
     resizeTrailCanvas();
@@ -7826,18 +8271,22 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       const x = minX + displayNorm * (maxX - minX);
       const y = ch / 2;
 
-      // Dynamic diameter: 5.5px at left anchor -> 10.5px at right anchor
-      const diameter = 5.5 + displayNorm * 5.0;
+      // Two-stage diameter curve: stays compact (4.5px -> 7.4px) across 0%..90% of the slider so it is unmistakably smaller than the 12px right circle, then smoothly expands to 12.0px at 100% full zoom
+      const baseGrowth = displayNorm * 3.1; // +3.1px linear growth
+      const finalDockGrowth = Math.pow(displayNorm, 6.0) * 4.4; // +4.4px only near the very end (92%..100%)
+      const diameter = 4.5 + baseGrowth + finalDockGrowth;
       const radius = diameter / 2;
 
+      orb.style.boxSizing = 'border-box';
       orb.style.left = `${x}px`;
-      orb.style.width = `${diameter}px`;
-      orb.style.height = `${diameter}px`;
+      orb.style.width = `${diameter.toFixed(2)}px`;
+      orb.style.height = `${diameter.toFixed(2)}px`;
 
-      const fillAlpha = 0.95 - displayNorm * 0.35;
-      const glowSpread = 6 + displayNorm * 8;
+      const fillAlpha = 0.92 - Math.pow(displayNorm, 2.0) * 0.32;
+      const glowSpread = 3.0 + Math.pow(displayNorm, 3.0) * 5.0;
       orb.style.background = `rgba(103, 232, 249, ${fillAlpha.toFixed(2)})`;
-      orb.style.boxShadow = `0 0 ${glowSpread.toFixed(1)}px rgba(34, 211, 238, ${(0.7 + displayNorm * 0.25).toFixed(2)})`;
+      orb.style.border = '1px solid rgba(224, 242, 254, 0.9)';
+      orb.style.boxShadow = `0 0 ${glowSpread.toFixed(1)}px rgba(34, 211, 238, ${(0.5 + displayNorm * 0.3).toFixed(2)})`;
 
       // Check if cursor is directly over the active orb, left anchor, or right anchor, or actively dragging
       const rect = channel.getBoundingClientRect();
@@ -7932,7 +8381,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       lastX = x;
 
       // Render & slowly decay the trail (3.5x longer persistence so it stays visible much longer)
-      ctx.clearRect(0, 0, cw, ch);
+      ctx.clearRect(-canvasPadX, 0, cw + canvasPadX * 2, ch);
       for (let i = trailNodes.length - 1; i >= 0; i--) {
         const pt = trailNodes[i];
         pt.alpha -= 0.0045; // Slow decay for long, lingering comet tail
@@ -7959,35 +8408,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 </script>
 
 
-<style>
-  @keyframes logo-o-breathe {
-    0%, 100% { filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.4)); }
-    50% { filter: drop-shadow(0 0 18px rgba(165, 243, 252, 0.95)); }
-  }
-  .nova-o-hover-glow {
-    animation: logo-o-breathe 2s infinite ease-in-out !important;
-  }
-</style>
-<script>
-  (function initLetterOinteractions() {
-    window.addEventListener('mousemove', (e) => {
-      // Find boot logo or title elements containing NOVA
-      const logoEl = document.querySelector('.boot-logo') || document.querySelector('h1');
-      if (!logoEl) return;
-      const rect = logoEl.getBoundingClientRect();
-      const oCenterX = rect.left + rect.width * 0.42;
-      const oCenterY = rect.top + rect.height / 2;
-      const dist = Math.hypot(e.clientX - oCenterX, e.clientY - oCenterY);
 
-      if (dist <= 45) {
-        logoEl.classList.add('nova-o-hover-glow');
-        document.body.classList.add('nova-cursor-hover');
-      } else {
-        logoEl.classList.remove('nova-o-hover-glow');
-      }
-    });
-  })();
-</script>
 
 </body>
 </html>
