@@ -477,7 +477,11 @@
     #nova-portal-o:hover .nova-portal-arc {
       animation: none !important;
       stroke: #ffffff !important;
-      filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 28px rgba(255, 255, 255, 0.6)) !important;
+      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.85)) drop-shadow(0 0 18px rgba(255, 255, 255, 0.4)) !important;
+    }
+    html.is-wormhole-zooming #nova-portal-o .nova-portal-arc,
+    html.is-wormhole-zooming #nova-portal-o:hover .nova-portal-arc {
+      filter: none !important;
     }
 
     /* Starfield warp canvas */
@@ -888,6 +892,8 @@
           </svg>
         </button>
 
+        <div class="h-5 w-[1px] bg-white/15 mx-0.5 shrink-0" aria-hidden="true"></div>
+
         <!-- Fullscreen Button: Bounding Circle Cut in Half Horizontally When Inactive, Animating to Full Circle When Active (No Extra Inner Ring) -->
         <button id="btn-fullscreen-zen" onclick="toggleFullscreenZen()" class="relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
           <svg id="fullscreen-icon" class="w-full h-full overflow-visible" viewBox="0 0 32 32" fill="none">
@@ -1273,8 +1279,8 @@
     window.toggleOrbits = window.toggleOrbitPause;
 
     let isZenMode = false;
-    let isSidebarUserHidden = false;
-    let isOverviewToggleActive = true;
+    let isSidebarUserHidden = true;
+    let isOverviewToggleActive = false;
 
     window.toggleLabels = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
@@ -3900,6 +3906,11 @@
     }
 
     function onPointerMove(event) {
+      const bootOverlay = document.getElementById('nova-boot-overlay');
+      if (document.documentElement.classList.contains('is-booting') || (bootOverlay && !bootOverlay.classList.contains('boot-completed') && bootOverlay.style.display !== 'none')) {
+        hoveredCelestialMesh = null;
+        return;
+      }
       // Do not strip hover if pointer is directly over a celestial label or interactive HUD element
       const overLabelOrHud = event.target && event.target.closest && event.target.closest('.celestial-label, button, a, input, select, [role="button"], .interactive, #nova-portal-o');
       if (overLabelOrHud) {
@@ -3961,7 +3972,9 @@
     }
 
     function onPointerDown(event) {
-      if (event.target && event.target.closest && event.target.closest('header, footer, aside, #cosmic-tour-hud, button, input, .celestial-label')) return;
+      const bootOverlay = document.getElementById('nova-boot-overlay');
+      if (document.documentElement.classList.contains('is-booting') || (bootOverlay && !bootOverlay.classList.contains('boot-completed') && bootOverlay.style.display !== 'none')) return;
+      if (event.target && event.target.closest && event.target.closest('#nova-boot-overlay, #nova-portal-o, header, footer, aside, #cosmic-tour-hud, button, input, .celestial-label')) return;
       const inspectorEl = document.getElementById('inspector');
       const isSidebarOpen = inspectorEl && !inspectorEl.classList.contains('translate-x-[430px]');
       if (event.clientY < 60 || (isSidebarOpen && event.clientX > window.innerWidth - 410)) return;
@@ -4468,9 +4481,11 @@
         else tourCtrl.classList.add('hidden');
       }
 
-      if (!isSidebarUserHidden || isZenMode || !!document.fullscreenElement || isTourActive) {
+      if ((isOverviewToggleActive && !isSidebarUserHidden) || isTourActive) {
         isSidebarUserHidden = false;
         document.getElementById('inspector').classList.remove('translate-x-[430px]');
+      } else {
+        document.getElementById('inspector').classList.add('translate-x-[430px]');
       }
       updateSidebarToggleStyle();
     }
@@ -7702,6 +7717,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
           // 2. Start exponential tunnel zoom 0.6 seconds in (mid-wobble), running concurrently with the wave
           if (elapsed >= zoomDelayMs) {
+            document.documentElement.classList.add("is-wormhole-zooming");
             const zoomElapsed = elapsed - zoomDelayMs;
             const pZoom = Math.min(1.0, zoomElapsed / zoomDuration);
             // Ultra-smooth cubic acceleration curve into the aperture
@@ -7801,19 +7817,68 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
                 .start();
 
               setTimeout(() => {
-                new TWEEN.Tween(camera.position)
-                  .to({ x: 0, y: 22.5, z: 32 }, 4800)
+                if (typeof TWEEN !== "undefined") TWEEN.removeAll();
+                if (typeof sunMeshRef !== "undefined" && sunMeshRef) {
+                  activeTargetMesh = sunMeshRef;
+                  activeTarget = sunMeshRef.userData;
+                }
+                if (typeof lastTrackedTargetPos !== "undefined") {
+                  lastTrackedTargetPos.set(0, 0, 0);
+                }
+
+                // Stage 2 (1900ms): Emerge from starfield warp into the Solar System overview ({0, 19, 28}) as the black curtain lifts
+                const emergeSolarTween = new TWEEN.Tween(camera.position)
+                  .to({ x: 0, y: 19, z: 28 }, 1900)
                   .easing(TWEEN.Easing.Cubic.Out)
+                  .onUpdate(() => {
+                    if (typeof controls !== "undefined" && controls) {
+                      controls.target.set(0, 0, 0);
+                      controls.update();
+                    }
+                    if (typeof updateScaleSliderFromCamera === "function") {
+                      updateScaleSliderFromCamera();
+                    }
+                    if (typeof window.syncZoomOrbUI === "function") {
+                      window.syncZoomOrbUI();
+                    }
+                  });
+
+                // Stage 3 (3400ms): Smooth, steady final approach & zoom-in right onto the Sun ({0, 1.35, 5.2}) in full view (matching SR6)
+                const approachSunTween = new TWEEN.Tween(camera.position)
+                  .to({ x: 0, y: 1.35, z: 5.2 }, 3400)
+                  .easing(TWEEN.Easing.Sinusoidal.InOut)
+                  .onUpdate(() => {
+                    if (typeof controls !== "undefined" && controls) {
+                      controls.target.set(0, 0, 0);
+                      controls.update();
+                    }
+                    if (typeof updateScaleSliderFromCamera === "function") {
+                      updateScaleSliderFromCamera();
+                    }
+                    if (typeof window.syncZoomOrbUI === "function") {
+                      window.syncZoomOrbUI();
+                    }
+                  })
                   .onComplete(() => {
+                    document.documentElement.classList.remove("is-wormhole-zooming");
                     if (typeof controls !== "undefined") {
+                      controls.target.set(0, 0, 0);
                       controls.enabled = true;
                       controls.enableRotate = true;
                       controls.enableZoom = true;
                       controls.enablePan = true;
                       controls.update();
                     }
-                  })
-                  .start();
+                    if (typeof updateScaleSliderFromCamera === "function") {
+                      updateScaleSliderFromCamera();
+                    }
+                    if (typeof window.syncZoomOrbUI === "function") {
+                      window.syncZoomOrbUI();
+                    }
+                  });
+
+                emergeSolarTween.chain(approachSunTween);
+                emergeSolarTween.start();
 
                 const fovState = { fov: 56 };
                 new TWEEN.Tween(fovState)
@@ -7858,7 +7923,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
               if (typeof updateSidebarToggleStyle === "function") {
                 updateSidebarToggleStyle();
               }
-            }, 3800);
+            }, 1150);
 
             setTimeout(() => {
               if (overlay) {
