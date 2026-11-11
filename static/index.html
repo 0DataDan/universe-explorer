@@ -1101,6 +1101,8 @@
       controls.dampingFactor = 0.05;
       controls.maxDistance = 26000;
       controls.minDistance = 5.0;
+      window.camera = camera;
+      window.controls = controls;
 
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
@@ -1206,16 +1208,19 @@
       }
 
       new TWEEN.Tween(camera.position)
-        .to({ x: 0, y: 22.5, z: 32 }, 2000)
+        .to({ x: 0, y: 9.0, z: 13.0 }, 2000)
         .easing(TWEEN.Easing.Cubic.InOut)
+        .onUpdate(() => {
+          if (typeof updateScaleSliderFromCamera === "function") {
+            updateScaleSliderFromCamera();
+          }
+        })
         .start();
 
       new TWEEN.Tween(controls.target)
         .to({ x: 0, y: 0, z: 0 }, 2000)
         .easing(TWEEN.Easing.Cubic.InOut)
         .start();
-
-      scaleSlider.value = "3.70";
     };
 
     const UNIFIED_TOGGLE_ACTIVE_CLASS = "relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]";
@@ -7476,11 +7481,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
        NOVA Cinematic Boot Sequence & Interactive Wormhole Transition Controller
        ========================================================================== */
     window.handleHeaderLogoClick = function(event) {
-      if (event && (event.shiftKey || event.altKey)) {
-        window.replayBootSequence();
-        return;
-      }
-      resetToSolCore();
+      window.replayBootSequence();
     };
 
     window.replayBootSequence = function() {
@@ -7801,7 +7802,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           applyCharacteristicTexturesToScene();
         }
         if (typeof camera !== "undefined") {
-          camera.position.set(0, 125, 178);
+          camera.position.set(0, 36, 52);
           camera.fov = 56;
           camera.updateProjectionMatrix();
         }
@@ -7810,86 +7811,86 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
         runStaggeredRippleAndZoom(
           () => {
+            if (typeof sunMeshRef !== "undefined" && sunMeshRef) {
+              activeTargetMesh = sunMeshRef;
+              activeTarget = sunMeshRef.userData;
+            }
+            if (typeof lastTrackedTargetPos !== "undefined") {
+              lastTrackedTargetPos.set(0, 0, 0);
+            }
+            isFlyingToTarget = true;
+            if (typeof controls !== "undefined" && controls) {
+              controls.enabled = false;
+              controls.target.set(0, 0, 0);
+            }
+
             if (typeof camera !== "undefined" && typeof TWEEN !== "undefined") {
+              TWEEN.removeAll();
+
+              // Continuous, slow cinematic zoom-in directly onto the Sun ({0, 9.0, 13.0}) matching the reference screenshot on completion
+              const zoomDuration = 4800;
               new TWEEN.Tween(camera.position)
-                .to({ x: 0, y: 54, z: 76.8 }, 1600)
-                .easing(TWEEN.Easing.Quadratic.In)
+                .to({ x: 0, y: 9.0, z: 13.0 }, zoomDuration)
+                .easing(TWEEN.Easing.Cubic.Out)
+                .onUpdate(() => {
+                  camera.lookAt(0, 0, 0);
+                  if (typeof controls !== "undefined" && controls) {
+                    controls.target.set(0, 0, 0);
+                  }
+                  if (typeof updateScaleSliderFromCamera === "function") {
+                    updateScaleSliderFromCamera();
+                  }
+                })
+                .onComplete(() => {
+                  camera.position.set(0, 9.0, 13.0);
+                  camera.fov = 50;
+                  camera.updateProjectionMatrix();
+                  document.documentElement.classList.remove("is-wormhole-zooming");
+                  if (typeof controls !== "undefined" && controls) {
+                    controls.target.set(0, 0, 0);
+                    controls.enabled = true;
+                    controls.enableRotate = true;
+                    controls.enableZoom = true;
+                    controls.enablePan = true;
+                    controls.update();
+                  }
+                  if (typeof updateScaleSliderFromCamera === "function") {
+                    updateScaleSliderFromCamera();
+                  }
+                  if (stopWarp) stopWarp();
+                  isFlyingToTarget = false;
+                  isWormholeRunning = false;
+                  try {
+                    localStorage.setItem("hasBootedSession", "true");
+                  } catch (e) {}
+
+                  if (overlay) {
+                    overlay.style.display = "none";
+                    overlay.style.pointerEvents = "none";
+                    overlay.classList.add("boot-completed");
+                  }
+                  if (splashContainer) {
+                    splashContainer.style.display = "none";
+                    splashContainer.style.pointerEvents = "none";
+                    splashContainer.classList.add("boot-completed");
+                  }
+                  if (warpCanvas) {
+                    warpCanvas.style.display = "none";
+                    warpCanvas.style.pointerEvents = "none";
+                    warpCanvas.classList.add("boot-completed");
+                  }
+                })
                 .start();
 
-              setTimeout(() => {
-                if (typeof TWEEN !== "undefined") TWEEN.removeAll();
-                if (typeof sunMeshRef !== "undefined" && sunMeshRef) {
-                  activeTargetMesh = sunMeshRef;
-                  activeTarget = sunMeshRef.userData;
-                }
-                if (typeof lastTrackedTargetPos !== "undefined") {
-                  lastTrackedTargetPos.set(0, 0, 0);
-                }
-
-                // Stage 2 (1900ms): Emerge from starfield warp into the Solar System overview ({0, 19, 28}) as the black curtain lifts
-                const emergeSolarTween = new TWEEN.Tween(camera.position)
-                  .to({ x: 0, y: 19, z: 28 }, 1900)
-                  .easing(TWEEN.Easing.Cubic.Out)
-                  .onUpdate(() => {
-                    if (typeof controls !== "undefined" && controls) {
-                      controls.target.set(0, 0, 0);
-                      controls.update();
-                    }
-                    if (typeof updateScaleSliderFromCamera === "function") {
-                      updateScaleSliderFromCamera();
-                    }
-                    if (typeof window.syncZoomOrbUI === "function") {
-                      window.syncZoomOrbUI();
-                    }
-                  });
-
-                // Stage 3 (4400ms): Smooth, slow cinematic final approach & zoom-in right onto the Sun ({0, 9.0, 13.0}) matching the reference zoom level on completion
-                const approachSunTween = new TWEEN.Tween(camera.position)
-                  .to({ x: 0, y: 9.0, z: 13.0 }, 4400)
-                  .easing(TWEEN.Easing.Cubic.Out)
-                  .onUpdate(() => {
-                    if (typeof controls !== "undefined" && controls) {
-                      controls.target.set(0, 0, 0);
-                      controls.update();
-                    }
-                    if (typeof updateScaleSliderFromCamera === "function") {
-                      updateScaleSliderFromCamera();
-                    }
-                    if (typeof window.syncZoomOrbUI === "function") {
-                      window.syncZoomOrbUI();
-                    }
-                  })
-                  .onComplete(() => {
-                    document.documentElement.classList.remove("is-wormhole-zooming");
-                    if (typeof controls !== "undefined") {
-                      controls.target.set(0, 0, 0);
-                      controls.enabled = true;
-                      controls.enableRotate = true;
-                      controls.enableZoom = true;
-                      controls.enablePan = true;
-                      controls.update();
-                    }
-                    if (typeof updateScaleSliderFromCamera === "function") {
-                      updateScaleSliderFromCamera();
-                    }
-                    if (typeof window.syncZoomOrbUI === "function") {
-                      window.syncZoomOrbUI();
-                    }
-                  });
-
-                emergeSolarTween.chain(approachSunTween);
-                emergeSolarTween.start();
-
-                const fovState = { fov: 56 };
-                new TWEEN.Tween(fovState)
-                  .to({ fov: 50 }, 6300)
-                  .easing(TWEEN.Easing.Cubic.Out)
-                  .onUpdate(() => {
-                    camera.fov = fovState.fov;
-                    camera.updateProjectionMatrix();
-                  })
-                  .start();
-              }, 1600);
+              const fovState = { fov: 56 };
+              new TWEEN.Tween(fovState)
+                .to({ fov: 50 }, zoomDuration)
+                .easing(TWEEN.Easing.Cubic.Out)
+                .onUpdate(() => {
+                  camera.fov = fovState.fov;
+                  camera.updateProjectionMatrix();
+                })
+                .start();
             }
 
             if (overlay) {
@@ -7899,8 +7900,8 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
             }
             if (warpCanvas) {
               warpCanvas.style.pointerEvents = "none";
-              warpCanvas.style.transition = "opacity 1800ms ease-out";
-              setTimeout(() => { warpCanvas.style.opacity = "0"; }, 500);
+              warpCanvas.style.transition = "opacity 1600ms ease-out";
+              setTimeout(() => { warpCanvas.style.opacity = "0"; }, 400);
             }
 
             setTimeout(() => {
@@ -7923,37 +7924,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
               if (typeof updateSidebarToggleStyle === "function") {
                 updateSidebarToggleStyle();
               }
-            }, 1150);
-
-            setTimeout(() => {
-              if (overlay) {
-                overlay.style.display = "none";
-                overlay.style.pointerEvents = "none";
-                overlay.classList.add("boot-completed");
-              }
-              if (splashContainer) {
-                splashContainer.style.display = "none";
-                splashContainer.style.pointerEvents = "none";
-                splashContainer.classList.add("boot-completed");
-              }
-              if (warpCanvas) {
-                warpCanvas.style.display = "none";
-                warpCanvas.style.pointerEvents = "none";
-                warpCanvas.classList.add("boot-completed");
-              }
-              if (typeof controls !== "undefined") {
-                controls.enabled = true;
-                controls.enableRotate = true;
-                controls.enableZoom = true;
-                controls.enablePan = true;
-                controls.update();
-              }
-              if (stopWarp) stopWarp();
-              isWormholeRunning = false;
-              try {
-                localStorage.setItem("hasBootedSession", "true");
-              } catch (e) {}
-            }, 8000);
+            }, 1000);
           },
           (cx, cy, duration) => {
             stopWarp = runStarfieldWarp(cx, cy, duration);
