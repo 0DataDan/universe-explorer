@@ -7843,10 +7843,10 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
                     }
                   });
 
-                // Stage 3 (3400ms): Smooth, steady final approach & zoom-in right onto the Sun ({0, 1.35, 5.2}) in full view (matching SR6)
+                // Stage 3 (4400ms): Smooth, slow cinematic final approach & zoom-in right onto the Sun ({0, 9.0, 13.0}) matching the reference zoom level on completion
                 const approachSunTween = new TWEEN.Tween(camera.position)
-                  .to({ x: 0, y: 1.35, z: 5.2 }, 3400)
-                  .easing(TWEEN.Easing.Sinusoidal.InOut)
+                  .to({ x: 0, y: 9.0, z: 13.0 }, 4400)
+                  .easing(TWEEN.Easing.Cubic.Out)
                   .onUpdate(() => {
                     if (typeof controls !== "undefined" && controls) {
                       controls.target.set(0, 0, 0);
@@ -7882,7 +7882,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
                 const fovState = { fov: 56 };
                 new TWEEN.Tween(fovState)
-                  .to({ fov: 50 }, 4800)
+                  .to({ fov: 50 }, 6300)
                   .easing(TWEEN.Easing.Cubic.Out)
                   .onUpdate(() => {
                     camera.fov = fovState.fov;
@@ -7953,7 +7953,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
               try {
                 localStorage.setItem("hasBootedSession", "true");
               } catch (e) {}
-            }, 6200);
+            }, 8000);
           },
           (cx, cy, duration) => {
             stopWarp = runStarfieldWarp(cx, cy, duration);
