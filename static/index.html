@@ -119,12 +119,12 @@
     /* Heavy Hydraulic Spaceship Door Slide Effect (Slowed down for deliberate, cinematic motion) */
     #inspector,
     #map-key-drawer {
-      transition: transform 3600ms cubic-bezier(0.22, 0.95, 0.32, 1) !important;
+      transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1) !important;
       will-change: transform;
     }
     #inspector-edge-tab,
     #map-key-summon-btn {
-      transition: transform 3400ms cubic-bezier(0.22, 0.95, 0.32, 1), opacity 2600ms ease, background-color 300ms ease, border-color 300ms ease !important;
+      transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1), opacity 400ms ease, background-color 300ms ease, border-color 300ms ease !important;
       will-change: transform, opacity;
     }
 
@@ -549,13 +549,13 @@
     <div class="w-1 h-1/3 max-h-24 min-h-[24px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
   </button>
 
-  <!-- Right-Side Astrophysical Inspector Drawer (Overflow-visible so left slide-back tab attaches cleanly) -->
-  <aside id="inspector" class="fixed top-16 right-4 z-20 w-96 bg-slate-950/45 border border-white/10 rounded-2xl backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-[430px] pointer-events-auto">
-    <!-- Sleek Glowing Minimalist Attached Slide-Back Tab (Textless, Independent from Bottom Overview Toggle) -->
-    <button onclick="toggleSidebarDrawerTab(event)" class="absolute top-0 bottom-0 -left-3.5 w-3.5 h-full rounded-l-xl bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
+  <!-- Right-Side Astrophysical Inspector Drawer (Flush left edge so cyan slide-back tab fuses seamlessly) -->
+  <aside id="inspector" class="fixed top-16 right-4 z-20 w-96 bg-slate-950/45 border border-white/10 rounded-r-2xl rounded-l-none backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-[430px] pointer-events-auto">
+    <!-- Sleek Glowing Minimalist Attached Slide-Back Tab (Flush with Sidebar Left Edge) -->
+    <button onclick="toggleSidebarDrawerTab(event)" class="absolute -top-[1px] -bottom-[1px] -left-3.5 w-3.5 rounded-l-xl rounded-r-none bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
       <div class="w-1 h-1/3 max-h-24 min-h-[24px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
     </button>
-    <div class="max-h-[calc(100vh-7.5rem)] overflow-y-auto p-5">
+    <div id="inspector-scroll-body" class="max-h-[calc(100vh-7.5rem)] overflow-y-auto p-5 transition-all duration-500">
     <!-- Minimalist Guided Tour Controls Header (Visible During Tour) -->
     <div id="sidebar-tour-controls" class="hidden mb-3.5 pb-3 border-b border-slate-700/50">
       <div class="flex items-center justify-between">
@@ -656,222 +656,339 @@
     </div>
   </aside>
 
-  <!-- Bottom-Right Map Key Summon Tab -->
-  <button id="map-key-summon-btn" onclick="toggleMapKey(event)" class="fixed bottom-5 right-0 z-20 w-3.5 h-[116px] rounded-l-xl bg-cyan-950/80 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
-    <div class="w-1 h-1/3 max-h-12 min-h-[20px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
+  <!-- Bottom-Right Map Key Summon Tab (Visible at Right Screen Edge When Map Key is Closed, in Both Normal & Fullscreen Modes) -->
+  <button id="map-key-summon-btn" onclick="toggleMapKey(event)" class="fixed bottom-5 right-0 z-30 w-3.5 h-[232px] rounded-l-xl rounded-r-none bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
+    <div class="w-1 h-1/3 max-h-14 min-h-[22px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
   </button>
 
-  <!-- Bottom-Right Slide-In/Out Compact Map Key Drawer -->
-  <aside id="map-key-drawer" class="fixed bottom-5 right-4 z-20 w-64 bg-slate-950/55 border border-white/10 rounded-2xl p-3.5 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-[300px] pointer-events-auto">
-    <!-- Attached Left-Edge Full-Height Slide-Back Tab -->
-    <button id="map-key-attached-tab" onclick="toggleMapKey(event)" class="absolute top-0 bottom-0 -left-3.5 w-3.5 h-full rounded-l-xl bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
-      <div class="w-1 h-1/3 max-h-12 min-h-[20px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
+  <!-- Bottom-Right Slide-In/Out Single-Column Map Key Drawer (Matches Sidebar bg-slate-950/45 border-white/10 & Flush Left Edge) -->
+  <aside id="map-key-drawer" class="fixed bottom-5 right-4 z-30 w-52 bg-slate-950/45 border border-white/10 rounded-r-2xl rounded-l-none px-4 py-3 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-[300px] pointer-events-auto">
+    <!-- Attached Left-Edge Full-Height Slide-Back Tab (Flush with Left Edge of Drawer When Open) -->
+    <button id="map-key-attached-tab" onclick="toggleMapKey(event)" class="absolute -top-[1px] -bottom-[1px] -left-3.5 w-3.5 rounded-l-xl rounded-r-none bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
+      <div class="w-1 h-1/3 max-h-14 min-h-[22px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
     </button>
 
-    <div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[11px] text-slate-200 font-medium">
-      <!-- Reset (Full-Circle Spiral Icon matching bottom bar) -->
-      <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-cyan-950/60 border border-cyan-500/50 flex items-center justify-center text-cyan-300 shrink-0">
-          <svg class="w-3.5 h-3.5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round">
-            <circle cx="12" cy="12" r="10.2" stroke-opacity="0.45"/>
-            <path d="M 12 12 C 12.6 11.4 13.5 11.9 13.4 12.8 C 13.2 14.1 11.5 14.6 10.4 13.9 C 8.9 13.0 8.8 10.7 10.1 9.5 C 11.8 8.0 14.6 8.5 15.8 10.5 C 17.2 12.9 16.1 16.2 13.5 17.2 C 10.4 18.4 6.8 16.6 5.9 13.4 C 4.9 9.6 7.5 5.6 11.4 4.9 C 15.8 4.1 20.0 7.4 20.5 11.9 C 21.0 16.8 17.2 21.2 12.2 21.5"/>
+    <div class="flex flex-col space-y-2 text-[11px] text-slate-200 font-medium">
+      <!-- 1. [N] Network Filaments -->
+      <div class="flex items-center space-x-2.5">
+        <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0">
+          <svg class="w-full h-full overflow-visible" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="12.3" fill="rgba(10, 15, 28, 0.90)" stroke="rgba(45, 58, 78, 0.38)" stroke-width="1.4" />
+            <path d="M 8.9 26.1 A 12.3 12.3 0 1 1 23.1 26.1" fill="none" stroke="#3b4c66" stroke-width="2.4" stroke-linecap="round" />
+            <circle cx="8.9" cy="26.1" r="1.7" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.85));" />
+            <circle cx="23.1" cy="26.1" r="1.7" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.85));" />
           </svg>
         </span>
-        <span>Reset</span>
+        <span class="whitespace-nowrap">Network Filaments</span>
       </div>
-      <!-- Cosmic Web -->
-      <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-cyan-950/70 border border-cyan-400/70 flex items-center justify-center text-cyan-300 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M4.9 19.1L19.1 4.9"/></svg>
+
+      <!-- 2. [O] Orbital Motion -->
+      <div class="flex items-center space-x-2.5">
+        <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0">
+          <svg class="w-full h-full overflow-visible" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="12.3" fill="rgba(10, 15, 28, 0.90)" stroke="rgba(45, 58, 78, 0.38)" stroke-width="1.4" />
+            <path d="M 27.2 10.8 A 12.3 12.3 0 1 0 27.4 20.6" fill="none" stroke="#3b4c66" stroke-width="2.4" stroke-linecap="round" />
+            <polygon points="28.0,17.8 25.0,21.0 29.6,21.5" fill="#3b4c66" />
+            <circle cx="27.2" cy="10.8" r="1.7" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.85));" />
+          </svg>
         </span>
-        <span>Cosmic Web</span>
+        <span class="whitespace-nowrap">Orbital Motion</span>
       </div>
-      <!-- Orbits -->
-      <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-cyan-950/60 border border-cyan-400/50 flex items-center justify-center text-cyan-300 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6A9 9 0 1 0 18 18"/></svg>
+
+      <!-- 3. [V] Viewport Labels -->
+      <div class="flex items-center space-x-2.5">
+        <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0">
+          <svg class="w-full h-full overflow-visible" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="12.3" fill="rgba(10, 15, 28, 0.90)" stroke="rgba(45, 58, 78, 0.38)" stroke-width="1.4" />
+            <path d="M 8.9 5.9 A 12.3 12.3 0 1 0 23.1 5.9" fill="none" stroke="#3b4c66" stroke-width="2.4" stroke-linecap="round" />
+            <circle cx="8.9" cy="5.9" r="1.7" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.85));" />
+            <circle cx="16.0" cy="28.3" r="1.7" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.85));" />
+            <circle cx="23.1" cy="5.9" r="1.7" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.85));" />
+          </svg>
         </span>
-        <span>Orbits</span>
+        <span class="whitespace-nowrap">Viewport Labels</span>
       </div>
-      <!-- Start Tour -->
-      <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-cyan-950/60 border border-cyan-500/50 flex items-center justify-center text-cyan-400 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="9.5,7.5 17.5,12 9.5,16.5"/></svg>
+
+      <!-- 4. [A] Aperture -->
+      <div class="flex items-center space-x-2.5">
+        <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0">
+          <svg class="w-full h-full overflow-visible" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="12.3" fill="rgba(10, 15, 28, 0.90)" stroke="rgba(45, 58, 78, 0.38)" stroke-width="1.4" />
+            <path d="M 8.9 26.1 A 12.3 12.3 0 1 1 23.1 26.1" fill="none" stroke="#3b4c66" stroke-width="2.4" stroke-linecap="round" />
+            <ellipse cx="16" cy="12.5" rx="3.0" ry="2.0" fill="#2c3a50" />
+            <circle cx="8.9" cy="26.1" r="1.7" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.85));" />
+            <circle cx="16.0" cy="3.7" r="1.7" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.85));" />
+            <circle cx="23.1" cy="26.1" r="1.7" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.85));" />
+          </svg>
         </span>
-        <span>Start Tour</span>
+        <span class="whitespace-nowrap">Aperture</span>
       </div>
-      <!-- Overview (matches Sidebar toggle on/off button icon) -->
-      <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-slate-900 flex items-center justify-center shrink-0">
+
+      <!-- 5. Reset (Matches Center 3D Gimbal Sphere) -->
+      <div class="flex items-center space-x-2.5">
+        <span class="w-4 h-4 rounded-full bg-slate-950 border border-white/20 flex items-center justify-center shrink-0">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="13" fill="rgba(10, 15, 28, 0.95)" stroke="rgba(148, 163, 184, 0.45)" stroke-width="1.3" />
+            <ellipse cx="16" cy="16" rx="13" ry="4.8" stroke="#22d3ee" stroke-width="1.5" />
+            <ellipse cx="16" cy="16" rx="5.5" ry="13" stroke="rgba(148, 163, 184, 0.35)" stroke-width="1.1" />
+            <circle cx="16" cy="4.2" r="1.4" fill="#ffffff" />
+          </svg>
+        </span>
+        <span class="whitespace-nowrap">Reset</span>
+      </div>
+
+      <!-- 6. Overview (Matches Sidebar Toggle Icon) -->
+      <div class="flex items-center space-x-2.5">
+        <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0">
           <svg class="w-4 h-4" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="14.5" fill="rgba(10, 15, 28, 0.9)" stroke="rgba(71, 85, 105, 0.65)" stroke-width="2" />
-            <path d="M 16 1.5 A 14.5 14.5 0 0 0 16 30.5" fill="rgba(6, 78, 102, 0.55)" stroke="#22d3ee" stroke-width="2.2" stroke-linecap="round" />
-            <rect x="12.5" y="8.5" width="2.6" height="15" rx="0.6" fill="#22d3ee" />
+            <circle cx="16" cy="16" r="14.2" fill="rgba(10, 15, 28, 0.9)" stroke="rgba(71, 85, 105, 0.65)" stroke-width="1.8" />
+            <path d="M 27.5 7.5 A 14.2 14.2 0 0 1 27.5 24.5" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linecap="round" />
           </svg>
         </span>
-        <span>Overview</span>
+        <span class="whitespace-nowrap">Overview</span>
       </div>
-      <!-- Labels (matches Label toggle on/off button icon) -->
-      <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">
-          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7" cy="7" r="1.6" fill="currentColor" stroke="none"/></svg>
-        </span>
-        <span>Labels</span>
-      </div>
-      <!-- Fullscreen -->
-      <div class="flex items-center space-x-2">
-        <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 overflow-hidden">
-          <svg class="w-full h-full" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="15" fill="rgba(15, 23, 42, 0.78)" stroke="rgba(71, 85, 105, 0.65)" stroke-width="1.6" />
-            <path d="M 1 16 A 15 15 0 0 1 31 16 Z" fill="rgba(8, 51, 68, 0.65)" />
-            <path d="M 1 16 A 15 15 0 0 1 31 16" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" />
-            <circle cx="16" cy="16" r="4.6" fill="#293548" />
+
+      <!-- 7. Start Tour (Second to Last) -->
+      <div class="flex items-center space-x-2.5">
+        <span class="w-4 h-4 rounded-full bg-cyan-950/60 border border-cyan-500/50 flex items-center justify-center text-cyan-300 shrink-0">
+          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 2.5" opacity="0.8" />
+            <polygon points="10,7.8 17.2,12 10,16.2" fill="currentColor" />
           </svg>
         </span>
-        <span>Fullscreen</span>
+        <span class="whitespace-nowrap">Start Tour</span>
+      </div>
+
+      <!-- 8. Fullscreen (Last Item) -->
+      <div class="flex items-center space-x-2.5">
+        <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4 overflow-visible" viewBox="0 0 32 32" fill="none">
+            <defs>
+              <clipPath id="mk-fs-quad-clip" clipPathUnits="userSpaceOnUse">
+                <rect x="-8" y="-8" width="20.1" height="20.1" />
+                <rect x="19.9" y="-8" width="20.1" height="20.1" />
+                <rect x="-8" y="19.9" width="20.1" height="20.1" />
+                <rect x="19.9" y="19.9" width="20.1" height="20.1" />
+              </clipPath>
+            </defs>
+            <g clip-path="url(#mk-fs-quad-clip)">
+              <circle cx="16" cy="16" r="13.8" fill="rgba(8, 51, 68, 0.72)" stroke="#22d3ee" stroke-width="2.3" />
+            </g>
+          </svg>
+        </span>
+        <span class="whitespace-nowrap">Fullscreen</span>
       </div>
     </div>
   </aside>
 
 <!-- Bottom-Docked Minimalist NASA Eyes Command Pill -->
-  <footer id="bottom-hud" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-20 bg-slate-950/45 border border-white/10 px-4 py-2 rounded-full backdrop-blur-xl grid grid-cols-[1fr_auto_1fr] items-center gap-4 pointer-events-auto shadow-[0_10px_35px_rgba(0,0,0,0.65)] transition-all duration-300">
-    <!-- Left Section: Relocated Reset Button & Textless Minimalist Zoom Slider -->
-    <div id="hud-left-controls" class="justify-self-start flex items-center space-x-2.5">
-      <!-- Sol System Core Reset Full-Circle Spiral Button -->
-      <button id="btn-reset-sol" onclick="resetToSolCore()" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shadow-[0_0_10px_rgba(34,211,238,0.3)] shrink-0 cursor-pointer overflow-hidden p-0">
-        <svg id="reset-spiral-svg" class="w-full h-full p-[1.5px] text-cyan-300 transition-colors duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
-          <circle cx="12" cy="12" r="10.6" stroke-width="1.15" stroke-opacity="0.45" />
-          <path id="reset-spiral-base" pathLength="100" stroke-width="1.65" d="M 12 12 C 12.6 11.4 13.5 11.9 13.4 12.8 C 13.2 14.1 11.5 14.6 10.4 13.9 C 8.9 13.0 8.8 10.7 10.1 9.5 C 11.8 8.0 14.6 8.5 15.8 10.5 C 17.2 12.9 16.1 16.2 13.5 17.2 C 10.4 18.4 6.8 16.6 5.9 13.4 C 4.9 9.6 7.5 5.6 11.4 4.9 C 15.8 4.1 20.0 7.4 20.5 11.9 C 21.0 16.8 17.2 21.2 12.2 21.5" />
-          <circle cx="12" cy="12" r="1.25" fill="currentColor" stroke="none" />
+  <footer id="bottom-hud" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-20 bg-slate-950/65 border border-white/15 px-4 py-1.5 rounded-full backdrop-blur-xl grid grid-cols-[1fr_auto_1fr] items-center gap-4 pointer-events-auto shadow-[0_12px_40px_rgba(0,0,0,0.78),inset_0_1px_0_rgba(255,255,255,0.12)] transition-all duration-300">
+    <!-- Left Section: Guided Tour Start Button & Wider Laser-Tick Zoom Channel -->
+    <div id="hud-left-controls" class="justify-self-start flex items-center space-x-3">
+      <!-- Guided Cosmic Tour Start Button -->
+      <button id="btn-cosmic-tour" onclick="toggleCosmicTour()" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center cursor-pointer transition duration-300 transform hover:scale-110 shadow-[0_0_12px_rgba(6,182,212,0.35)] shrink-0 group">
+        <span id="tour-ring-outer" class="hidden"></span>
+        <svg id="tour-compass-svg" class="w-4 h-4 text-cyan-300 group-hover:text-white transition-transform duration-500" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2.5" opacity="0.78" />
+          <polygon points="10,7.8 17.2,12 10,16.2" fill="currentColor" />
         </svg>
       </button>
 
-      <!-- Vertical Separator matching right-side HUD dividers -->
-      <div class="h-5 w-[1px] bg-white/15 mx-0.5"></div>
+      <!-- Original Vertical Separator -->
+      <div class="h-5 w-[1px] bg-white/15 mx-0.5 shrink-0" aria-hidden="true"></div>
 
-      <!-- Trackless Morphing Zoom Singularity with Comet Trail & Eclipse Resonance Docking -->
-      <div id="zoom-orb-channel" class="relative flex items-center w-32 sm:w-36 h-8 select-none">
-        <!-- Faint Trail Canvas Behind Moving Circle -->
+      <!-- Wider Morphing Zoom Singularity with Micro-Tick Laser Track & Solar Anchor -->
+      <div id="zoom-orb-channel" class="relative flex items-center w-40 sm:w-48 h-8 select-none">
         <canvas id="zoom-trail-canvas" class="absolute top-0 h-full pointer-events-none" style="left: -18px; width: calc(100% + 36px);"></canvas>
 
-        <!-- Left Anchor (Small Pinpoint Circle - Far Cosmic Horizon) -->
-        <span id="zoom-anchor-left" class="absolute left-[5px] top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-cyan-300/40 shadow-[0_0_4px_rgba(34,211,238,0.35)] pointer-events-none transition-all duration-300" aria-hidden="true"></span>
-        <span id="zoom-ripple-left" class="
-          absolute left-[5px] top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full border border-cyan-300 pointer-events-none opacity-0" aria-hidden="true"></span>
+        <!-- Engraved 1px Laser Reference Track & Micro-Ticks -->
+        <div class="absolute left-[8px] right-[12px] top-1/2 -translate-y-1/2 h-[5px] pointer-events-none flex items-center justify-between opacity-35" aria-hidden="true">
+          <div class="w-full h-[1px] bg-gradient-to-r from-cyan-300/40 via-slate-300/50 to-amber-300/60"></div>
+          <div class="absolute inset-0 flex items-center justify-between px-1.5">
+            <span class="w-[1px] h-[3px] bg-white/40"></span>
+            <span class="w-[1px] h-[2px] bg-white/25"></span>
+            <span class="w-[1px] h-[3px] bg-white/40"></span>
+            <span class="w-[1px] h-[2px] bg-white/25"></span>
+            <span class="w-[1px] h-[4px] bg-cyan-200/60"></span>
+            <span class="w-[1px] h-[2px] bg-white/25"></span>
+            <span class="w-[1px] h-[3px] bg-white/40"></span>
+            <span class="w-[1px] h-[2px] bg-white/25"></span>
+            <span class="w-[1px] h-[3px] bg-amber-200/50"></span>
+          </div>
+        </div>
 
-        <!-- Right Anchor (Larger Hollow Circle - Planetary Core) -->
-        <span id="zoom-anchor-right" class="absolute right-[7px] top-1/2 translate-x-1/2 -translate-y-1/2 w-3 h-3 box-border rounded-full bg-cyan-300/40 border border-cyan-300/80 shadow-[0_0_6px_rgba(34,211,238,0.4)] pointer-events-none transition-all duration-300" aria-hidden="true"></span>
-        <span id="zoom-ripple-right" class="absolute right-[7px] top-1/2 translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-cyan-300 pointer-events-none opacity-0" aria-hidden="true"></span>
+        <span id="zoom-anchor-left" class="absolute left-[5px] top-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-cyan-200/60 shadow-[0_0_5px_rgba(34,211,238,0.5)] pointer-events-none transition-all duration-300" aria-hidden="true"></span>
+        <span id="zoom-ripple-left" class="absolute left-[5px] top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full border border-cyan-300 pointer-events-none opacity-0" aria-hidden="true"></span>
 
-        <!-- Active Morphing Circle (Slides & Grows Left->Right, Shrinks Right->Left) -->
-        <span id="zoom-morph-orb" class="
-          absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
-          style="box-sizing: border-box; width: 8.5px; height: 8.5px; left: 85%; background: rgba(103, 232, 249, 0.92); border: 1px solid rgba(224, 242, 254, 0.9); box-shadow: 0 0 6px rgba(34, 211, 238, 0.65);"></span>
+        <span id="zoom-anchor-right" class="absolute right-[7px] top-1/2 translate-x-1/2 -translate-y-1/2 w-3 h-3 box-border rounded-full bg-amber-300/25 border border-amber-200/85 shadow-[0_0_8px_rgba(251,191,36,0.55)] flex items-center justify-center pointer-events-none transition-all duration-300" aria-hidden="true">
+          <span class="w-1 h-1 rounded-full bg-amber-100 shadow-[0_0_4px_#fde68a]"></span>
+        </span>
+        <span id="zoom-ripple-right" class="absolute right-[7px] top-1/2 translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-amber-300 pointer-events-none opacity-0" aria-hidden="true"></span>
 
-        <!-- Invisible Interactive Range Input Overlaying Entire Channel -->
+        <span id="zoom-morph-orb" class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+          style="box-sizing: border-box; width: 9px; height: 9px; left: 85%; background: radial-gradient(circle, #ffffff 35%, #67e8f9 100%); border: 1px solid #ffffff; box-shadow: 0 0 8px rgba(34, 211, 238, 0.9), 0 0 14px rgba(34, 211, 238, 0.45);"></span>
+
         <input id="scale-slider" type="range" min="1.0" max="4.0" step="0.005" value="3.70" aria-label="Cosmic Zoom" class="relative z-10 w-full h-full opacity-0" />
       </div>
     </div>
 
-    <!-- Center Section: Dead-Centered Guided Cosmic Tour Button -->
-    <div id="hud-center-tour" class="justify-self-center flex items-center justify-center px-1">
-      <button id="btn-cosmic-tour" onclick="toggleCosmicTour()" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center cursor-pointer transition duration-300 transform hover:scale-110 shadow-[0_0_12px_rgba(6,182,212,0.35)] shrink-0">
-        <span id="tour-ring-outer" class="hidden"></span>
-        <svg id="tour-compass-svg" class="w-4 h-4 text-cyan-300 transition-transform duration-500" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2.5" opacity="0.75" />
-          <polygon points="10,7.8 17.2,12 10,16.2" fill="currentColor" />
+    <!-- Center Section: Larger 3D Dark Attitude Trackball Sphere -->
+    <div id="hud-center-gimbal" class="justify-self-center flex items-center justify-center px-1.5">
+      <div id="attitude-sphere-wrapper" class="relative w-[46px] h-[46px] rounded-full p-[2px] bg-gradient-to-b from-slate-700/60 via-slate-900/95 to-slate-950 border border-white/20 shadow-[0_0_18px_rgba(0,0,0,0.92),inset_0_1px_2px_rgba(255,255,255,0.22)] flex items-center justify-center select-none group">
+        <canvas id="nova-attitude-sphere" width="92" height="92" class="w-full h-full rounded-full cursor-pointer transition-transform duration-200 group-hover:scale-[1.05]"></canvas>
+        <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-55 group-hover:opacity-90 transition-opacity duration-300" viewBox="0 0 46 46" fill="none">
+          <circle cx="23" cy="23" r="21.8" stroke="rgba(148, 163, 184, 0.32)" stroke-width="0.75" stroke-dasharray="1.5 3.5" />
+          <line x1="23" y1="0.6" x2="23" y2="3.2" stroke="#22d3ee" stroke-width="1.25" stroke-linecap="round" />
+          <line x1="23" y1="42.8" x2="23" y2="45.4" stroke="rgba(148, 163, 184, 0.6)" stroke-width="1" stroke-linecap="round" />
+          <line x1="0.6" y1="23" x2="3.2" y2="23" stroke="rgba(148, 163, 184, 0.6)" stroke-width="1" stroke-linecap="round" />
+          <line x1="42.8" y1="23" x2="45.4" y2="23" stroke="rgba(148, 163, 184, 0.6)" stroke-width="1" stroke-linecap="round" />
         </svg>
-      </button>
+      </div>
     </div>
 
-    <!-- Right Section: Unified Toggle Group + Vertical Tier Menu + Fullscreen -->
-    <div id="hud-right-section" class="justify-self-end flex items-center space-x-2.5">
+    <!-- Right Section: Circular Geometric N-O-V-A Toggles + Sidebar + 4-Quadrant Fullscreen -->
+    <div id="hud-right-section" class="justify-self-end flex items-center" style="padding-left: 10px;">
       <span id="odo-tier" class="hidden"></span><span id="odo-metric" class="hidden"></span><span id="odo-dist" class="hidden"></span>
 
-      <!-- Grouped & Unified Toggles: Filament, Orbits, Labels, Sidebar -->
-      <div id="hud-toggle-group" class="flex items-center space-x-1.5">
-        <!-- Cosmic Web Filament Toggle -->
-        <button id="btn-cosmic-web" onclick="toggleCosmicWeb()"
-          class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
-          <svg id="cosmic-web-svg" class="w-5 h-5 text-cyan-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <g stroke-width="1.15" stroke-opacity="0.85">
-              <path d="M12 1.2v21.6M1.2 12h21.6M4.4 4.4l15.2 15.2M4.4 19.6L19.6 4.4"/>
+      <!-- N - O - V - A Circular Rim Letter Toggles (Compact 22x22px Scale & Unified Top/Bottom Cap-Line & Baseline Alignment) -->
+      <div id="hud-toggle-group" class="flex items-center" style="gap: 7px; margin-left: 8px; margin-right: 18px;">
+
+        <!-- 1. [N] Cosmic Web Filaments Toggle (Aligned Top y=3.7 & Bottom y=28.3) -->
+        <button id="btn-cosmic-web" data-nova-active="true" onclick="window.handleNovaNClick(event)"
+          style="width: 22px !important; height: 22px !important; min-width: 22px !important; min-height: 22px !important; background: transparent !important; border: none !important; box-shadow: none !important;"
+          class="relative rounded-full flex items-center justify-center transition-transform duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-none outline-none">
+          <svg id="nova-n-svg" class="w-full h-full overflow-visible pointer-events-none" viewBox="0 0 32 32" fill="none">
+            <!-- Shared Base Circle (r=12.3 -> Top=3.7, Bottom=28.3) & Upper Slate Arch -->
+            <circle cx="16" cy="16" r="12.3" fill="rgba(10, 15, 28, 0.90)" stroke="rgba(45, 58, 78, 0.38)" stroke-width="1.4" />
+            <path d="M 8.9 26.1 A 12.3 12.3 0 1 1 23.1 26.1" fill="none" stroke="#3b4c66" stroke-width="2.2" stroke-linecap="round" />
+
+            <!-- INACTIVE STATE (2 Cyan Anchor Dots at Aligned Bottom Baseline) -->
+            <g id="nova-n-inactive-group" style="display: none;">
+              <circle cx="8.9" cy="26.1" r="1.5" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));" />
+              <circle cx="23.1" cy="26.1" r="1.5" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));" />
             </g>
-            <g stroke-width="1.0" stroke-opacity="0.75">
-              <path d="M12 2.5 Q14.3 5.7 18.7 5.3 Q18.3 9.7 21.5 12 Q18.3 14.3 18.7 18.7 Q14.3 18.3 12 21.5 Q9.7 18.3 5.3 18.7 Q5.7 14.3 2.5 12 Q5.7 9.7 5.3 5.3 Q9.7 5.7 12 2.5Z"/>
-              <path d="M12 5.6 Q13.5 7.8 16.5 7.5 Q16.2 10.5 18.4 12 Q16.2 13.5 16.5 16.5 Q13.5 16.2 12 18.4 Q10.5 16.2 7.5 16.5 Q7.8 13.5 5.6 12 Q7.8 10.5 7.5 7.5 Q10.5 7.8 12 5.6Z"/>
-              <path d="M12 8.6 Q12.8 9.8 14.4 9.6 Q14.2 11.2 15.4 12 Q14.2 12.8 14.4 14.4 Q12.8 14.2 12 15.4 Q11.2 14.2 9.6 14.4 Q9.8 12.8 8.6 12 Q9.8 11.2 9.6 9.6 Q11.2 9.8 12 8.6Z"/>
-            </g>
-            <g id="web-electric-pulse" stroke="#ffffff" stroke-width="1.4" class="drop-shadow-[0_0_6px_#f0abfc]">
-              <path d="M12 1.2v21.6M4.4 4.4l15.2 15.2" stroke-dasharray="4 10">
-                <animate attributeName="stroke-dashoffset" values="28;0" dur="0.9s" repeatCount="indefinite"/>
+
+            <!-- ACTIVE STATE (4 Cyan Anchor Dots Spanning y=5.9..26.1 Inside Unified r=12.3 Rim) -->
+            <g id="nova-n-active-group" style="display: inline;">
+              <path d="M 8.9 26.1 L 8.9 5.9 L 23.1 26.1 L 23.1 5.9" fill="none" stroke="#22d3ee" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.75" />
+              <path d="M 8.9 26.1 L 8.9 5.9 L 23.1 26.1 L 23.1 5.9" pathLength="100" fill="none" stroke="#a5f3fc" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="26 74"
+                style="filter: drop-shadow(0 0 5px #22d3ee);">
+                <animate attributeName="stroke-dashoffset" values="100;0" dur="4.2s" repeatCount="indefinite" />
               </path>
-              <path d="M12 5.6 Q13.5 7.8 16.5 7.5 Q16.2 10.5 18.4 12 Q16.2 13.5 16.5 16.5 Q13.5 16.2 12 18.4 Q10.5 16.2 7.5 16.5 Q7.8 13.5 5.6 12 Q7.8 10.5 7.5 7.5 Q10.5 7.8 12 5.6Z" stroke="#f0abfc" stroke-dasharray="5 12">
-                <animate attributeName="stroke-dashoffset" values="0;34" dur="1.1s" repeatCount="indefinite"/>
-              </path>
+              <circle cx="8.9" cy="26.1" r="1.6" fill="#67e8f9" style="filter: drop-shadow(0 0 4px #22d3ee);" />
+              <circle cx="8.9" cy="5.9" r="1.6" fill="#67e8f9" style="filter: drop-shadow(0 0 4px #22d3ee);" />
+              <circle cx="23.1" cy="26.1" r="1.6" fill="#67e8f9" style="filter: drop-shadow(0 0 4px #22d3ee);" />
+              <circle cx="23.1" cy="5.9" r="1.6" fill="#67e8f9" style="filter: drop-shadow(0 0 4px #22d3ee);" />
             </g>
           </svg>
         </button>
 
-        <!-- Orbits Toggle -->
-        <button id="btn-orbits" onclick="toggleOrbitPause()"
-          class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
-          <svg id="orbit-spinner-svg" class="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none">
-            <path d="M 18.36 5.64 A 9 9 0 1 0 18.36 18.36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-            <polygon points="21.2,14.2 14.5,16.5 19.5,21.5" fill="currentColor" />
+        <!-- 2. [O] Orbits Toggle (Aligned r=12.3 Circle: Top=3.7, Bottom=28.3) -->
+        <button id="btn-orbits" data-nova-active="true" onclick="window.handleNovaOClick(event)"
+          style="width: 22px !important; height: 22px !important; min-width: 22px !important; min-height: 22px !important; background: transparent !important; border: none !important; box-shadow: none !important;"
+          class="relative rounded-full flex items-center justify-center transition-transform duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-none outline-none">
+          <svg id="nova-o-svg" class="w-full h-full overflow-visible pointer-events-none" viewBox="0 0 32 32" fill="none">
+            <!-- Base Dark Circle (r=12.3 Matches Exact Top/Bottom of N, V, A) -->
+            <circle cx="16" cy="16" r="12.3" fill="rgba(10, 15, 28, 0.90)" stroke="rgba(45, 58, 78, 0.38)" stroke-width="1.4" />
+
+            <!-- INACTIVE STATE -->
+            <g id="nova-o-inactive-group" style="display: none;">
+              <path d="M 27.2 10.8 A 12.3 12.3 0 1 0 27.4 20.6" fill="none" stroke="#3b4c66" stroke-width="2.2" stroke-linecap="round" />
+              <polygon points="28.0,17.8 25.0,21.0 29.6,21.5" fill="#3b4c66" />
+              <circle cx="27.2" cy="10.8" r="1.5" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));" />
+            </g>
+
+            <!-- ACTIVE STATE (Rotating Muted Ring + Lower-Right Arrowhead + Cyan Trace in Gap + Glowing Cyan Anchor Dot) -->
+            <g id="nova-o-active-group" style="display: inline;">
+              <g id="nova-o-rotor">
+                <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="360 16 16" to="0 16 16" dur="4.2s" repeatCount="indefinite" />
+                <path d="M 27.2 10.8 A 12.3 12.3 0 1 0 27.4 20.6" fill="none" stroke="#475b7a" stroke-width="2.25" stroke-linecap="round" />
+                <polygon points="28.0,17.8 25.0,21.0 29.6,21.5" fill="#475b7a" />
+                <path d="M 27.8 18.8 A 12.3 12.3 0 0 0 27.2 10.8" fill="none" stroke="#22d3ee" stroke-width="1.35" stroke-linecap="round" stroke-opacity="0.88" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));" />
+                <path d="M 27.8 18.8 A 12.3 12.3 0 0 0 27.2 10.8" pathLength="100" fill="none" stroke="#a5f3fc" stroke-width="1.9" stroke-linecap="round" stroke-dasharray="45 55" style="filter: drop-shadow(0 0 5px #22d3ee);">
+                  <animate attributeName="stroke-dashoffset" values="100;0" dur="1.4s" repeatCount="indefinite" />
+                </path>
+                <circle cx="27.2" cy="10.8" r="1.7" fill="#22d3ee" style="filter: drop-shadow(0 0 5px #22d3ee);" />
+                <circle cx="27.2" cy="10.8" r="0.85" fill="#a5f3fc" />
+              </g>
+            </g>
           </svg>
-          <span id="orbit-core-dot" class="absolute w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-[0_0_6px_#22d3ee]"></span>
         </button>
 
-        <!-- Labels Toggle -->
-        <button id="btn-toggle-labels" onclick="toggleLabels(event)"
-          class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
-          <svg id="labels-toggle-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
-            <circle cx="7" cy="7" r="1.6" fill="currentColor" stroke="none" />
+        <!-- 3. [V] Labels Toggle (Aligned Top y=5.9 & Bottom Vertex y=28.3 on Shared r=12.3 Circle) -->
+        <button id="btn-toggle-labels" data-nova-active="true" onclick="window.handleNovaVClick(event)"
+          style="width: 22px !important; height: 22px !important; min-width: 22px !important; min-height: 22px !important; background: transparent !important; border: none !important; box-shadow: none !important;"
+          class="relative rounded-full flex items-center justify-center transition-transform duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-none outline-none">
+          <svg id="nova-v-svg" class="w-full h-full overflow-visible pointer-events-none" viewBox="0 0 32 32" fill="none">
+            <!-- Shared Base Circle (r=12.3) & Lower Slate Cradle Arc Starting at Exact Same Top Y (y=5.9) as Letter N -->
+            <circle cx="16" cy="16" r="12.3" fill="rgba(10, 15, 28, 0.90)" stroke="rgba(45, 58, 78, 0.38)" stroke-width="1.4" />
+            <path d="M 8.9 5.9 A 12.3 12.3 0 1 0 23.1 5.9" fill="none" stroke="#3b4c66" stroke-width="2.2" stroke-linecap="round" />
+
+            <!-- INACTIVE STATE (3 Cyan Anchor Dots at Top-Left y=5.9, Bottom Vertex y=28.3, Top-Right y=5.9) -->
+            <g id="nova-v-inactive-group" style="display: none;">
+              <circle cx="8.9" cy="5.9" r="1.5" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));" />
+              <circle cx="16.0" cy="28.3" r="1.5" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));" />
+              <circle cx="23.1" cy="5.9" r="1.5" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));" />
+            </g>
+
+            <!-- ACTIVE STATE (Aligned V Spanning y=5.9 to y=28.3) -->
+            <g id="nova-v-active-group" style="display: inline;">
+              <path d="M 8.9 5.9 L 16.0 28.3 L 23.1 5.9" fill="none" stroke="#22d3ee" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.75" />
+              <path d="M 8.9 5.9 L 16.0 28.3 L 23.1 5.9" pathLength="100" fill="none" stroke="#a5f3fc" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="28 72"
+                style="filter: drop-shadow(0 0 5px #22d3ee);">
+                <animate attributeName="stroke-dashoffset" values="100;0" dur="4.2s" repeatCount="indefinite" />
+              </path>
+              <circle cx="8.9" cy="5.9" r="1.6" fill="#67e8f9" style="filter: drop-shadow(0 0 4px #22d3ee);" />
+              <circle cx="16.0" cy="28.3" r="1.7" fill="#67e8f9" style="filter: drop-shadow(0 0 5px #22d3ee);" />
+              <circle cx="23.1" cy="5.9" r="1.6" fill="#67e8f9" style="filter: drop-shadow(0 0 4px #22d3ee);" />
+            </g>
           </svg>
         </button>
 
-        <!-- Swapped: Vertical Tier Menu Trigger ("All Tiers") + Vertical Pop-up Row Above -->
+        <!-- 4. [A] Tiers Toggle (Aligned Top Apex y=3.7 & Bottom Baseline y=26.1 on Shared r=12.3 Circle) -->
         <div id="bottom-tier-group" class="relative flex items-center">
-          <!-- Vertical Pop-up Menu containing the 4 Tier Levels with Original Geometric Icons -->
-          <div id="tier-vertical-menu" class="tier-menu-closed absolute bottom-full left-1/2 mb-3 flex flex-col-reverse items-center gap-2 p-1.5 rounded-full bg-slate-950/85 border border-white/15 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.75)] z-30">
-            <!-- Tier 1: Solar System -->
-            <button id="btn-t1" onclick="selectTierFromMenu(1, event)" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="7" stroke-dasharray="2 2"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg>
-            </button>
+          <button id="btn-t0" data-nova-active="true" onclick="window.handleNovaAClick(event)" aria-expanded="false"
+            style="width: 22px !important; height: 22px !important; min-width: 22px !important; min-height: 22px !important; background: transparent !important; border: none !important; box-shadow: none !important;"
+            class="relative rounded-full flex items-center justify-center transition-transform duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-none outline-none">
+            <svg id="nova-a-svg" class="w-full h-full overflow-visible pointer-events-none" viewBox="0 0 32 32" fill="none">
+              <!-- Shared Base Circle (r=12.3), Upper Slate Arch Ending at Exact Same Bottom Y (y=26.1) as Letter N, & Inner Oval -->
+              <circle cx="16" cy="16" r="12.3" fill="rgba(10, 15, 28, 0.90)" stroke="rgba(45, 58, 78, 0.38)" stroke-width="1.4" />
+              <path d="M 8.9 26.1 A 12.3 12.3 0 1 1 23.1 26.1" fill="none" stroke="#3b4c66" stroke-width="2.2" stroke-linecap="round" />
+              <ellipse cx="16" cy="12.5" rx="3.0" ry="2.0" fill="#2c3a50" />
 
-            <!-- Tier 2: Stellar Neighborhood -->
-            <button id="btn-t2" onclick="selectTierFromMenu(2, event)" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z"/></svg>
-            </button>
+              <!-- INACTIVE STATE (3 Cyan Anchor Dots at Bottom-Left y=26.1, Top Apex y=3.7, Bottom-Right y=26.1) -->
+              <g id="nova-a-inactive-group" style="display: none;">
+                <circle cx="8.9" cy="26.1" r="1.5" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));" />
+                <circle cx="16.0" cy="3.7" r="1.5" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));" />
+                <circle cx="23.1" cy="26.1" r="1.5" fill="#22d3ee" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.8));" />
+              </g>
 
-            <!-- Tier 3: Galaxies -->
-            <button id="btn-t3" onclick="selectTierFromMenu(3, event)" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="9" ry="4.2" transform="rotate(-28 12 12)"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg>
-            </button>
-
-            <!-- Tier 4: Deep Cosmic Web -->
-            <button id="btn-t4" onclick="selectTierFromMenu(4, event)" class="w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-cyan-400/60 flex items-center justify-center text-slate-400 hover:text-cyan-300 transition transform hover:scale-110 shrink-0 cursor-pointer shadow-lg">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12,3 20,8 20,16 12,21 4,16 4,8"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="4" y1="8" x2="20" y2="16"/></svg>
-            </button>
-          </div>
-
-          <!-- Minimalist "All Tiers" Button Matching Application Control Buttons -->
-          <button id="btn-t0" onclick="toggleTierMenu(event)" aria-expanded="false" class="relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="9" />
-              <circle cx="12" cy="12" r="5" />
-              <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" />
+              <!-- ACTIVE STATE (Aligned A Spanning y=3.7 to y=26.1) -->
+              <g id="nova-a-active-group" style="display: inline;">
+                <path d="M 8.9 26.1 L 16.0 3.7 L 23.1 26.1" fill="none" stroke="#22d3ee" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.75" />
+                <path d="M 8.9 26.1 L 16.0 3.7 L 23.1 26.1" pathLength="100" fill="none" stroke="#a5f3fc" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="28 72"
+                  style="filter: drop-shadow(0 0 5px #22d3ee);">
+                  <animate attributeName="stroke-dashoffset" values="100;0" dur="4.2s" repeatCount="indefinite" />
+                </path>
+                <circle cx="16.0" cy="12.5" r="2.0" fill="none" stroke="#67e8f9" stroke-width="0.85">
+                  <animate attributeName="r" values="1.1;2.7;1.1" dur="2.1s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.85;0.0;0.85" dur="2.1s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="16.0" cy="12.5" r="1.25" fill="#a5f3fc" style="filter: drop-shadow(0 0 5px #22d3ee);" />
+                <circle cx="8.9" cy="26.1" r="1.6" fill="#67e8f9" style="filter: drop-shadow(0 0 4px #22d3ee);" />
+                <circle cx="16.0" cy="3.7" r="1.7" fill="#67e8f9" style="filter: drop-shadow(0 0 5px #22d3ee);" />
+                <circle cx="23.1" cy="26.1" r="1.6" fill="#67e8f9" style="filter: drop-shadow(0 0 4px #22d3ee);" />
+              </g>
             </svg>
           </button>
         </div>
       </div>
 
-      <!-- Swapped: Overview Sidebar Toggle + Fullscreen -->
-      <div id="hud-right-controls" class="flex items-center space-x-1.5 pl-2.5 border-l border-white/15">
-        <!-- Overview Sidebar Toggle: Matches TabToggleOff.png (right cyan arc) -> Slides Left from both sides to TabToggleOn.png (left half-circle + vertical bar) -->
+      <!-- Right Controls: Original 32x32 Sidebar Toggle + 32x32 4-Quadrant Crosshair Fullscreen Toggle with Breathing Room -->
+      <div id="hud-right-controls" class="flex items-center border-l border-white/15" style="padding-left: 14px; gap: 10px;">
+        <!-- Overview Sidebar Toggle (32x32px) -->
         <button id="btn-toggle-sidebar" onclick="toggleSidebarVisibility(event)"
+          style="width: 32px !important; height: 32px !important;"
           class="relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
           <svg id="sidebar-toggle-icon" class="w-full h-full overflow-visible" viewBox="0 0 32 32" fill="none">
             <defs>
@@ -879,58 +996,41 @@
                 <rect id="sb-bg-clip-rect" x="0" y="0" width="0" height="32" style="transition: width 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
               </clipPath>
             </defs>
-            <!-- Base Dark Slate Circle (Matches TabToggleOff.png / TabToggleOn.png outer ring) -->
-            <circle cx="16" cy="16" r="15.2" fill="rgba(10, 15, 28, 0.85)" stroke="rgba(71, 85, 105, 0.55)" stroke-width="1.5" />
-            <!-- Left-Half Cyan Ambient Glow Fill (Slides in when Toggled On) -->
-            <circle cx="16" cy="16" r="15.2" fill="rgba(6, 78, 102, 0.58)" clip-path="url(#sb-left-half-clip)" />
-            <!-- Upper Rim Path (3 o'clock -> 12 o'clock -> 9 o'clock, pathLength=100) -->
-            <path id="sb-arc-top" d="M 31.2 16 A 15.2 15.2 0 0 0 0.8 16" pathLength="100" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="22 100" stroke-dashoffset="0" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.65)); transition: stroke-dasharray 600ms cubic-bezier(0.22, 1, 0.36, 1), stroke-dashoffset 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
-            <!-- Lower Rim Path (3 o'clock -> 6 o'clock -> 9 o'clock, pathLength=100) -->
-            <path id="sb-arc-bot" d="M 31.2 16 A 15.2 15.2 0 0 1 0.8 16" pathLength="100" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="22 100" stroke-dashoffset="0" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.65)); transition: stroke-dasharray 600ms cubic-bezier(0.22, 1, 0.36, 1), stroke-dashoffset 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
-            <!-- Vertical Cyan Bar inside Left Half (Slides left & fades in when Toggled On) -->
+            <circle cx="16" cy="16" r="14.2" fill="rgba(10, 15, 28, 0.85)" stroke="rgba(71, 85, 105, 0.55)" stroke-width="1.5" />
+            <circle cx="16" cy="16" r="14.2" fill="rgba(6, 78, 102, 0.58)" clip-path="url(#sb-left-half-clip)" />
+            <path id="sb-arc-top" d="M 30.2 16 A 14.2 14.2 0 0 0 1.8 16" pathLength="100" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="22 100" stroke-dashoffset="0" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.65)); transition: stroke-dasharray 600ms cubic-bezier(0.22, 1, 0.36, 1), stroke-dashoffset 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
+            <path id="sb-arc-bot" d="M 30.2 16 A 14.2 14.2 0 0 1 1.8 16" pathLength="100" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="22 100" stroke-dashoffset="0" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.65)); transition: stroke-dasharray 600ms cubic-bezier(0.22, 1, 0.36, 1), stroke-dashoffset 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
             <rect id="sb-inner-bar" x="12.8" y="8.2" width="2.3" height="15.6" rx="0.6" fill="#22d3ee" style="opacity: 0; transform: translateX(6px) scaleY(0.75); transform-origin: 14px 16px; filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.8)); transition: opacity 480ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
           </svg>
         </button>
 
-        <div class="h-5 w-[1px] bg-white/15 mx-0.5 shrink-0" aria-hidden="true"></div>
-
-        <!-- Fullscreen Button: Bounding Circle Cut in Half Horizontally When Inactive, Animating to Full Circle When Active (No Extra Inner Ring) -->
-        <button id="btn-fullscreen-zen" onclick="toggleFullscreenZen()" class="relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
-          <svg id="fullscreen-icon" class="w-full h-full overflow-visible" viewBox="0 0 32 32" fill="none">
+        <!-- Fullscreen Toggle (32x32px) -->
+        <button id="btn-fullscreen-zen" onclick="toggleFullscreenZen()"
+          style="width: 32px !important; height: 32px !important;"
+          class="relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0">
+          <svg id="fullscreen-icon" class="w-full h-full overflow-visible" style="overflow: visible !important;" viewBox="0 0 32 32" fill="none">
             <defs>
-              <clipPath id="fs-btn-half-clip">
-                <rect id="fullscreen-bg-clip-rect" x="0" y="0" width="32" height="16" style="transition: height 550ms cubic-bezier(0.22, 1, 0.36, 1);" />
+              <!-- Pure Vector 4-Quadrant ClipPath (Leaves a 100% Transparent Cross in the Center Without Raster Box Clipping) -->
+              <clipPath id="fs-four-quadrants-clip" clipPathUnits="userSpaceOnUse">
+                <rect x="-12" y="-12" width="24.1" height="24.1" />
+                <rect x="19.9" y="-12" width="24.1" height="24.1" />
+                <rect x="-12" y="19.9" width="24.1" height="24.1" />
+                <rect x="19.9" y="19.9" width="24.1" height="24.1" />
               </clipPath>
             </defs>
-            <!-- Lower/Base Muted Slate Bounding Circle -->
-            <circle cx="16" cy="16" r="15.2" fill="rgba(15, 23, 42, 0.78)" stroke="rgba(71, 85, 105, 0.65)" stroke-width="1.4" />
-            <!-- Active Cyan Interior Tint (Top Half when Inactive -> Full Circle when Active) -->
-            <circle cx="16" cy="16" r="15.2" fill="rgba(8, 51, 68, 0.65)" clip-path="url(#fs-btn-half-clip)" />
-            <!-- Button Bounding Circle Stroke (Cut in Half Horizontally when Inactive -> Smoothly Animates to Full Circle when Active) -->
-            <circle
-              id="fullscreen-outer-ring"
-              cx="16"
-              cy="16"
-              r="15.2"
-              fill="none"
-              stroke="#22d3ee"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              transform="rotate(90 16 16)"
-              pathLength="100"
-              stroke-dasharray="50 100"
-              stroke-dashoffset="-25"
-              style="transition: stroke-dasharray 550ms cubic-bezier(0.22, 1, 0.36, 1), stroke-dashoffset 550ms cubic-bezier(0.22, 1, 0.36, 1);"
-            />
-            <!-- Single Solid Center Circle -->
-            <circle
-              id="fullscreen-inner-dot"
-              cx="16"
-              cy="16"
-              r="4.6"
-              fill="#293548"
-              style="transition: fill 550ms cubic-bezier(0.22, 1, 0.36, 1);"
-            />
+            <!-- Subtle Outer Reference Ring (Visible in Windowed State) -->
+            <g clip-path="url(#fs-four-quadrants-clip)">
+              <circle id="fs-outer-guide" cx="16" cy="16" r="14.6" fill="none" stroke="rgba(71, 85, 105, 0.35)" stroke-width="1.0" style="transition: opacity 450ms ease;" />
+            </g>
+            <!-- Unclipped Glow Wrapper -> Vector-Clipped 4-Quadrant Cyan Circle Inside (Zero Square Box Artifacts) -->
+            <g id="fs-glow-wrapper" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.55)); transition: filter 450ms ease;">
+              <g clip-path="url(#fs-four-quadrants-clip)">
+                <g id="fs-quadrant-ring-group" style="transform: scale(0.86); transform-origin: 16px 16px; transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);">
+                  <circle id="fs-teal-fill" cx="16" cy="16" r="14.2" fill="rgba(8, 51, 68, 0.72)" />
+                  <circle id="fs-cyan-stroke" cx="16" cy="16" r="14.2" fill="none" stroke="#22d3ee" stroke-width="2.1" />
+                </g>
+              </g>
+            </g>
           </svg>
         </button>
       </div>
@@ -1079,6 +1179,242 @@
     init();
     fetchCatalog();
 
+    // =========================================================================
+    // 3D OBSIDIAN ATTITUDE TRACKBALL (TWO-WAY CAMERA GIMBAL + CLICK RESET)
+    // =========================================================================
+    (function initNovaAttitudeSphere() {
+      const canvas = document.getElementById("nova-attitude-sphere");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+
+      let isDraggingSphere = false;
+      let dragMovedDistance = 0;
+      let lastPointerX = 0;
+      let lastPointerY = 0;
+      let resetPulseAlpha = 0;
+
+      // Project a 3D unit point (x, y, z) rotated by camera inverse orientation onto the 2D canvas
+      function renderAttitudeSphere() {
+        if (!ctx || typeof camera === "undefined" || typeof controls === "undefined") return;
+        const w = canvas.width;
+        const h = canvas.height;
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+        const radius = w * 0.44;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // 1. Deep Obsidian Matte Sphere Base with Subtle Specular Top-Left Sheen
+        const baseGrad = ctx.createRadialGradient(cx - radius * 0.32, cy - radius * 0.35, radius * 0.08, cx, cy, radius);
+        baseGrad.addColorStop(0, "#1e293b");
+        baseGrad.addColorStop(0.38, "#090d16");
+        baseGrad.addColorStop(0.85, "#030509");
+        baseGrad.addColorStop(1, "#0a192f");
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.fillStyle = baseGrad;
+        ctx.fill();
+
+        // Compute camera spherical orientation relative to controls.target
+        const offset = camera.position.clone().sub(controls.target);
+        const dist = Math.max(0.0001, offset.length());
+        // Yaw (theta) around Y axis, Pitch (phi) from Y axis
+        const yaw = Math.atan2(offset.x, offset.z);
+        const pitch = Math.asin(Math.max(-1, Math.min(1, offset.y / dist)));
+
+        const cosY = Math.cos(-yaw), sinY = Math.sin(-yaw);
+        const cosP = Math.cos(pitch), sinP = Math.sin(pitch);
+
+        function project3D(vx, vy, vz) {
+          // Rotate by -yaw around Y
+          const x1 = vx * cosY + vz * sinY;
+          const z1 = -vx * sinY + vz * cosY;
+          const y1 = vy;
+          // Rotate by pitch around X
+          const y2 = y1 * cosP - z1 * sinP;
+          const z2 = y1 * sinP + z1 * cosP;
+          const x2 = x1;
+          return {
+            sx: cx + x2 * radius,
+            sy: cy - y2 * radius,
+            z: z2
+          };
+        }
+
+        // Helper to draw a great/small circle curve on the sphere with front/back depth shading
+        function drawSphereCurve(pointGenerator, steps, frontStroke, backStroke, frontWidth, backWidth) {
+          for (let pass = 0; pass < 2; pass++) {
+            const isFrontPass = (pass === 1);
+            ctx.beginPath();
+            let penDown = false;
+            for (let i = 0; i <= steps; i++) {
+              const t = (i / steps) * Math.PI * 2;
+              const v = pointGenerator(t);
+              const p = project3D(v.x, v.y, v.z);
+              const isFront = p.z >= -0.05;
+              if (isFront === isFrontPass) {
+                if (!penDown) {
+                  ctx.moveTo(p.sx, p.sy);
+                  penDown = true;
+                } else {
+                  ctx.lineTo(p.sx, p.sy);
+                }
+              } else {
+                penDown = false;
+              }
+            }
+            ctx.strokeStyle = isFrontPass ? frontStroke : backStroke;
+            ctx.lineWidth = isFrontPass ? frontWidth : backWidth;
+            ctx.stroke();
+          }
+        }
+
+        // 2. Longitude Meridians (3 great circles at 0, 60, 120 deg)
+        for (let m = 0; m < 3; m++) {
+          const mAngle = (m * Math.PI) / 3;
+          const cosM = Math.cos(mAngle), sinM = Math.sin(mAngle);
+          drawSphereCurve(
+            (t) => ({
+              x: Math.sin(t) * cosM,
+              y: Math.cos(t),
+              z: Math.sin(t) * sinM
+            }),
+            48,
+            m === 0 ? "rgba(148, 163, 184, 0.42)" : "rgba(148, 163, 184, 0.24)",
+            "rgba(71, 85, 105, 0.12)",
+            1.1,
+            0.8
+          );
+        }
+
+        // 3. Sub-Ecliptic Latitude Rings (+45 deg and -45 deg)
+        [-0.707, 0.707].forEach((latY) => {
+          const rLat = Math.sqrt(1 - latY * latY);
+          drawSphereCurve(
+            (t) => ({
+              x: Math.cos(t) * rLat,
+              y: latY,
+              z: Math.sin(t) * rLat
+            }),
+            40,
+            "rgba(148, 163, 184, 0.22)",
+            "rgba(71, 85, 105, 0.08)",
+            0.9,
+            0.7
+          );
+        });
+
+        // 4. Primary Ecliptic Equator Ring (Glowing Bioluminescent Cyan)
+        drawSphereCurve(
+          (t) => ({
+            x: Math.cos(t),
+            y: 0,
+            z: Math.sin(t)
+          }),
+          56,
+          "rgba(34, 211, 238, 0.92)",
+          "rgba(34, 211, 238, 0.22)",
+          1.75,
+          1.0
+        );
+
+        // 5. North / South Celestial Pole Nodes (Zenith = Cyan, Nadir = Slate/Amber)
+        const northPole = project3D(0, 1, 0);
+        if (northPole.z > 0) {
+          ctx.beginPath();
+          ctx.arc(northPole.sx, northPole.sy, 2.3, 0, Math.PI * 2);
+          ctx.fillStyle = "#ffffff";
+          ctx.shadowColor = "#22d3ee";
+          ctx.shadowBlur = 6;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+        const southPole = project3D(0, -1, 0);
+        if (southPole.z > 0) {
+          ctx.beginPath();
+          ctx.arc(southPole.sx, southPole.sy, 1.9, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(251, 191, 36, 0.85)";
+          ctx.fill();
+        }
+
+        // 6. Center Attitude Crosshair Reticle (Fixed HUD Reference on Glass Surface)
+        ctx.strokeStyle = isDraggingSphere ? "rgba(255, 255, 255, 0.85)" : "rgba(255, 255, 255, 0.35)";
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 3.2, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 7. Outer Fresnel Rim Highlight (Obsidian Glass Edge + Reset Pulse)
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius - 0.6, 0, Math.PI * 2);
+        if (resetPulseAlpha > 0.01) {
+          ctx.strokeStyle = `rgba(34, 211, 238, ${Math.min(1, 0.45 + resetPulseAlpha).toFixed(3)})`;
+          ctx.lineWidth = 2.0;
+          resetPulseAlpha *= 0.90;
+        } else {
+          ctx.strokeStyle = isDraggingSphere ? "rgba(34, 211, 238, 0.85)" : "rgba(226, 232, 240, 0.28)";
+          ctx.lineWidth = 1.25;
+        }
+        ctx.stroke();
+      }
+
+      window.updateNovaAttitudeSphere = renderAttitudeSphere;
+
+      // Pointer drag -> Rotate 3D camera around controls.target
+      canvas.addEventListener("pointerdown", (e) => {
+        e.stopPropagation();
+        isDraggingSphere = true;
+        dragMovedDistance = 0;
+        lastPointerX = e.clientX;
+        lastPointerY = e.clientY;
+        if (canvas.setPointerCapture) {
+          try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+        }
+        if (typeof TWEEN !== "undefined") TWEEN.removeAll();
+      });
+
+      window.addEventListener("pointermove", (e) => {
+        if (!isDraggingSphere) return;
+        const dx = e.clientX - lastPointerX;
+        const dy = e.clientY - lastPointerY;
+        lastPointerX = e.clientX;
+        lastPointerY = e.clientY;
+        dragMovedDistance += Math.hypot(dx, dy);
+
+        if (typeof camera !== "undefined" && typeof controls !== "undefined") {
+          const offset = camera.position.clone().sub(controls.target);
+          const spherical = new THREE.Spherical().setFromVector3(offset);
+          const rotateSpeed = 0.016;
+          spherical.theta -= dx * rotateSpeed;
+          spherical.phi = Math.max(0.08, Math.min(Math.PI - 0.08, spherical.phi - dy * rotateSpeed));
+          offset.setFromSpherical(spherical);
+          camera.position.copy(controls.target).add(offset);
+          camera.lookAt(controls.target);
+          controls.update();
+          renderAttitudeSphere();
+        }
+      });
+
+      function endSphereDrag(e) {
+        if (!isDraggingSphere) return;
+        isDraggingSphere = false;
+        if (e && canvas.releasePointerCapture) {
+          try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+        }
+        // If clicked without dragging (< 4px movement), trigger smooth Sol / Attitude Reset!
+        if (dragMovedDistance < 4.0) {
+          resetPulseAlpha = 1.0;
+          if (typeof window.resetToSolCore === "function") {
+            window.resetToSolCore();
+          }
+        }
+      }
+
+      window.addEventListener("pointerup", endSphereDrag);
+      window.addEventListener("pointercancel", endSphereDrag);
+    })();
+
+
     function init() {
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x000000);
@@ -1223,8 +1559,8 @@
         .start();
     };
 
-    const UNIFIED_TOGGLE_ACTIVE_CLASS = "relative w-8 h-8 rounded-full bg-cyan-950/60 border border-cyan-400/60 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_10px_rgba(34,211,238,0.3)]";
-    const UNIFIED_TOGGLE_INACTIVE_CLASS = "relative w-8 h-8 rounded-full bg-slate-900/70 border border-slate-700/80 hover:border-slate-500 flex items-center justify-center text-slate-400 hover:text-slate-200 opacity-60 transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-lg";
+    const UNIFIED_TOGGLE_ACTIVE_CLASS = "relative w-[25px] h-[25px] rounded-full flex items-center justify-center transition-transform duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-none outline-none";
+    const UNIFIED_TOGGLE_INACTIVE_CLASS = "relative w-[25px] h-[25px] rounded-full flex items-center justify-center transition-transform duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-none outline-none";
 
     window.toggleCosmicWeb = function() {
       isCosmicWebVisible = !isCosmicWebVisible;
@@ -1233,12 +1569,12 @@
       const pulse = document.getElementById("web-electric-pulse");
 
       if (isCosmicWebVisible) {
-        if (btn) btn.className = UNIFIED_TOGGLE_ACTIVE_CLASS;
-        if (svg) svg.className.baseVal = "w-5 h-5 text-cyan-300 transition-all duration-300 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]";
+        if (btn) btn.className = "relative w-8 h-8 rounded-full bg-cyan-950/65 border border-cyan-300/90 hover:border-white flex items-center justify-center text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_12px_rgba(34,211,238,0.5),3px_-3px_10px_rgba(244,114,182,0.45),-3px_3px_10px_rgba(232,121,249,0.35),inset_0_0_8px_rgba(240,171,252,0.28)]";
+        if (svg) svg.className.baseVal = "w-5 h-5 text-white transition-all duration-300 overflow-visible";
         if (pulse) pulse.classList.remove("hidden");
       } else {
         if (btn) btn.className = UNIFIED_TOGGLE_INACTIVE_CLASS;
-        if (svg) svg.className.baseVal = "w-5 h-5 text-slate-400 transition-all duration-300";
+        if (svg) svg.className.baseVal = "w-5 h-5 text-slate-400 transition-all duration-300 overflow-visible opacity-70";
         if (pulse) pulse.classList.add("hidden");
       }
 
@@ -1295,13 +1631,19 @@
       if (layer) {
         layer.style.display = areLabelsVisible ? "block" : "none";
       }
+      const callout = document.getElementById("labels-exterior-callout");
+      const iconSvg = document.getElementById("labels-toggle-icon");
       if (btn) {
         if (areLabelsVisible) {
           btn.title = "Toggle Celestial Name Labels On / Off";
-          btn.className = UNIFIED_TOGGLE_ACTIVE_CLASS;
+          btn.className = "relative w-8 h-8 rounded-full bg-cyan-950/65 border border-cyan-300/90 hover:border-white flex items-center justify-center text-cyan-200 hover:text-white transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer shadow-[0_0_14px_rgba(34,211,238,0.55),inset_0_0_8px_rgba(34,211,238,0.3)] overflow-visible";
+          if (iconSvg) iconSvg.className.baseVal = "w-full h-full overflow-visible text-cyan-300 drop-shadow-[0_0_5px_rgba(34,211,238,0.85)]";
+          if (callout) callout.style.opacity = "1";
         } else {
           btn.title = "Show Celestial Name Labels";
-          btn.className = UNIFIED_TOGGLE_INACTIVE_CLASS;
+          btn.className = UNIFIED_TOGGLE_INACTIVE_CLASS + " overflow-visible";
+          if (iconSvg) iconSvg.className.baseVal = "w-full h-full overflow-visible text-slate-400";
+          if (callout) callout.style.opacity = "0.35";
         }
       }
     };
@@ -1310,14 +1652,17 @@
       if (e && e.stopPropagation) e.stopPropagation();
       const drawer = document.getElementById("map-key-drawer");
       const summonBtn = document.getElementById("map-key-summon-btn");
-      if (!drawer || !summonBtn) return;
+      const inspectorScroll = document.getElementById("inspector-scroll-body");
+      if (!drawer) return;
       const isHidden = drawer.classList.contains("translate-x-[300px]");
       if (isHidden) {
         drawer.classList.remove("translate-x-[300px]");
-        summonBtn.classList.add("translate-x-20", "opacity-0", "pointer-events-none");
+        if (summonBtn) summonBtn.classList.add("translate-x-20", "opacity-0", "pointer-events-none");
+        if (inspectorScroll) inspectorScroll.style.maxHeight = "calc(100vh - 21rem)";
       } else {
         drawer.classList.add("translate-x-[300px]");
-        summonBtn.classList.remove("translate-x-20", "opacity-0", "pointer-events-none");
+        if (summonBtn) summonBtn.classList.remove("translate-x-20", "opacity-0", "pointer-events-none");
+        if (inspectorScroll) inspectorScroll.style.maxHeight = "calc(100vh - 7.5rem)";
       }
     };
 
@@ -1398,7 +1743,7 @@
 
       if (mapKeySummon && mapKeyDrawer) {
         const isMapKeyOpen = !mapKeyDrawer.classList.contains("translate-x-[300px]");
-        if (isMapKeyOpen || inFullscreen) {
+        if (isMapKeyOpen) {
           mapKeySummon.classList.add("translate-x-20", "opacity-0", "pointer-events-none");
         } else {
           mapKeySummon.classList.remove("translate-x-20", "opacity-0", "pointer-events-none");
@@ -1406,13 +1751,14 @@
       }
     }
 
-    // Main Sidebar Tab handler (right-edge tab & attached drawer tab): opens/closes the Overview drawer WITHOUT changing #btn-toggle-sidebar state
+    // Main Sidebar Tab handler (right-edge tab & attached drawer tab): opens/closes on the VERY FIRST click!
     window.toggleSidebarDrawerTab = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
       const inspector = document.getElementById("inspector");
       if (!inspector) return;
       const currentlyHidden = inspector.classList.contains("translate-x-[430px]");
       if (currentlyHidden) {
+        isOverviewToggleActive = true;
         isSidebarUserHidden = false;
         if (!activeTarget && !isTourActive && typeof celestialObjects !== "undefined" && celestialObjects.length > 0) {
           const sunMesh = celestialObjects.find(m => m.userData && m.userData.id === "sun") || celestialObjects[0];
@@ -1420,10 +1766,10 @@
             activeTargetMesh = sunMesh;
             openInspector(sunMesh.userData);
           }
-        } else {
-          inspector.classList.remove("translate-x-[430px]");
         }
+        inspector.classList.remove("translate-x-[430px]");
       } else {
+        isOverviewToggleActive = false;
         isSidebarUserHidden = true;
         inspector.classList.add("translate-x-[430px]");
       }
@@ -4486,8 +4832,7 @@
         else tourCtrl.classList.add('hidden');
       }
 
-      if ((isOverviewToggleActive && !isSidebarUserHidden) || isTourActive) {
-        isSidebarUserHidden = false;
+      if (isOverviewToggleActive && !isSidebarUserHidden) {
         document.getElementById('inspector').classList.remove('translate-x-[430px]');
       } else {
         document.getElementById('inspector').classList.add('translate-x-[430px]');
@@ -6990,6 +7335,9 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         window._texturesInitialized = true;
       }
 
+      if (typeof window.updateNovaAttitudeSphere === "function") {
+        window.updateNovaAttitudeSphere();
+      }
       renderer.render(scene, camera);
     }
 
@@ -7432,9 +7780,9 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 <script>
     // === SYNC SIDEBAR TAB HEIGHT WITH ACTIVE SLIDE & DEFAULT TO SUN SLIDE HEIGHT ===
     (function initSidebarTabHeightSync() {
-      let defaultSunSlideHeight = 420;
+      let defaultSunSlideHeight = 536;
       function syncTabHeight() {
-                const mkDrawer = document.getElementById('map-key-drawer');
+        const mkDrawer = document.getElementById('map-key-drawer');
         const mkSummon = document.getElementById('map-key-summon-btn');
         if (mkDrawer && mkSummon) {
           const mkRect = mkDrawer.getBoundingClientRect();
@@ -7445,16 +7793,30 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         const inspector = document.getElementById('inspector');
         const edgeTab = document.getElementById('inspector-edge-tab');
         if (!inspector || !edgeTab) return;
-        const rect = inspector.getBoundingClientRect();
-        if (rect.height > 80) {
-          if (!window._sunDefaultHeightCaptured) {
-            defaultSunSlideHeight = rect.height;
-            window._sunDefaultHeightCaptured = true;
+
+        // Pre-populate the Sun's overview content silently while keeping the drawer closed so #inspector has its true full height from the start
+        if (!window._sunPrepopulated && typeof celestialObjects !== 'undefined' && celestialObjects.length > 0 && typeof openInspector === 'function') {
+          const sunMesh = celestialObjects.find(m => m.userData && m.userData.id === 'sun') || celestialObjects[0];
+          if (sunMesh && sunMesh.userData) {
+            window._sunPrepopulated = true;
+            const wasOpen = !inspector.classList.contains('translate-x-[430px]');
+            openInspector(sunMesh.userData);
+            if (!wasOpen) {
+              inspector.classList.add('translate-x-[430px]');
+              isOverviewToggleActive = false;
+              updateSidebarToggleStyle();
+            }
           }
+        }
+
+        const rect = inspector.getBoundingClientRect();
+        if (rect.height > 360) {
+          defaultSunSlideHeight = rect.height;
           edgeTab.style.height = rect.height + 'px';
           edgeTab.style.top = (rect.top + rect.height / 2) + 'px';
         } else {
           edgeTab.style.height = defaultSunSlideHeight + 'px';
+          edgeTab.style.top = (64 + defaultSunSlideHeight / 2) + 'px';
         }
       }
       window.addEventListener('DOMContentLoaded', () => {
@@ -8441,6 +8803,185 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
     requestAnimationFrame(updateMorphingOrbFrame);
   })();
+
+
+
+    // =========================================================================
+    // N - O - V - A  GEOMETRIC RIM TOGGLES & 4-QUADRANT FULLSCREEN HANDLERS
+    // =========================================================================
+    (function initNovaHudToggles() {
+      const CLEAN_BTN_CLASS = "relative w-[25px] h-[25px] rounded-full flex items-center justify-center transition-transform duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-none outline-none";
+
+      function setNovaButtonVisual(btnId, activeGroupId, inactiveGroupId, isActive) {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.dataset.novaActive = isActive ? "true" : "false";
+          btn.className = CLEAN_BTN_CLASS;
+          btn.style.width = "22px";
+          btn.style.height = "22px";
+          btn.style.minWidth = "22px";
+          btn.style.minHeight = "22px";
+          btn.style.background = "transparent";
+          btn.style.border = "none";
+          btn.style.boxShadow = "none";
+        }
+        const activeG = document.getElementById(activeGroupId);
+        const inactiveG = document.getElementById(inactiveGroupId);
+        if (activeG) activeG.style.display = isActive ? "inline" : "none";
+        if (inactiveG) inactiveG.style.display = isActive ? "none" : "inline";
+      }
+
+      // 1. [N] Cosmic Web Filaments Toggle
+      let novaNActive = true;
+      window.syncNovaNVisual = function(forceState) {
+        if (typeof forceState === "boolean") {
+          novaNActive = forceState;
+        } else if (typeof isCosmicWebVisible !== "undefined") {
+          novaNActive = !!isCosmicWebVisible;
+        }
+        setNovaButtonVisual("btn-cosmic-web", "nova-n-active-group", "nova-n-inactive-group", novaNActive);
+      };
+
+      window.handleNovaNClick = function(e) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (typeof window.toggleCosmicWeb === "function") {
+          window.toggleCosmicWeb();
+        }
+        // Directly sync with actual scene state if available, otherwise flip
+        if (typeof isCosmicWebVisible !== "undefined") {
+          novaNActive = !!isCosmicWebVisible;
+        } else {
+          novaNActive = !novaNActive;
+        }
+        window.syncNovaNVisual(novaNActive);
+      };
+
+      // Also hook into window.toggleCosmicWeb in case Guided Tour or Tier 4 triggers it programmatically
+      const baseToggleWeb = window.toggleCosmicWeb;
+      window.toggleCosmicWeb = function() {
+        if (typeof baseToggleWeb === "function") baseToggleWeb();
+        if (typeof isCosmicWebVisible !== "undefined") {
+          novaNActive = !!isCosmicWebVisible;
+        } else {
+          novaNActive = !novaNActive;
+        }
+        window.syncNovaNVisual(novaNActive);
+      };
+
+      // 2. [O] Orbits Toggle
+      let novaOActive = true;
+      window.syncNovaOVisual = function(forceState) {
+        if (typeof forceState === "boolean") {
+          novaOActive = forceState;
+        } else if (typeof isOrbitPaused !== "undefined") {
+          novaOActive = !isOrbitPaused;
+        }
+        setNovaButtonVisual("btn-orbits", "nova-o-active-group", "nova-o-inactive-group", novaOActive);
+      };
+
+      window.handleNovaOClick = function(e) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (typeof window.toggleOrbitPause === "function") {
+          window.toggleOrbitPause();
+        }
+        if (typeof isOrbitPaused !== "undefined") {
+          novaOActive = !isOrbitPaused;
+        } else {
+          novaOActive = !novaOActive;
+        }
+        window.syncNovaOVisual(novaOActive);
+      };
+
+      // 3. [V] Labels Toggle
+      let novaVActive = true;
+      window.syncNovaVVisual = function(forceState) {
+        if (typeof forceState === "boolean") {
+          novaVActive = forceState;
+        } else if (typeof areLabelsVisible !== "undefined") {
+          novaVActive = !!areLabelsVisible;
+        }
+        setNovaButtonVisual("btn-toggle-labels", "nova-v-active-group", "nova-v-inactive-group", novaVActive);
+      };
+
+      window.handleNovaVClick = function(e) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (typeof window.toggleLabels === "function") {
+          window.toggleLabels(e);
+        }
+        const layer = document.getElementById("celestial-labels-layer");
+        if (layer && layer.style.display) {
+          novaVActive = (layer.style.display !== "none");
+        } else if (typeof areLabelsVisible !== "undefined") {
+          novaVActive = !!areLabelsVisible;
+        } else {
+          novaVActive = !novaVActive;
+        }
+        window.syncNovaVVisual(novaVActive);
+      };
+
+      // 4. [A] Tiers Toggle (Active = All Tiers [0], Inactive = Solar System Only [1])
+      let novaAActive = true;
+      window.syncNovaAVisual = function(forceState) {
+        if (typeof forceState === "boolean") {
+          novaAActive = forceState;
+        }
+        setNovaButtonVisual("btn-t0", "nova-a-active-group", "nova-a-inactive-group", novaAActive);
+      };
+
+      window.handleNovaAClick = function(e) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        novaAActive = !novaAActive;
+        const targetTier = novaAActive ? 0 : 1;
+        if (typeof window.filterByTier === "function") {
+          window.filterByTier(targetTier);
+        } else if (typeof window.selectTierFromMenu === "function") {
+          window.selectTierFromMenu(targetTier, e);
+        }
+        window.syncNovaAVisual(novaAActive);
+      };
+      window.toggleAllOrSolarTiers = window.handleNovaAClick;
+
+      // 5. Fullscreen 4-Quadrant Crosshair Animation (SSmini.png <-> SSfull.png)
+      function syncFullscreenQuadrantUI() {
+        const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        const ringGroup = document.getElementById("fs-quadrant-ring-group");
+        const crossGroup = document.getElementById("fs-dark-cross");
+        const outerGuide = document.getElementById("fs-outer-guide");
+        const glowWrapper = document.getElementById("fs-glow-wrapper");
+        if (ringGroup) ringGroup.style.transform = isFs ? "scale(1.0)" : "scale(0.86)";
+        if (outerGuide) outerGuide.style.opacity = isFs ? "0" : "1";
+        if (glowWrapper) {
+          glowWrapper.style.filter = isFs
+            ? "drop-shadow(0 0 5px rgba(34, 211, 238, 0.85))"
+            : "drop-shadow(0 0 3px rgba(34, 211, 238, 0.55))";
+        }
+      }
+
+      document.addEventListener("fullscreenchange", syncFullscreenQuadrantUI);
+      document.addEventListener("webkitfullscreenchange", syncFullscreenQuadrantUI);
+
+      const origToggleFs = window.toggleFullscreenZen;
+      window.toggleFullscreenZen = function() {
+        if (typeof origToggleFs === "function") origToggleFs();
+        setTimeout(syncFullscreenQuadrantUI, 60);
+        setTimeout(syncFullscreenQuadrantUI, 350);
+      };
+
+      function syncAllInitial() {
+        window.syncNovaNVisual();
+        window.syncNovaOVisual();
+        window.syncNovaVVisual();
+        window.syncNovaAVisual();
+        syncFullscreenQuadrantUI();
+      }
+
+      syncAllInitial();
+      setTimeout(syncAllInitial, 150);
+      setTimeout(syncAllInitial, 600);
+
+
+    })();
+
 </script>
 
 
@@ -8448,3 +8989,6 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
 </body>
 </html>
+
+
+    
