@@ -116,37 +116,14 @@
     }
 
 
-    /* Heavy Hydraulic Spaceship Door Slide Effect (Slowed down for deliberate, cinematic motion) */
-    #inspector,
+    /* Deliberate, smooth, cinematic aerospace HUD slide transition (Decreased speed for graceful motion) */
     #map-key-drawer {
-      transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+      transition: transform 1450ms cubic-bezier(0.16, 1, 0.3, 1) !important;
       will-change: transform;
     }
-    #inspector-edge-tab,
     #map-key-summon-btn {
-      transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1), opacity 400ms ease, background-color 300ms ease, border-color 300ms ease !important;
+      transition: transform 950ms cubic-bezier(0.16, 1, 0.3, 1), opacity 650ms ease, background-color 300ms ease, border-color 300ms ease !important;
       will-change: transform, opacity;
-    }
-
-    /* Fullscreen Sidebar Tab Hover Behavior: Hidden by default in Fullscreen, appears smoothly on mouse hover */
-    #inspector-edge-tab::before {
-      content: "";
-      position: absolute;
-      top: -20px;
-      bottom: -20px;
-      right: 0;
-      width: 28px;
-      background: transparent;
-    }
-    #inspector-edge-tab.fullscreen-hover-tab {
-      opacity: 0 !important;
-      transform: translateY(-50%) translateX(8px) !important;
-      pointer-events: auto !important;
-      transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms ease, background-color 300ms ease, border-color 300ms ease !important;
-    }
-    #inspector-edge-tab.fullscreen-hover-tab:hover {
-      opacity: 1 !important;
-      transform: translateY(-50%) translateX(0px) !important;
     }
 
     /* Vertical Tier Menu Slide-Out Animation (Slower, graceful & smooth) */
@@ -327,7 +304,6 @@
 
     html.is-booting header#header-nav,
     html.is-booting #bottom-hud,
-    html.is-booting #inspector-edge-tab,
     html.is-booting #map-key-summon-btn,
     html.is-booting #map-key-drawer,
     html.is-booting #celestial-labels-layer,
@@ -602,117 +578,7 @@
     </div>
   </header>
 
-  <!-- Sleek Glowing Minimalist Right-Edge Summon Tab (Textless, Independent from Bottom Overview Toggle) -->
-  <button id="inspector-edge-tab" onclick="toggleSidebarDrawerTab(event)" class="fixed top-1/2 -translate-y-1/2 right-0 z-20 w-3 h-[420px] rounded-l-xl bg-cyan-950/75 hover:bg-cyan-900/90 backdrop-blur-xl border border-r-0 border-cyan-400/50 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
-    <div class="w-1 h-1/3 max-h-24 min-h-[24px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
-  </button>
 
-  <!-- Right-Side Astrophysical Inspector Drawer (Flush left edge so cyan slide-back tab fuses seamlessly) -->
-  <aside id="inspector" class="fixed top-16 right-4 z-20 w-96 bg-slate-950/45 border border-white/10 rounded-r-2xl rounded-l-none backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-[430px] pointer-events-auto">
-    <!-- Sleek Glowing Minimalist Attached Slide-Back Tab (Flush with Sidebar Left Edge) -->
-    <button onclick="toggleSidebarDrawerTab(event)" class="absolute -top-[1px] -bottom-[1px] -left-3.5 w-3.5 rounded-l-xl rounded-r-none bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
-      <div class="w-1 h-1/3 max-h-24 min-h-[24px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
-    </button>
-    <div id="inspector-scroll-body" class="max-h-[calc(100vh-7.5rem)] overflow-y-auto p-5 transition-all duration-500">
-    <!-- Minimalist Guided Tour Controls Header (Visible During Tour) -->
-    <div id="sidebar-tour-controls" class="hidden mb-3.5 pb-3 border-b border-slate-700/50">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <span class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee] animate-pulse"></span>
-          <span id="tour-step-badge" class="text-[10px] font-mono uppercase tracking-widest text-cyan-300 font-semibold">GUIDED TOUR</span>
-          <span id="tour-step-counter" class="text-[10px] font-mono text-slate-400"></span>
-        </div>
-        <div class="flex items-center space-x-1.5">
-          <!-- Minimalist Prev Orb -->
-          <button onclick="prevTourStep(event)" class="w-6 h-6 rounded-full bg-slate-900/60 border border-slate-600/60 hover:border-cyan-400/70 flex items-center justify-center text-slate-300 hover:text-cyan-300 transition transform hover:scale-110 cursor-pointer">
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <!-- Minimalist Pause/Resume Orb -->
-          <button id="btn-tour-pause" onclick="togglePauseCosmicTour(event)" class="relative w-6 h-6 rounded-full bg-cyan-950/50 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center text-cyan-300 transition transform hover:scale-110 shadow-[0_0_8px_rgba(6,182,212,0.3)] cursor-pointer">
-            <svg id="icon-tour-pause" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6" />
-            </svg>
-          </button>
-          <!-- Minimalist Next Orb -->
-          <button onclick="nextTourStep(event)" class="w-6 h-6 rounded-full bg-slate-900/60 border border-slate-600/60 hover:border-cyan-400/70 flex items-center justify-center text-slate-300 hover:text-cyan-300 transition transform hover:scale-110 cursor-pointer">
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-          <!-- Minimalist Voice Mute/Unmute Orb -->
-          <button id="btn-tour-voice" onclick="toggleTourVoice(event)" class="relative w-6 h-6 rounded-full bg-cyan-950/50 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center text-cyan-300 transition transform hover:scale-110 shadow-[0_0_8px_rgba(6,182,212,0.3)] cursor-pointer">
-            <svg id="icon-tour-voice" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-            </svg>
-          </button>
-          <!-- Minimalist Exit Tour Orb -->
-          <button onclick="stopCosmicTour(event)" class="w-6 h-6 rounded-full bg-rose-950/40 border border-rose-500/40 hover:border-rose-400 flex items-center justify-center text-rose-300 hover:text-rose-200 transition transform hover:scale-110 cursor-pointer">
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div class="w-full bg-slate-800/60 h-1 rounded-full mt-2.5 overflow-hidden">
-        <div id="tour-progress-bar" class="bg-cyan-400/90 h-full transition-all duration-150" style="width: 0%"></div>
-      </div>
-    </div>
-
-    <div class="flex items-start justify-between">
-      <div>
-        <span id="target-scale" class="text-[10px] font-mono uppercase tracking-widest text-cyan-300 block"></span>
-        <h2 id="target-name" class="text-xl font-bold text-white mt-0.5"></h2>
-        <p id="target-type" class="text-xs text-slate-300/90"></p>
-      </div>
-      
-    </div>
-
-    <div class="mt-2.5 pt-2.5 border-t border-white/10 text-xs text-amber-300 font-mono flex items-center justify-between">
-      <span id="target-distance"></span>
-    </div>
-
-    <!-- NASA Eyes Progressive Disclosure Tab Bar -->
-    <div class="mt-3 grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-900/60 border border-white/10 font-mono text-[10px] uppercase tracking-wider">
-      <button id="tab-btn-overview" onclick="switchInspectorTab('overview')" class="py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 font-semibold transition cursor-pointer">Overview</button>
-      <button id="tab-btn-telemetry" onclick="switchInspectorTab('telemetry')" class="py-1.5 rounded-lg text-slate-400 hover:text-slate-200 border border-transparent transition cursor-pointer">Telemetry</button>
-      <button id="tab-btn-ask" onclick="switchInspectorTab('ask')" class="py-1.5 rounded-lg text-slate-400 hover:text-slate-200 border border-transparent transition cursor-pointer">AI Comms</button>
-    </div>
-
-    <!-- TAB 1: Overview (Summary + Key Features) -->
-    <div id="inspector-tab-overview" class="mt-3 space-y-3">
-      <p id="target-summary" class="text-[13px] text-slate-100/95 leading-relaxed"></p>
-      <div id="target-facts-container" class="bg-slate-900/40 border border-white/10 rounded-xl p-3">
-        <span class="text-[10px] font-mono uppercase tracking-widest text-cyan-300/90 block mb-1.5 font-semibold">Key Astrophysical Features</span>
-        <ul id="target-facts-list" class="space-y-1.5 text-[12.5px] text-slate-200 leading-relaxed list-disc list-inside"></ul>
-      </div>
-    </div>
-
-    <!-- TAB 2: Telemetry (Physical Metrics Grid) -->
-    <div id="inspector-tab-telemetry" class="hidden mt-3">
-      <div id="target-deep-profile" class="space-y-2.5">
-        <div id="target-metrics-grid" class="grid grid-cols-2 gap-2"></div>
-      </div>
-    </div>
-
-    <!-- TAB 3: AI Comms (Observatory Telemetry Inquiry) -->
-    <div id="inspector-tab-ask" class="hidden mt-3">
-      <div id="inspector-inquiry-section">
-        <label class="block text-[10px] font-mono uppercase tracking-wider text-cyan-400 mb-1.5 font-semibold">Observatory Telemetry Uplink</label>
-        <div class="flex items-center space-x-2">
-          <input id="custom-query-input" type="text" placeholder="Ask about rings, composition, moons, orbit..." class="w-full bg-slate-900/60 border border-white/15 rounded-lg px-3 py-1.5 text-[13px] text-slate-100 placeholder-slate-400 focus:outline-none focus:border-cyan-400" onkeydown="if(event.key==='Enter') queryGemini()" />
-          <button onclick="queryGemini()" class="relative w-7 h-7 rounded-full bg-cyan-950/60 border border-cyan-500/50 hover:border-cyan-300 flex items-center justify-center text-cyan-300 hover:text-white transition duration-300 transform hover:scale-110 shadow-[0_0_10px_rgba(6,182,212,0.3)] shrink-0 cursor-pointer">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-        <div id="ai-telemetry" class="hidden mt-3 p-3.5 rounded-xl bg-slate-900/70 border border-white/10 text-[13px] text-slate-100 leading-relaxed max-h-56 overflow-y-auto"></div>
-      </div>
-    </div>
-    </div>
-  </aside>
 
   <!-- Bottom-Right Map Key Summon Tab (Visible at Right Screen Edge When Map Key is Closed, in Both Normal & Fullscreen Modes) -->
   <button id="map-key-summon-btn" onclick="toggleMapKey(event)" class="fixed bottom-5 right-0 z-30 w-3.5 h-[232px] rounded-l-xl rounded-r-none bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 pointer-events-auto cursor-pointer flex items-center justify-center group">
@@ -720,7 +586,7 @@
   </button>
 
   <!-- Bottom-Right Slide-In/Out Single-Column Map Key Drawer (Matches Sidebar bg-slate-950/45 border-white/10 & Flush Left Edge) -->
-  <aside id="map-key-drawer" class="fixed bottom-5 right-4 z-30 w-52 bg-slate-950/45 border border-white/10 rounded-r-2xl rounded-l-none px-4 py-3 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] translate-x-[300px] pointer-events-auto">
+  <aside id="map-key-drawer" class="fixed bottom-5 right-4 z-30 w-52 bg-slate-950/45 border border-white/10 rounded-r-2xl rounded-l-none px-4 py-3 backdrop-blur-xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] translate-x-[300px] pointer-events-auto">
     <!-- Attached Left-Edge Full-Height Slide-Back Tab (Flush with Left Edge of Drawer When Open) -->
     <button id="map-key-attached-tab" onclick="toggleMapKey(event)" class="absolute -top-[1px] -bottom-[1px] -left-3.5 w-3.5 rounded-l-xl rounded-r-none bg-cyan-950/85 hover:bg-cyan-900/95 backdrop-blur-xl border border-r-0 border-cyan-400/60 hover:border-cyan-300 text-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 cursor-pointer flex items-center justify-center group">
       <div class="w-1 h-1/3 max-h-14 min-h-[22px] rounded-full bg-cyan-400/90 shadow-[0_0_8px_#22d3ee] group-hover:bg-cyan-300 group-hover:scale-y-110 transition-all"></div>
@@ -795,7 +661,7 @@
         <span class="whitespace-nowrap">Reset</span>
       </div>
 
-      <!-- 6. Overview (Matches Sidebar Toggle Icon) -->
+      <!-- 6. Map Key (Matches Map Key / Sidebar Toggle Icon) -->
       <div class="flex items-center space-x-2.5">
         <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0">
           <svg class="w-4 h-4" viewBox="0 0 32 32" fill="none">
@@ -803,7 +669,7 @@
             <path d="M 27.5 7.5 A 14.2 14.2 0 0 1 27.5 24.5" fill="none" stroke="#22d3ee" stroke-width="2.4" stroke-linecap="round" />
           </svg>
         </span>
-        <span class="whitespace-nowrap">Overview</span>
+        <span class="whitespace-nowrap">Map Key</span>
       </div>
 
       <!-- 7. Start Tour (Second to Last) -->
@@ -1044,8 +910,9 @@
 
       <!-- Right Controls: Original 32x32 Sidebar Toggle + 32x32 4-Quadrant Crosshair Fullscreen Toggle with Breathing Room -->
       <div id="hud-right-controls" class="flex items-center border-l border-white/15" style="padding-left: 14px; gap: 10px;">
-        <!-- Overview Sidebar Toggle (32x32px) -->
-        <button id="btn-toggle-sidebar" onclick="toggleSidebarVisibility(event)"
+        <!-- Map Key Drawer Toggle (32x32px) -->
+        <button id="btn-toggle-sidebar" onclick="toggleMapKey(event)"
+          aria-label="Toggle Map Key (Shortcut: M)" title="Toggle Map Key (Shortcut: M)"
           style="width: 32px !important; height: 32px !important;"
           class="relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
           <svg id="sidebar-toggle-icon" class="w-full h-full overflow-visible" viewBox="0 0 32 32" fill="none">
@@ -1710,18 +1577,16 @@
       if (e && e.stopPropagation) e.stopPropagation();
       const drawer = document.getElementById("map-key-drawer");
       const summonBtn = document.getElementById("map-key-summon-btn");
-      const inspectorScroll = document.getElementById("inspector-scroll-body");
       if (!drawer) return;
       const isHidden = drawer.classList.contains("translate-x-[300px]");
       if (isHidden) {
         drawer.classList.remove("translate-x-[300px]");
         if (summonBtn) summonBtn.classList.add("translate-x-20", "opacity-0", "pointer-events-none");
-        if (inspectorScroll) inspectorScroll.style.maxHeight = "calc(100vh - 21rem)";
       } else {
         drawer.classList.add("translate-x-[300px]");
         if (summonBtn) summonBtn.classList.remove("translate-x-20", "opacity-0", "pointer-events-none");
-        if (inspectorScroll) inspectorScroll.style.maxHeight = "calc(100vh - 7.5rem)";
       }
+      updateSidebarToggleStyle();
     };
 
     window.switchInspectorTab = function(tabName) {
@@ -1744,14 +1609,10 @@
     };
 
     function updateSidebarToggleStyle() {
-      const inspector = document.getElementById("inspector");
-      const edgeTab = document.getElementById("inspector-edge-tab");
       const mapKeySummon = document.getElementById("map-key-summon-btn");
       const mapKeyDrawer = document.getElementById("map-key-drawer");
-      if (!inspector) return;
-
-      const isVisible = !inspector.classList.contains("translate-x-[430px]");
-      const inFullscreen = isZenMode || !!document.fullscreenElement;
+      const isMapKeyOpen = !!(mapKeyDrawer && !mapKeyDrawer.classList.contains("translate-x-[300px]"));
+      const isVisible = isMapKeyOpen;
       isOverviewToggleActive = isVisible;
 
       const sbArcTop = document.getElementById("sb-arc-top");
@@ -1785,22 +1646,7 @@
         }
       }
 
-      if (edgeTab) {
-        // The Overview Sidebar tab (#inspector-edge-tab) is always visible when the drawer is closed in Standard mode,
-        // and hidden by default with hover-reveal (.fullscreen-hover-tab) in Fullscreen mode.
-        if (isVisible) {
-          edgeTab.classList.remove("fullscreen-hover-tab");
-          edgeTab.classList.add("translate-x-full", "opacity-0", "pointer-events-none");
-        } else if (inFullscreen) {
-          edgeTab.classList.remove("translate-x-full", "opacity-0", "pointer-events-none");
-          edgeTab.classList.add("fullscreen-hover-tab");
-        } else {
-          edgeTab.classList.remove("translate-x-full", "opacity-0", "pointer-events-none", "fullscreen-hover-tab");
-        }
-      }
-
       if (mapKeySummon && mapKeyDrawer) {
-        const isMapKeyOpen = !mapKeyDrawer.classList.contains("translate-x-[300px]");
         if (isMapKeyOpen) {
           mapKeySummon.classList.add("translate-x-20", "opacity-0", "pointer-events-none");
         } else {
@@ -1809,61 +1655,9 @@
       }
     }
 
-    // Main Sidebar Tab handler (right-edge tab & attached drawer tab): opens/closes on the VERY FIRST click!
-    window.toggleSidebarDrawerTab = function(e) {
-      window._forceFullSidebarOpen = true;
-      if (e && e.stopPropagation) e.stopPropagation();
-      const inspector = document.getElementById("inspector");
-      if (!inspector) return;
-      const currentlyHidden = inspector.classList.contains("translate-x-[430px]");
-      if (currentlyHidden) {
-        isOverviewToggleActive = true;
-        isSidebarUserHidden = false;
-        if (!activeTarget && !isTourActive && typeof celestialObjects !== "undefined" && celestialObjects.length > 0) {
-          const sunMesh = celestialObjects.find(m => m.userData && m.userData.id === "sun") || celestialObjects[0];
-          if (sunMesh) {
-            activeTargetMesh = sunMesh;
-            openInspector(sunMesh.userData);
-          }
-        }
-        inspector.classList.remove("translate-x-[430px]");
-      } else {
-        isOverviewToggleActive = false;
-        isSidebarUserHidden = true;
-        inspector.classList.add("translate-x-[430px]");
-      }
-      updateSidebarToggleStyle();
-    };
-
-    // Bottom-bar Overview Toggle Button handler: toggles the sidebar overview drawer on/off without hiding the Overview Sidebar tab itself
-    window.toggleSidebarVisibility = function(e) {
-      window._forceFullSidebarOpen = true;
-      if (e && e.stopPropagation) e.stopPropagation();
-      const sidebarBtn = document.getElementById("btn-toggle-sidebar");
-      const inspector = document.getElementById("inspector");
-      if (!inspector) return;
-
-      const currentlyHidden = inspector.classList.contains("translate-x-[430px]");
-      if (currentlyHidden) {
-        isOverviewToggleActive = true;
-        isSidebarUserHidden = false;
-        if (!activeTarget && !isTourActive && typeof celestialObjects !== "undefined" && celestialObjects.length > 0) {
-          const sunMesh = celestialObjects.find(m => m.userData && m.userData.id === "sun") || celestialObjects[0];
-          if (sunMesh) {
-            activeTargetMesh = sunMesh;
-            openInspector(sunMesh.userData);
-          }
-        } else {
-          inspector.classList.remove("translate-x-[430px]");
-        }
-      } else {
-        isOverviewToggleActive = false;
-        isSidebarUserHidden = true;
-        inspector.classList.add("translate-x-[430px]");
-      }
-
-      updateSidebarToggleStyle();
-    };
+    // Aliases to route sidebar calls to the Map Key slide-out drawer
+    window.toggleSidebarDrawerTab = window.toggleMapKey;
+    window.toggleSidebarVisibility = window.toggleMapKey;
 
     function applyZenUI(zen, keepSidebarForTour = false) {
       isZenMode = zen;
@@ -4914,11 +4708,16 @@
 
     function openInspector(data, isTierOverview = false) {
       activeTarget = isTierOverview ? null : data;
-      document.getElementById('target-scale').textContent = data.scale_order || '';
-      document.getElementById('target-name').textContent = data.name || data.title || '';
-      document.getElementById('target-type').textContent = data.type || '';
-      document.getElementById('target-distance').textContent = `Distance: ${data.distance || ''}`;
-      document.getElementById('target-summary').textContent = data.summary || '';
+      const targetScale = document.getElementById('target-scale');
+      if (targetScale) targetScale.textContent = data.scale_order || '';
+      const targetName = document.getElementById('target-name');
+      if (targetName) targetName.textContent = data.name || data.title || '';
+      const targetType = document.getElementById('target-type');
+      if (targetType) targetType.textContent = data.type || '';
+      const targetDist = document.getElementById('target-distance');
+      if (targetDist) targetDist.textContent = `Distance: ${data.distance || ''}`;
+      const targetSummary = document.getElementById('target-summary');
+      if (targetSummary) targetSummary.textContent = data.summary || '';
 
       if (isTierOverview) {
         populateDeepProfileUI(data);
@@ -4947,10 +4746,13 @@
       if (typeof window.populateSpatialCallout === 'function') {
         window.populateSpatialCallout(data, isTierOverview);
       }
-      if (isOverviewToggleActive && !isSidebarUserHidden && window._forceFullSidebarOpen) {
-        document.getElementById('inspector').classList.remove('translate-x-[430px]');
-      } else {
-        document.getElementById('inspector').classList.add('translate-x-[430px]');
+      const inspector = document.getElementById('inspector');
+      if (inspector) {
+        if (isOverviewToggleActive && !isSidebarUserHidden && window._forceFullSidebarOpen) {
+          inspector.classList.remove('translate-x-[430px]');
+        } else {
+          inspector.classList.add('translate-x-[430px]');
+        }
       }
       updateSidebarToggleStyle();
     }
@@ -4960,7 +4762,8 @@
         window.stopCosmicTour();
         return;
       }
-      document.getElementById('inspector').classList.add('translate-x-[430px]');
+      const inspector = document.getElementById('inspector');
+      if (inspector) inspector.classList.add('translate-x-[430px]');
       activeTarget = null;
       activeTargetMesh = null;
       window._spatialCalloutDismissedForMesh = null;
@@ -8162,9 +7965,8 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
   
   </script>
 <script>
-    // === SYNC SIDEBAR TAB HEIGHT WITH ACTIVE SLIDE & DEFAULT TO SUN SLIDE HEIGHT ===
-    (function initSidebarTabHeightSync() {
-      let defaultSunSlideHeight = 536;
+    // === SYNC MAP KEY TAB HEIGHT WITH MAP KEY DRAWER ===
+    (function initMapKeyTabHeightSync() {
       function syncTabHeight() {
         const mkDrawer = document.getElementById('map-key-drawer');
         const mkSummon = document.getElementById('map-key-summon-btn');
@@ -8174,53 +7976,17 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
             mkSummon.style.height = mkRect.height + 'px';
           }
         }
-        const inspector = document.getElementById('inspector');
-        const edgeTab = document.getElementById('inspector-edge-tab');
-        if (!inspector || !edgeTab) return;
-
-        // Pre-populate the Sun's overview content silently while keeping the drawer closed so #inspector has its true full height from the start
-        if (!window._sunPrepopulated && typeof celestialObjects !== 'undefined' && celestialObjects.length > 0 && typeof openInspector === 'function') {
-          const sunMesh = celestialObjects.find(m => m.userData && m.userData.id === 'sun') || celestialObjects[0];
-          if (sunMesh && sunMesh.userData) {
-            window._sunPrepopulated = true;
-            const wasOpen = !inspector.classList.contains('translate-x-[430px]');
-            openInspector(sunMesh.userData);
-            if (!wasOpen) {
-              inspector.classList.add('translate-x-[430px]');
-              isOverviewToggleActive = false;
-              updateSidebarToggleStyle();
-            }
-          }
-        }
-
-        const rect = inspector.getBoundingClientRect();
-        if (rect.height > 360) {
-          defaultSunSlideHeight = rect.height;
-          edgeTab.style.height = rect.height + 'px';
-          edgeTab.style.top = (rect.top + rect.height / 2) + 'px';
-        } else {
-          edgeTab.style.height = defaultSunSlideHeight + 'px';
-          edgeTab.style.top = (64 + defaultSunSlideHeight / 2) + 'px';
-        }
       }
       window.addEventListener('DOMContentLoaded', () => {
-        const inspector = document.getElementById('inspector');
-        if (inspector && typeof ResizeObserver !== 'undefined') {
+        const mkDrawer = document.getElementById('map-key-drawer');
+        if (mkDrawer && typeof ResizeObserver !== 'undefined') {
           const ro = new ResizeObserver(() => syncTabHeight());
-          ro.observe(inspector);
+          ro.observe(mkDrawer);
         }
         setTimeout(syncTabHeight, 150);
         setTimeout(syncTabHeight, 600);
       });
       window.addEventListener('resize', syncTabHeight);
-      const origSwitchTab = window.switchInspectorTab;
-      if (typeof origSwitchTab === 'function') {
-        window.switchInspectorTab = function(...args) {
-          const res = origSwitchTab.apply(this, args);
-          requestAnimationFrame(syncTabHeight);
-          return res;
-        };
-      }
     })();
 
     /* ==========================================================================
@@ -8656,7 +8422,6 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
                 document.getElementById("header-nav"),
                 document.getElementById("bottom-hud"),
                 document.getElementById("map-key-summon-btn"),
-                document.getElementById("inspector-edge-tab"),
                 document.getElementById("celestial-labels-layer"),
                 document.getElementById("odometer-group")
               ];
@@ -8755,20 +8520,17 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
     /* === UPDATE 5: Subtle Idle HUD Dimming === */
     html:not(.is-booting) #bottom-hud,
     html:not(.is-booting) #header-nova-pill,
-    html:not(.is-booting) #inspector-edge-tab,
     html:not(.is-booting) #map-key-summon-btn {
       transition: opacity 260ms cubic-bezier(0.22, 1, 0.36, 1), transform 700ms cubic-bezier(0.22, 1, 0.36, 1), border-color 300ms ease, background-color 300ms ease, box-shadow 300ms ease;
     }
     html:not(.is-booting).nova-hud-idle #bottom-hud,
     html:not(.is-booting).nova-hud-idle #header-nova-pill,
-    html:not(.is-booting).nova-hud-idle #inspector-edge-tab,
     html:not(.is-booting).nova-hud-idle #map-key-summon-btn {
       opacity: 0.38 !important;
       transition: opacity 1200ms cubic-bezier(0.22, 1, 0.36, 1), transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     html:not(.is-booting).nova-hud-idle #bottom-hud:hover,
     html:not(.is-booting).nova-hud-idle #header-nova-pill:hover,
-    html:not(.is-booting).nova-hud-idle #inspector-edge-tab:hover,
     html:not(.is-booting).nova-hud-idle #map-key-summon-btn:hover {
       opacity: 1 !important;
     }
@@ -9463,9 +9225,8 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           "btn-orbits": "Toggle Orbital Motion [O] (Shortcut: O)",
           "btn-toggle-labels": "Toggle Viewport Labels [V] (Shortcut: V)",
           "btn-t0": "Toggle Aperture Scale Depth [A] (Shortcut: A)",
-          "btn-toggle-sidebar": "Toggle Overview Sidebar (Shortcut: I)",
+          "btn-toggle-sidebar": "Toggle Map Key Drawer (Shortcut: M)",
           "btn-fullscreen-zen": "Toggle Fullscreen Mode (Shortcut: F)",
-          "inspector-edge-tab": "Toggle Overview Sidebar Drawer (Shortcut: I)",
           "map-key-summon-btn": "Open Map Key Drawer (Shortcut: M)",
           "map-key-attached-tab": "Close Map Key Drawer (Shortcut: M)"
         };
@@ -9495,7 +9256,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         document.addEventListener("pointermove", (e) => {
           if (e.target && e.target.closest) {
             isPointerOverHud = Boolean(
-              e.target.closest("#bottom-hud, #inspector, #map-key-drawer, #inspector-edge-tab, #map-key-summon-btn, #header-nova-pill")
+              e.target.closest("#bottom-hud, #map-key-drawer, #map-key-summon-btn, #header-nova-pill")
             );
           }
           wakeHud();
@@ -9553,13 +9314,10 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
               break;
             case "m":
             case "k":
-              e.preventDefault();
-              if (typeof window.toggleMapKey === "function") window.toggleMapKey(e);
-              break;
             case "i":
             case "s":
               e.preventDefault();
-              if (typeof window.toggleSidebarVisibility === "function") window.toggleSidebarVisibility(e);
+              if (typeof window.toggleMapKey === "function") window.toggleMapKey(e);
               break;
             case "f":
               e.preventDefault();
