@@ -116,14 +116,28 @@
     }
 
 
-    /* Deliberate, smooth, cinematic aerospace HUD slide transition (Decreased speed for graceful motion) */
+    /* Deliberate, smooth, cinematic aerospace HUD slide transition (Decreased speed by half: 2900ms) */
     #map-key-drawer {
-      transition: transform 1450ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+      transition: transform 2900ms cubic-bezier(0.16, 1, 0.3, 1) !important;
       will-change: transform;
     }
     #map-key-summon-btn {
-      transition: transform 950ms cubic-bezier(0.16, 1, 0.3, 1), opacity 650ms ease, background-color 300ms ease, border-color 300ms ease !important;
+      transition: transform 2900ms cubic-bezier(0.16, 1, 0.3, 1), opacity 1800ms ease, background-color 300ms ease, border-color 300ms ease !important;
       will-change: transform, opacity;
+    }
+    /* Synchronized Map Key toggle button animation matching Map Key slide-out speed (2900ms) */
+    #btn-toggle-sidebar {
+      transition: box-shadow 2900ms cubic-bezier(0.16, 1, 0.3, 1), transform 300ms ease !important;
+    }
+    #sb-bg-clip-rect {
+      transition: width 2900ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    #sb-arc-top,
+    #sb-arc-bot {
+      transition: stroke-dasharray 2900ms cubic-bezier(0.16, 1, 0.3, 1), stroke-dashoffset 2900ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    #sb-inner-bar {
+      transition: opacity 2300ms ease, transform 2900ms cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
     /* Vertical Tier Menu Slide-Out Animation (Slower, graceful & smooth) */
@@ -918,14 +932,14 @@
           <svg id="sidebar-toggle-icon" class="w-full h-full overflow-visible" viewBox="0 0 32 32" fill="none">
             <defs>
               <clipPath id="sb-left-half-clip">
-                <rect id="sb-bg-clip-rect" x="0" y="0" width="0" height="32" style="transition: width 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
+                <rect id="sb-bg-clip-rect" x="0" y="0" width="0" height="32" style="transition: width 2900ms cubic-bezier(0.16, 1, 0.3, 1);" />
               </clipPath>
             </defs>
             <circle cx="16" cy="16" r="14.2" fill="rgba(10, 15, 28, 0.85)" stroke="rgba(71, 85, 105, 0.55)" stroke-width="1.5" />
             <circle cx="16" cy="16" r="14.2" fill="rgba(6, 78, 102, 0.58)" clip-path="url(#sb-left-half-clip)" />
-            <path id="sb-arc-top" d="M 30.2 16 A 14.2 14.2 0 0 0 1.8 16" pathLength="100" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="22 100" stroke-dashoffset="0" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.65)); transition: stroke-dasharray 600ms cubic-bezier(0.22, 1, 0.36, 1), stroke-dashoffset 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
-            <path id="sb-arc-bot" d="M 30.2 16 A 14.2 14.2 0 0 1 1.8 16" pathLength="100" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="22 100" stroke-dashoffset="0" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.65)); transition: stroke-dasharray 600ms cubic-bezier(0.22, 1, 0.36, 1), stroke-dashoffset 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
-            <rect id="sb-inner-bar" x="12.8" y="8.2" width="2.3" height="15.6" rx="0.6" fill="#22d3ee" style="opacity: 0; transform: translateX(6px) scaleY(0.75); transform-origin: 14px 16px; filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.8)); transition: opacity 480ms ease, transform 600ms cubic-bezier(0.22, 1, 0.36, 1);" />
+            <path id="sb-arc-top" d="M 30.2 16 A 14.2 14.2 0 0 0 1.8 16" pathLength="100" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="22 100" stroke-dashoffset="0" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.65)); transition: stroke-dasharray 2900ms cubic-bezier(0.16, 1, 0.3, 1), stroke-dashoffset 2900ms cubic-bezier(0.16, 1, 0.3, 1);" />
+            <path id="sb-arc-bot" d="M 30.2 16 A 14.2 14.2 0 0 1 1.8 16" pathLength="100" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="22 100" stroke-dashoffset="0" style="filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.65)); transition: stroke-dasharray 2900ms cubic-bezier(0.16, 1, 0.3, 1), stroke-dashoffset 2900ms cubic-bezier(0.16, 1, 0.3, 1);" />
+            <rect id="sb-inner-bar" x="12.8" y="8.2" width="2.3" height="15.6" rx="0.6" fill="#22d3ee" style="opacity: 0; transform: translateX(6px) scaleY(0.75); transform-origin: 14px 16px; filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.8)); transition: opacity 2300ms ease, transform 2900ms cubic-bezier(0.16, 1, 0.3, 1);" />
           </svg>
         </button>
 
