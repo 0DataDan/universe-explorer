@@ -178,6 +178,47 @@
       transition: opacity 2300ms ease, transform 2900ms cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
+    /* Screensaver / Observatory Standby Mode UI Suppression */
+    html.screensaver-active header,
+    html.screensaver-active header#header-nav,
+    html.screensaver-active #header-nova-pill,
+    html.screensaver-active #bottom-hud,
+    html.screensaver-active #inspector-edge-tab,
+    html.screensaver-active #map-key-summon-btn,
+    html.screensaver-active #map-key-drawer,
+    html.screensaver-active #spatial-telemetry-layer,
+    html.screensaver-active #celestial-labels-layer,
+    html.screensaver-active #tier-vertical-menu,
+    html.screensaver-active #cosmic-tour-hud,
+    html.screensaver-active #odometer-group {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+      transition: opacity 800ms cubic-bezier(0.16, 1, 0.3, 1), transform 800ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    html.screensaver-active #bottom-hud {
+      transform: translate(-50%, 32px) !important;
+    }
+
+    html.screensaver-active header#header-nav {
+      transform: translateY(-28px) !important;
+    }
+
+    html.screensaver-active #map-key-summon-btn {
+      transform: translateX(18px) !important;
+    }
+
+    /* Subtle Observatory Standby Watermark */
+    #screensaver-hud-badge {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1400ms ease;
+    }
+    html.screensaver-active #screensaver-hud-badge {
+      opacity: 0.82 !important;
+    }
+
     /* Vertical Tier Menu Slide-Out Animation (Slower, graceful & smooth) */
     #tier-vertical-menu {
       transition: transform 1300ms cubic-bezier(0.22, 0.95, 0.32, 1), opacity 950ms ease, clip-path 1300ms cubic-bezier(0.22, 0.95, 0.32, 1) !important;
@@ -569,6 +610,12 @@
   <!-- 3D-Tracked NASA Eyes Minimalist Celestial Name Labels Layer -->
   <div id="celestial-labels-layer" aria-hidden="true"></div>
 
+  <!-- Observatory Standby / Screensaver Status Beacon -->
+  <div id="screensaver-hud-badge" class="fixed top-6 right-6 z-20 pointer-events-none opacity-0 transition-opacity duration-1000 flex items-center space-x-2.5">
+    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.85)]"></span>
+    <span class="text-[10px] font-mono uppercase tracking-[0.22em] text-cyan-300/70 select-none">OBSERVATORY STANDBY • ANY KEY TO RESUME</span>
+  </div>
+
   <!-- 2D Screen-Aligned Spatial HUD Callout Layer (Tethered to Selected 3D Object) -->
   <div id="spatial-telemetry-layer" class="opacity-0" aria-live="polite">
     <svg id="spatial-leader-svg" class="w-full h-full overflow-visible pointer-events-none">
@@ -761,7 +808,18 @@
         <span class="whitespace-nowrap text-slate-200 group-hover:text-cyan-300 transition-colors">Start Tour</span>
       </button>
 
-      <!-- 8. Fullscreen (Last Item) -->
+      <!-- 8. Observatory Standby (Clickable Screensaver Trigger) -->
+      <button type="button" onclick="window.toggleScreensaverMode(event)" class="flex items-center space-x-2.5 bg-transparent border-0 p-0 text-left cursor-pointer group hover:opacity-90 transition-opacity">
+        <span class="w-4 h-4 rounded-full bg-cyan-950/60 border border-cyan-500/50 flex items-center justify-center text-cyan-300 shrink-0 group-hover:border-cyan-300">
+          <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        </span>
+        <span class="whitespace-nowrap text-slate-200 group-hover:text-cyan-300 transition-colors">Observatory [S]</span>
+      </button>
+
+      <!-- 9. Fullscreen (Last Item) -->
       <div class="flex items-center space-x-2.5">
         <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0">
           <svg class="w-4 h-4 overflow-visible" viewBox="0 0 32 32" fill="none">
@@ -1107,6 +1165,16 @@
 
     let activeTarget = null;
     let activeTargetMesh = null;
+    Object.defineProperty(window, "activeTarget", {
+      get() { return activeTarget; },
+      set(val) { activeTarget = val; },
+      configurable: true
+    });
+    Object.defineProperty(window, "activeTargetMesh", {
+      get() { return activeTargetMesh; },
+      set(val) { activeTargetMesh = val; },
+      configurable: true
+    });
     if (typeof lastTrackedTargetPos !== 'undefined') lastTrackedTargetPos.set(0, 0, 0);
     let manualTierLock = 0;
     let isUserDraggingSlider = false;
@@ -1114,6 +1182,7 @@
     let isCosmicWebVisible = true;
     let isOrbitPaused = false;
     let areLabelsVisible = true;
+    let isScreensaverActive = false;
 
     // === NASA EYES MINIMALIST PRIMARY NAME LABELS STATE ===
     const PRIMARY_CELESTIAL_NAMES = {
@@ -4089,7 +4158,7 @@
     }
 
     function updateCelestialLabels(camDist) {
-      if (!areLabelsVisible || !celestialLabelEntries.length) return;
+      if (isScreensaverActive || !areLabelsVisible || !celestialLabelEntries.length) return;
       scene.updateMatrixWorld();
 
       const halfW = window.innerWidth * 0.5;
@@ -8157,6 +8226,149 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         window.toggleCosmicTour(e);
       });
     }
+
+    // === AUTONOMOUS OBSERVATORY STANDBY / SCREENSAVER SYSTEM ===
+    let screensaverIdleTimer = null;
+    let screensaverLingerTimer = null;
+    let screensaverLastTargetIndex = -1;
+    const SCREENSAVER_IDLE_TIMEOUT_MS = 60000; // 60s idle trigger
+
+    function getScreensaverPool() {
+      if (!celestialObjects || celestialObjects.length === 0) return [];
+      return celestialObjects.filter(obj => {
+        if (!obj || !obj.userData || !obj.userData.id) return false;
+        const id = String(obj.userData.id).toLowerCase();
+        return id !== "moon-orbit" && id !== "barycenter" && !id.includes("barycenter");
+      });
+    }
+
+    function advanceScreensaverStep() {
+      if (!isScreensaverActive) return;
+      if (screensaverLingerTimer) {
+        clearTimeout(screensaverLingerTimer);
+        screensaverLingerTimer = null;
+      }
+
+      const pool = getScreensaverPool();
+      if (pool.length === 0) return;
+
+      let nextIdx = Math.floor(Math.random() * pool.length);
+      if (pool.length > 1 && nextIdx === screensaverLastTargetIndex) {
+        nextIdx = (nextIdx + 1 + Math.floor(Math.random() * (pool.length - 1))) % pool.length;
+      }
+      screensaverLastTargetIndex = nextIdx;
+      const targetMesh = pool[nextIdx];
+      const targetData = targetMesh.userData;
+
+      // Ensure all tiers visible so deep-space nodes render properly
+      const tierNum = Number(targetData.tier) || 1;
+      if (manualTierLock !== 0 && typeof filterTier === "function") {
+        filterTier(0);
+      }
+      if (tierNum === 4 && !isCosmicWebVisible && typeof window.toggleCosmicWeb === "function") {
+        window.toggleCosmicWeb();
+      }
+
+      activeTargetMesh = targetMesh;
+      activeTarget = targetData;
+
+      // Stop auto-rotation during cinematic flight
+      controls.autoRotate = false;
+
+      // Slower, cinematic easing flight (5,200ms)
+      const flightDuration = 5200;
+      window.smoothFlyToTarget(flightDuration);
+
+      // Linger and orbit slowly around the target for 12 seconds
+      screensaverLingerTimer = setTimeout(() => {
+        if (!isScreensaverActive) return;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.42;
+
+        // Schedule next random destination
+        screensaverLingerTimer = setTimeout(() => {
+          if (!isScreensaverActive) return;
+          advanceScreensaverStep();
+        }, 12000);
+      }, flightDuration);
+    }
+
+    window.enterScreensaverMode = function() {
+      if (isScreensaverActive) return;
+      if (isTourActive) return;
+      if (document.documentElement.classList.contains("is-booting")) return;
+
+      isScreensaverActive = true;
+      document.documentElement.classList.add("screensaver-active");
+
+      // Dismiss active spatial telemetry callout and close drawers
+      if (typeof window.dismissSpatialCallout === "function") window.dismissSpatialCallout();
+      if (typeof window.closeMapKey === "function") window.closeMapKey();
+      const labelsLayer = document.getElementById("celestial-labels-layer");
+      if (labelsLayer) labelsLayer.style.display = "none";
+
+      advanceScreensaverStep();
+    };
+
+    window.exitScreensaverMode = function() {
+      if (!isScreensaverActive) return;
+      isScreensaverActive = false;
+
+      if (screensaverLingerTimer) {
+        clearTimeout(screensaverLingerTimer);
+        screensaverLingerTimer = null;
+      }
+
+      controls.autoRotate = false;
+      document.documentElement.classList.remove("screensaver-active");
+      const labelsLayer = document.getElementById("celestial-labels-layer");
+      if (labelsLayer && areLabelsVisible) labelsLayer.style.display = "block";
+
+      if (typeof window.resetScreensaverTimer === "function") {
+        window.resetScreensaverTimer();
+      }
+    };
+
+    window.toggleScreensaverMode = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (isScreensaverActive) {
+        window.exitScreensaverMode();
+      } else {
+        window.enterScreensaverMode();
+      }
+    };
+
+    Object.defineProperty(window, "isScreensaverActive", {
+      get() { return isScreensaverActive; },
+      set(val) {
+        if (val) window.enterScreensaverMode();
+        else window.exitScreensaverMode();
+      },
+      configurable: true
+    });
+
+    window.resetScreensaverTimer = function() {
+      if (screensaverIdleTimer) {
+        clearTimeout(screensaverIdleTimer);
+        screensaverIdleTimer = null;
+      }
+      if (!isScreensaverActive) {
+        screensaverIdleTimer = setTimeout(() => {
+          if (isTourActive) return;
+          if (document.documentElement.classList.contains("is-booting")) return;
+          const mk = document.getElementById("map-key-drawer");
+          if (mk && !mk.classList.contains("translate-x-[300px]")) return;
+          const inqModal = document.getElementById("deep-space-inquiry-modal");
+          if (inqModal && !inqModal.classList.contains("hidden")) return;
+          if (typeof isTierMenuOpen !== "undefined" && isTierMenuOpen) return;
+
+          window.enterScreensaverMode();
+        }, SCREENSAVER_IDLE_TIMEOUT_MS);
+      }
+    };
+
+    // Initialize idle timer
+    window.resetScreensaverTimer();
   
   </script>
 <script>
@@ -9483,11 +9695,26 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
             window.openMapKey();
           }
 
+          if (window.isScreensaverActive) {
+            window.exitScreensaverMode();
+          }
+          if (typeof window.resetScreensaverTimer === "function") {
+            window.resetScreensaverTimer();
+          }
+
           wakeHud();
         }, { passive: true });
 
-        ["pointerdown", "wheel", "touchstart", "keydown"].forEach((evt) => {
-          window.addEventListener(evt, wakeHud, { passive: true });
+        ["pointerdown", "pointermove", "wheel", "touchstart"].forEach((evt) => {
+          window.addEventListener(evt, () => {
+            if (window.isScreensaverActive) {
+              window.exitScreensaverMode();
+            }
+            if (typeof window.resetScreensaverTimer === "function") {
+              window.resetScreensaverTimer();
+            }
+            wakeHud();
+          }, { passive: true });
         });
 
         wakeHud();
@@ -9497,6 +9724,38 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           if (e.defaultPrevented) return;
           if (e.metaKey || e.ctrlKey || e.altKey) return;
           if (document.documentElement.classList.contains("is-booting")) return;
+
+          const key = (e.key || "").toLowerCase();
+
+          // Specification 5: Subtle manual keyboard shortcut ('S' or 'P') to toggle Screensaver Mode
+          if (key === "s" || key === "p") {
+            const activeEl = document.activeElement;
+            const isTyping = activeEl && (
+              activeEl.tagName === "INPUT" ||
+              activeEl.tagName === "TEXTAREA" ||
+              activeEl.tagName === "SELECT" ||
+              activeEl.isContentEditable
+            ) && activeEl.type !== "range";
+            if (!isTyping) {
+              e.preventDefault();
+              if (typeof window.toggleScreensaverMode === "function") {
+                window.toggleScreensaverMode(e);
+              }
+              return;
+            }
+          }
+
+          // Specification 4: Any keydown immediately deactivates Screensaver Mode
+          if (window.isScreensaverActive) {
+            window.exitScreensaverMode();
+            wakeHud();
+            return;
+          }
+
+          if (typeof window.resetScreensaverTimer === "function") {
+            window.resetScreensaverTimer();
+          }
+          wakeHud();
 
           const activeEl = document.activeElement;
           if (activeEl && (
@@ -9509,7 +9768,6 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
             if (activeEl.type !== "range") return;
           }
 
-          const key = (e.key || "").toLowerCase();
           switch (key) {
             case "n":
               e.preventDefault();
@@ -9542,7 +9800,6 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
               if (typeof window.toggleMapKey === "function") window.toggleMapKey(e);
               break;
             case "i":
-            case "s":
               e.preventDefault();
               if (typeof window.togglePlanetOverview === "function") window.togglePlanetOverview(e);
               break;
