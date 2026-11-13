@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <style>
+    @keyframes orbit-cw {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .ring-outer-planet {
+      transform-origin: 32px 32px;
+      animation: orbit-cw 8s linear infinite;
+    }
+    .ring-inner-planet {
+      transform-origin: 32px 32px;
+      animation: orbit-cw 4.5s linear infinite;
+    }
+  </style>
+  <circle cx="32" cy="32" r="26" stroke="#22D3EE" stroke-width="3.6" fill="none" />
+  <circle cx="32" cy="32" r="15" stroke="#1E7D96" stroke-width="3.4" fill="none" />
+  <circle cx="32" cy="32" r="6.8" fill="#FACC15" />
+  <g class="ring-inner-planet">
+    <circle cx="18.2" cy="37.8" r="4.2" fill="#FB8555" />
+  </g>
+  <g class="ring-outer-planet">
+    <circle cx="50.4" cy="13.6" r="4.6" fill="#F1F5F9" />
+  </g>
+</svg>

@@ -564,6 +564,179 @@
       z-index: 10;
     }
 
+  
+    #spatial-satellite-layer {
+      position: fixed;
+      transition: opacity 380ms cubic-bezier(0.22, 1, 0.36, 1);
+      inset: 0;
+      pointer-events: none;
+      z-index: 44;
+      overflow: hidden;
+    }
+    @keyframes novaSoftCardIn {
+      0% { opacity: 0; transform: translateY(8px) scale(0.97); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .spatial-satellite-node {
+      position: fixed;
+      width: 232px;
+      pointer-events: auto;
+      background: rgba(3, 8, 20, 0.84);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-left: 2px solid rgba(56, 189, 248, 0.75);
+      border-radius: 8px;
+      padding: 9px 11px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.65);
+      animation: novaSoftCardIn 520ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      transition: left 180ms ease-out, top 180ms ease-out, opacity 420ms ease, border-color 260ms ease, background-color 260ms ease;
+    }
+    .spatial-satellite-node:hover,
+    .spatial-satellite-node.sat-beat-active {
+      background: rgba(6, 18, 38, 0.95);
+      border-color: rgba(103, 232, 249, 0.6);
+      border-left-color: #22d3ee;
+      box-shadow: 0 0 24px rgba(34, 211, 238, 0.24), 0 14px 32px rgba(0, 0, 0, 0.82);
+    }
+    .spatial-surface-pin {
+      position: fixed;
+      pointer-events: auto;
+      transform: translate(-50%, -50%);
+      z-index: 46;
+      transition: opacity 180ms ease;
+    }
+    .spatial-reticle-ring {
+      width: 26px;
+      height: 26px;
+      border: 1.5px solid #22d3ee;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 14px rgba(34, 211, 238, 0.75), inset 0 0 8px rgba(34, 211, 238, 0.4);
+      animation: novaReticlePulse 2s infinite ease-in-out;
+      background: rgba(3, 10, 24, 0.55);
+      cursor: pointer;
+    }
+    .spatial-reticle-ring::after {
+      content: "+";
+      font-family: monospace;
+      font-size: 12px;
+      color: #e0f2fe;
+      line-height: 1;
+    }
+    @keyframes novaReticlePulse {
+      0%, 100% { transform: scale(1); opacity: 0.95; }
+      50% { transform: scale(1.18); opacity: 1; }
+    }
+    .spatial-surface-badge {
+      position: absolute;
+      left: 50%;
+      bottom: 34px;
+      top: auto;
+      transform: translateX(-50%);
+      width: 248px;
+      background: rgba(4, 12, 28, 0.94);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(34, 211, 238, 0.52);
+      border-left: 2.5px solid #22d3ee;
+      border-radius: 7px;
+      padding: 7px 9px;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.82);
+      pointer-events: auto;
+    }
+    .spatial-feature-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 3px 7px;
+      border-radius: 9999px;
+      border: 1px solid rgba(103, 232, 249, 0.4);
+      background: rgba(34, 211, 238, 0.1);
+      color: #a5f3fc;
+      cursor: pointer;
+      transition: all 180ms ease;
+    }
+    .spatial-feature-chip:hover,
+    .spatial-feature-chip.active-site {
+      background: rgba(34, 211, 238, 0.28);
+      border-color: #22d3ee;
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+    }
+    .spatial-inline-site-link {
+      color: #67e8f9;
+      border-bottom: 1px dashed rgba(103, 232, 249, 0.75);
+      cursor: pointer;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+    .spatial-inline-site-link:hover {
+      color: #ffffff;
+      background: rgba(34, 211, 238, 0.22);
+    }
+
+  
+    .spatial-surface-pin .spatial-surface-badge {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(6px) scale(0.95);
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+    .spatial-surface-pin:hover .spatial-surface-badge,
+    .spatial-surface-pin.pin-expanded .spatial-surface-badge {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+  
+    #spatial-satellite-layer {
+      transition: opacity 380ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+    }
+    .spatial-satellite-node {
+      transition: left 260ms cubic-bezier(0.22, 1, 0.36, 1),
+                  top 260ms cubic-bezier(0.22, 1, 0.36, 1),
+                  opacity 340ms cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+                  border-color 260ms ease !important;
+    }
+    .spatial-satellite-node.node-fading-out {
+      opacity: 0 !important;
+      transform: translateY(6px) scale(0.97) !important;
+      pointer-events: none !important;
+    }
+
+  
+    /* --- Jitter-Free GPU-Composited Satellite HUD --- */
+    #spatial-satellite-layer {
+      transition: opacity 550ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+      will-change: opacity;
+    }
+    .spatial-satellite-node {
+      left: 0px !important;
+      top: 0px !important;
+      will-change: transform, opacity;
+      animation: none !important;
+      transition: opacity 520ms cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 320ms ease,
+                  background-color 320ms ease,
+                  box-shadow 320ms ease !important;
+    }
+    .spatial-sat-inner {
+      transition: opacity 380ms cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .spatial-sat-inner.sat-content-hidden {
+      opacity: 0;
+      transform: translateY(5px) scale(0.985);
+    }
+
   </style>
   
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg?v=5">
@@ -617,6 +790,11 @@
   </div>
 
   <!-- 2D Screen-Aligned Spatial HUD Callout Layer (Tethered to Selected 3D Object) -->
+  <div id="spatial-satellite-layer" class="hidden">
+    <svg id="spatial-satellite-svg" class="fixed inset-0 w-full h-full pointer-events-none" style="z-index: 43;"></svg>
+    <div id="spatial-satellite-nodes"></div>
+    <div id="spatial-surface-pin-container"></div>
+  </div>
   <div id="spatial-telemetry-layer" class="opacity-0" aria-live="polite">
     <svg id="spatial-leader-svg" class="w-full h-full overflow-visible pointer-events-none">
       <polyline id="spatial-leader-line" points="0,0 0,0 0,0" fill="none" stroke="rgba(248, 250, 252, 0.68)" stroke-width="1.15" stroke-Linecap="round" stroke-Linejoin="round" />
@@ -683,6 +861,7 @@
             <span class="text-cyan-300">▸</span>
           </button>
         </div>
+        <div id="spatial-surface-sites-bar" class="flex flex-wrap items-center gap-1.5 mt-2 mb-1.5"></div>
         <p id="spatial-target-summary" onclick="window.cycleSpatialFactDeck(event)" class="text-[11px] leading-[1.48] text-slate-100/95 font-normal cursor-pointer transition-opacity duration-150"></p>
       </div>
 
@@ -1462,7 +1641,7 @@
           offset.setFromSpherical(spherical);
           camera.position.copy(controls.target).add(offset);
           camera.lookAt(controls.target);
-          controls.update();
+          controls.update(); window._novaCamRef = camera; window._novaCtrlRef = controls; if (typeof scene !== 'undefined') window._novaSceneRef = scene;
           renderAttitudeSphere();
         }
       });
@@ -2069,33 +2248,187 @@
 
     function buildAsteroidBelt() {
       asteroidBelt = new THREE.Group();
-      const asteroidCount = 1400;
-      const geometry = new THREE.BufferGeometry();
-      const positions = new Float32Array(asteroidCount * 3);
+      const dpr = Math.min(2.2, window.devicePixelRatio || 1.0);
 
-      for (let i = 0; i < asteroidCount; i++) {
-        const i3 = i * 3;
-        const radius = 18.2 + Math.random() * 3.0;
-        const angle = Math.random() * Math.PI * 2;
+      // Creates a crisp, visible, neutral-toned floating asteroid/Kuiper belt with organic spacing
+      function addVolumetricBeltLayer(parentGroup, grainCount, boulderCount, innerR, outerR, thickY, shadowHex, litHex, highlightHex, baseOpacity, boulderScale) {
+        const geom = new THREE.BufferGeometry();
+        const positions = new Float32Array(grainCount * 3);
+        const aVisual = new Float32Array(grainCount * 4); // pointSize, brightness, shapeSeed, featherAlpha
 
-        positions[i3] = Math.cos(angle) * radius;
-        positions[i3 + 1] = (Math.random() - 0.5) * 0.45;
-        positions[i3 + 2] = Math.sin(angle) * radius;
+        const spanR = outerR - innerR;
+
+        for (let i = 0; i < grainCount; i++) {
+          const i3 = i * 3;
+          const i4 = i * 4;
+
+          // Smooth bell-curve radial spread with subtle Kirkwood gaps and feathered stragglers
+          let u = (Math.random() + Math.random()) * 0.5;
+          if (Math.abs(u - 0.36) < 0.03 || Math.abs(u - 0.68) < 0.03) {
+            u += (Math.random() - 0.5) * 0.16;
+          }
+
+          const radius = innerR + u * spanR + (Math.random() - 0.5) * (spanR * 0.14);
+          const angle = Math.random() * Math.PI * 2.0;
+
+          // 3D vertical floating thickness (core ecliptic layer + inclined floating halo)
+          const isHalo = Math.random() < 0.25;
+          const vSpread = isHalo ? thickY * 2.1 : thickY;
+          const y = (Math.random() - 0.5) * 2.0 * vSpread * (0.35 + 0.65 * Math.random());
+
+          positions[i3]     = Math.cos(angle) * radius;
+          positions[i3 + 1] = y;
+          positions[i3 + 2] = Math.sin(angle) * radius;
+
+          // Visible multi-scale rock sizes: fine pebbles (2.2px) up to distinct craggy fragments (8.5px)
+          const sizeRoll = Math.pow(Math.random(), 2.8);
+          aVisual[i4]     = (2.1 + sizeRoll * 6.4) * dpr;
+          aVisual[i4 + 1] = 0.78 + Math.random() * 0.45; // High albedo so neutral grey pops against black space!
+          aVisual[i4 + 2] = Math.random() * 6.283185;
+
+          // Keep center 80% strong (0.65 - 1.0) and gently feather only the outer 20% fringes
+          const edgeDist = Math.min(u, 1.0 - u) * 2.0;
+          const feather = Math.min(1.0, 0.38 + edgeDist * 0.95);
+          const perRockAlpha = 0.55 + Math.random() * 0.45;
+          aVisual[i4 + 3] = feather * perRockAlpha * (isHalo ? 0.72 : 1.0);
+        }
+
+        geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+        geom.setAttribute("aVisual", new THREE.BufferAttribute(aVisual, 4));
+
+        const grainMat = new THREE.ShaderMaterial({
+          transparent: true,
+          depthWrite: false,
+          depthTest: true,
+          uniforms: {
+            uShadowColor: { value: new THREE.Color(shadowHex) },
+            uLitColor: { value: new THREE.Color(litHex) },
+            uHighlightColor: { value: new THREE.Color(highlightHex) },
+            uBaseOpacity: { value: baseOpacity }
+          },
+          vertexShader: [
+            "attribute vec4 aVisual;",
+            "varying vec3 vWorldPos;",
+            "varying float vBrightness;",
+            "varying float vSeed;",
+            "varying float vFeather;",
+            "void main() {",
+            "  vec4 wp = modelMatrix * vec4(position, 1.0);",
+            "  vWorldPos = wp.xyz;",
+            "  vBrightness = aVisual.y;",
+            "  vSeed = aVisual.z;",
+            "  vFeather = aVisual.w;",
+            "  vec4 mvPos = viewMatrix * wp;",
+            "  gl_Position = projectionMatrix * mvPos;",
+            "  float dist = max(2.0, -mvPos.z);",
+            "  gl_PointSize = clamp(aVisual.x * (46.0 / pow(dist, 0.78)), 1.65, 9.5);",
+            "}"
+          ].join("\n"),
+          fragmentShader: [
+            "uniform vec3 uShadowColor;",
+            "uniform vec3 uLitColor;",
+            "uniform vec3 uHighlightColor;",
+            "uniform float uBaseOpacity;",
+            "varying vec3 vWorldPos;",
+            "varying float vBrightness;",
+            "varying float vSeed;",
+            "varying float vFeather;",
+            "void main() {",
+            "  vec2 uv = gl_PointCoord * 2.0 - 1.0;",
+            "  float c = cos(vSeed);",
+            "  float s = sin(vSeed);",
+            "  vec2 ruv = vec2(c * uv.x - s * uv.y, s * uv.x + c * uv.y);",
+            "  float ang = atan(ruv.y, ruv.x);",
+            "  // Irregular faceted asteroid silhouette",
+            "  float rockBoundary = 0.80 + 0.14 * cos(ang * 3.0 + vSeed) + 0.08 * sin(ang * 5.0 - vSeed * 2.0);",
+            "  float rad = length(ruv) / max(0.38, rockBoundary);",
+            "  if (rad > 1.0) discard;",
+            "  vec3 sunDir = normalize(-vWorldPos);",
+            "  vec2 sunScreen = normalize(vec2(sunDir.x + sunDir.z * 0.4, sunDir.y + 0.25));",
+            "  float diff = clamp(0.48 + 0.68 * dot(-ruv, sunScreen), 0.22, 1.25);",
+            "  float specRim = pow(clamp(1.0 - rad * 0.6, 0.0, 1.0), 1.8) * max(0.0, dot(-ruv, sunScreen));",
+            "  float camDist = length(cameraPosition - vWorldPos);",
+            "  float sunCamDist = length(cameraPosition);",
+            "  // Keep far-side rocks legible (min 0.48) while foreground rocks pop at 1.15",
+            "  float depthFade = clamp(1.25 - (camDist / max(12.0, sunCamDist * 1.75)) * 0.45, 0.48, 1.15);",
+            "  float macroFade = 1.0 - smoothstep(280.0, 560.0, camDist);",
+            "  vec3 col = mix(uShadowColor, uLitColor, clamp(diff * 0.85, 0.0, 1.0)) + uHighlightColor * specRim * 0.55;",
+            "  col *= vBrightness * depthFade;",
+            "  float edgeSoft = smoothstep(1.0, 0.52, rad);",
+            "  float alpha = uBaseOpacity * vFeather * depthFade * edgeSoft * macroFade;",
+            "  if (alpha <= 0.004) discard;",
+            "  gl_FragColor = vec4(col, alpha);",
+            "}"
+          ].join("\n")
+        });
+
+        const pts = new THREE.Points(geom, grainMat);
+        pts.raycast = () => {};
+        parentGroup.add(pts);
+
+        // 2. Floating 3D Faceted Chondrite Boulders (InstancedMesh with neutral mineral sheen)
+        const rockGeo = new THREE.DodecahedronGeometry(1.0, 0);
+        const rockMat = new THREE.MeshStandardMaterial({
+          color: highlightHex,
+          emissive: litHex,
+          emissiveIntensity: 0.42,
+          roughness: 0.78,
+          metalness: 0.15,
+          flatShading: true,
+          transparent: true,
+          opacity: 0.86
+        });
+        const instRocks = new THREE.InstancedMesh(rockGeo, rockMat, boulderCount);
+        instRocks.raycast = () => {};
+        const dummy = new THREE.Object3D();
+        for (let b = 0; b < boulderCount; b++) {
+          const u = (Math.random() + Math.random()) * 0.5;
+          const r = innerR + u * spanR + (Math.random() - 0.5) * (spanR * 0.14);
+          const a = Math.random() * Math.PI * 2.0;
+          const y = (Math.random() - 0.5) * 2.1 * thickY;
+          dummy.position.set(Math.cos(a) * r, y, Math.sin(a) * r);
+          dummy.rotation.set(Math.random() * 6.28, Math.random() * 6.28, Math.random() * 6.28);
+          const s = boulderScale * (0.45 + Math.pow(Math.random(), 2.2) * 1.25);
+          dummy.scale.set(
+            s * (0.65 + Math.random() * 0.70),
+            s * (0.48 + Math.random() * 0.60),
+            s * (0.65 + Math.random() * 0.70)
+          );
+          dummy.updateMatrix();
+          instRocks.setMatrixAt(b, dummy.matrix);
+        }
+        instRocks.instanceMatrix.needsUpdate = true;
+        parentGroup.add(instRocks);
       }
 
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      const material = new THREE.PointsMaterial({
-        color: 0x94a3b8,
-        size: 0.14,
-        map: createRoundParticleTexture(),
-        transparent: true,
-        opacity: 0.7,
-        depthWrite: false
-      });
+      // Layer A: MAIN ASTEROID BELT (Neutral Warm Silver-Stone / Pale Chondrite Ash — Crisp & Floating)
+      addVolumetricBeltLayer(
+        asteroidBelt,
+        4600,          // 4,600 distinct neutral stone/silver grains with generous dark space between them
+        220,           // 220 3D faceted floating boulders
+        16.8, 22.2,    // Feathered span between Mars & Jupiter
+        0.78,          // Vertical floating depth
+        0x475569,      // Neutral slate shadow side
+        0xcbd5e1,      // Crisp pale silver-stone body
+        0xf8fafc,      // Pure starlight-white sunlit facet highlight
+        0.84,          // Strong per-grain visibility (no solid dust torus)
+        0.058          // 3D boulder scale
+      );
 
-      const pts = new THREE.Points(geometry, material);
-      pts.raycast = () => {};
-      asteroidBelt.add(pts);
+      // Layer B: OUTER KUIPER BELT (Neutral Moonlight-Slate / Cool Silver — Wide Scattered Disk)
+      addVolumetricBeltLayer(
+        asteroidBelt,
+        4200,          // 4,200 scattered outer planetesimal grains
+        160,           // 160 3D outer planetesimal boulders
+        46.5, 62.0,    // Broad scattered zone beyond Neptune
+        1.65,          // High vertical inclination scatter
+        0x334155,      // Deep cool slate shadow
+        0x94a3b8,      // Neutral moonlight-grey body
+        0xe2e8f0,      // Crisp silver-white rim
+        0.78,          // Clearly legible at outer Solar System zoom levels
+        0.088          // 3D outer boulder scale
+      );
+
       scene.add(asteroidBelt);
     }
 
@@ -4293,7 +4626,8 @@
         const isCalloutActiveOnMesh = Boolean(
           window._isSpatialCalloutVisible && activeTargetMesh && entry.mesh === activeTargetMesh
         );
-        const effectiveAlpha = isCalloutActiveOnMesh
+        const isLabelOccludedByDisc = Boolean(window._isScreenPointOccluded && window._isScreenPointOccluded(entry.sx, entry.sy, finalX, finalY, entry.id, entry.mesh));
+        const effectiveAlpha = (isCalloutActiveOnMesh || isLabelOccludedByDisc)
           ? 0.0
           : (_hasPlanetFocus ? (isEntryFocused ? 1.0 : entry.alpha * 0.52) : entry.alpha);
         entry.el.style.transform = `translate3d(${finalX.toFixed(1)}px, ${finalY.toFixed(1)}px, 0) translateY(-50%)`;
@@ -5013,7 +5347,1396 @@
       };
     }
 
+    
+    // --- SATELLITE COURSE HUDs & 3D SURFACE PINPOINTING ADDON (STABILIZED & SEAMLESS) ---
+    window._activeSurfaceSite = null;
+    window._satelliteNodesData = [];
+    window._currentPinnedSite = null;
+    window._surfaceZoomState = {
+      active: false,
+      currentRatio: 1.0,
+      targetRatio: 1.0,
+      savedMinDistance: null,
+      lockedCamOffset: null
+    };
+    window._tourBeatState = {
+      stepSignature: "",
+      stepStartTime: 0,
+      lockedSideSign: -1,
+      metricCueStartSec: -1,
+      metricCueEndSec: -1,
+      siteCueStartSec: -1,
+      matchedMetric: null,
+      matchedFeature: null,
+      lastCardX: null,
+      lastCardY: null,
+      lastDotX: null,
+      lastDotY: null,
+      activePanelKey: ""
+    };
+
+    // 1. Freeze orbital revolution & camera auto-orbit drift during Guided Tour stops
+    (function installStabilizedTourControls() {
+      if (window._stabilizedTourInstalled) return;
+      window._stabilizedTourInstalled = true;
+
+      const origPerfNow = performance.now.bind(performance);
+      const origDateNow = Date.now.bind(Date);
+      let virtualPerf = origPerfNow();
+      let lastRealPerf = origPerfNow();
+      let virtualDate = origDateNow();
+      let lastRealDate = origDateNow();
+
+      window._realNow = function() {
+        return origPerfNow();
+      };
+
+      // Freeze both performance.now() and Date.now() to 0% orbital drift when Guided Tour is settled on an object!
+      // IMPORTANT: Keep 100% speed during the first 2.2s of a tour step so the camera fly-to tween finishes normally!
+      function getSimTimeScale() {
+        if (!window._isTourActiveCached) return 1.0;
+        if (window._isZoomingSurfaceAnim) return 1.0;
+        const elapsedSinceStep = (origPerfNow() - (window._tourBeatState.stepStartTime || 0)) / 1000.0;
+        if (elapsedSinceStep < 2.3) return 1.0; // Allow camera fly-to animation to run at full speed
+        return 0.0; // Freeze orbital motion once camera arrives at the tour stop so planet & camera stay 100% still!
+      }
+
+      Date.now = function() {
+        const real = origDateNow();
+        const dt = real - lastRealDate;
+        lastRealDate = real;
+        virtualDate += dt * getSimTimeScale();
+        return Math.round(virtualDate);
+      };
+
+      // Prevent clicking on the 3D canvas object during the Guided Tour from triggering a new camera fly-to / orbit spin!
+      window.addEventListener("pointerdown", function(e) {
+        if (!window._isTourActiveCached) return;
+        const t = e.target;
+        if (t && t.tagName && t.tagName.toLowerCase() === "canvas") {
+          window._canvasDownPos = { x: e.clientX, y: e.clientY };
+        }
+      }, true);
+
+      window.addEventListener("click", function(e) {
+        if (!window._isTourActiveCached) return;
+        const t = e.target;
+        if (t && t.tagName && t.tagName.toLowerCase() === "canvas") {
+          const down = window._canvasDownPos || { x: e.clientX, y: e.clientY };
+          const moveDist = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+          // If it was a click (not a drag), block the raycaster click handler so the camera doesn't zoom/spin around the object!
+          if (moveDist < 8) {
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+          }
+        }
+      }, true);
+
+      window.addEventListener("mouseup", function(e) {
+        if (!window._isTourActiveCached) return;
+        const t = e.target;
+        if (t && t.tagName && t.tagName.toLowerCase() === "canvas") {
+          const down = window._canvasDownPos || { x: e.clientX, y: e.clientY };
+          const moveDist = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+          if (moveDist < 6) {
+            // Prevent mouseup raycast re-focus during tour while keeping OrbitControls state clean
+            e.stopPropagation();
+          }
+        }
+      }, true);
+    })();
+
+    function nowMs() {
+      return window._realNow ? window._realNow() : performance.now();
+    }
+
+    function isGuidedTourCurrentlyActive() {
+      const card = document.getElementById("spatial-callout-card");
+      if (!card) {
+        window._isTourActiveCached = false;
+        return false;
+      }
+      const cardRect = card.getBoundingClientRect();
+      if (cardRect.width < 50 || cardRect.height < 40) {
+        window._isTourActiveCached = false;
+        return false;
+      }
+
+      const allEls = card.querySelectorAll("div, span");
+      for (let i = 0; i < allEls.length; i++) {
+        const txt = (allEls[i].textContent || "").trim();
+        if (/^\d+\s*\/\s*\d{2}$/.test(txt)) {
+          const r = allEls[i].getBoundingClientRect();
+          if (r.width > 5 && r.height > 5) {
+            window._isTourActiveCached = true;
+            return true;
+          }
+        }
+      }
+      window._isTourActiveCached = false;
+      return false;
+    }
+
+    function isOverviewHudEnabled() {
+      if (window.inspectorVisible === false || window.hudVisible === false || window._overviewHudHidden === true) {
+        return false;
+      }
+      const mainLayer = document.getElementById("spatial-telemetry-layer");
+      const mainCard = document.getElementById("spatial-callout-card");
+      if (!mainLayer || !mainCard) return false;
+      if (mainLayer.classList.contains("hidden") || mainCard.classList.contains("hidden")) return false;
+
+      const lStyle = window.getComputedStyle(mainLayer);
+      const cStyle = window.getComputedStyle(mainCard);
+      if (lStyle.display === "none" || cStyle.display === "none" || lStyle.visibility === "hidden" || cStyle.visibility === "hidden") {
+        return false;
+      }
+      return true;
+    }
+
+    // ============================================================================
+    // NOVA 3D SCENE DEPTH ENGINE + CORONA-AWARE PRE-RENDER OCCLUSION
+    // ============================================================================
+    window._novaDepthEngineInitialized = false;
+    window._novaAsteroidBelts = [];
+    window._novaOrbitShaderLines = [];
+    window._hiddenForThisFrame = [];
+    window._activeScreenOccluders = [];
+
+    function hideObjectAndAssociatedVisuals(obj) {
+      if (!obj || !obj.visible) return;
+      window._hiddenForThisFrame.push(obj);
+      obj.visible = false;
+    }
+
+    function removeOldBeltMeshes(sc) {
+      const toRemove = [];
+      sc.traverse(function(o) {
+        if (o.name === "nova-instanced-belt" || o.name === "nova-belt-dust-glow") {
+          toRemove.push(o);
+        }
+      });
+      for (let i = 0; i < toRemove.length; i++) {
+        if (toRemove[i].parent) toRemove[i].parent.remove(toRemove[i]);
+      }
+    }
+
+    function getPlanetAtmosphericColor(id) {
+      const k = String(id || "").toLowerCase();
+      if (k.indexOf("earth") !== -1) return new THREE.Color(0x38bdf8);
+      if (k.indexOf("venus") !== -1) return new THREE.Color(0xfbbf24);
+      if (k.indexOf("mars") !== -1) return new THREE.Color(0xf97316);
+      if (k.indexOf("jupiter") !== -1) return new THREE.Color(0xfde68a);
+      if (k.indexOf("saturn") !== -1) return new THREE.Color(0xfef08a);
+      if (k.indexOf("uranus") !== -1) return new THREE.Color(0x67e8f9);
+      if (k.indexOf("neptune") !== -1) return new THREE.Color(0x3b82f6);
+      return new THREE.Color(0xcbd5e1);
+    }
+
+    function buildSunlitAsteroidBelt(sc, count, innerRad, outerRad, thicknessY, coreColorHex, highlightColorHex, opacityScale) {
+      const positions = new Float32Array(count * 3);
+      const aOrbitParams = new Float32Array(count * 4);
+      const aVisualParams = new Float32Array(count * 3);
+
+      for (let i = 0; i < count; i++) {
+        const u = (Math.random() + Math.random() + Math.random()) / 3.0;
+        const r = innerRad + u * (outerRad - innerRad);
+        const theta = Math.random() * Math.PI * 2.0;
+        const speed = (0.24 / Math.pow(Math.max(1.0, r * 0.1), 1.35)) * (0.85 + Math.random() * 0.3);
+        const yOff = (Math.random() - 0.5) * 2.0 * thicknessY * (0.35 + 0.65 * Math.random());
+
+        positions[i * 3 + 0] = Math.cos(theta) * r;
+        positions[i * 3 + 1] = yOff;
+        positions[i * 3 + 2] = Math.sin(theta) * r;
+
+        aOrbitParams[i * 4 + 0] = r;
+        aOrbitParams[i * 4 + 1] = theta;
+        aOrbitParams[i * 4 + 2] = speed;
+        aOrbitParams[i * 4 + 3] = yOff;
+
+        const sizeRoll = Math.pow(Math.random(), 4.0);
+        aVisualParams[i * 3 + 0] = 1.15 + sizeRoll * 3.6;
+        aVisualParams[i * 3 + 1] = 0.55 + Math.random() * 0.65;
+        aVisualParams[i * 3 + 2] = Math.random() * 6.283;
+      }
+
+      const geom = new THREE.BufferGeometry();
+      geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      geom.setAttribute("aOrbitParams", new THREE.BufferAttribute(aOrbitParams, 4));
+      geom.setAttribute("aVisualParams", new THREE.BufferAttribute(aVisualParams, 3));
+
+      const vShader = [
+        "attribute vec4 aOrbitParams;",
+        "attribute vec3 aVisualParams;",
+        "uniform float uTime;",
+        "varying vec3 vWorldPos;",
+        "varying float vAlbedo;",
+        "void main() {",
+        "  float r = aOrbitParams.x;",
+        "  float ang = aOrbitParams.y + uTime * aOrbitParams.z;",
+        "  float yOff = aOrbitParams.w;",
+        "  vec3 localPos = vec3(",
+        "    cos(ang) * r,",
+        "    yOff + sin(ang * 2.0 + aVisualParams.z) * (yOff * 0.2),",
+        "    sin(ang) * r",
+        "  );",
+        "  vec4 wp = modelMatrix * vec4(localPos, 1.0);",
+        "  vWorldPos = wp.xyz;",
+        "  vAlbedo = aVisualParams.y;",
+        "  vec4 mvPos = viewMatrix * wp;",
+        "  gl_Position = projectionMatrix * mvPos;",
+        "  float dist = max(1.0, -mvPos.z);",
+        "  gl_PointSize = clamp(aVisualParams.x * (42.0 / dist), 1.0, 5.5);",
+        "}"
+      ].join("\n");
+
+      const fShader = [
+        "uniform vec3 uCoreColor;",
+        "uniform vec3 uHighlightColor;",
+        "uniform float uOpacity;",
+        "varying vec3 vWorldPos;",
+        "varying float vAlbedo;",
+        "void main() {",
+        "  vec2 uv = gl_PointCoord * 2.0 - 1.0;",
+        "  float r2 = dot(uv, uv);",
+        "  if (r2 > 1.0) discard;",
+        "  vec3 localNorm = normalize(vec3(uv.x, -uv.y, sqrt(max(0.0, 1.0 - r2))));",
+        "  vec3 sunDir = normalize(-vWorldPos);",
+        "  vec3 viewDir = normalize(cameraPosition - vWorldPos);",
+        "  float phaseCos = dot(sunDir, viewDir) * 0.5 + 0.5;",
+        "  float rockLight = clamp(0.35 + 0.65 * localNorm.z + 0.35 * localNorm.x, 0.2, 1.35);",
+        "  float camDist = length(cameraPosition - vWorldPos);",
+        "  float sunCamDist = length(cameraPosition);",
+        "  float depthAtten = clamp(1.22 - (camDist / max(8.0, sunCamDist * 1.45)) * 0.52, 0.32, 1.18);",
+        "  float macroFade = (1.0 - smoothstep(130.0, 250.0, camDist)) * smoothstep(2.5, 9.0, camDist);",
+        "  vec3 col = mix(uCoreColor, uHighlightColor, clamp(rockLight * 0.65 + phaseCos * 0.25, 0.0, 1.0));",
+        "  col *= vAlbedo * depthAtten * (0.75 + 0.45 * rockLight);",
+        "  float edgeSoft = smoothstep(1.0, 0.35, r2);",
+        "  float alpha = uOpacity * edgeSoft * macroFade * depthAtten;",
+        "  if (alpha <= 0.01) discard;",
+        "  gl_FragColor = vec4(col, alpha);",
+        "}"
+      ].join("\n");
+
+      const mat = new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        depthTest: true,
+        uniforms: {
+          uTime: { value: 0.0 },
+          uCoreColor: { value: new THREE.Color(coreColorHex) },
+          uHighlightColor: { value: new THREE.Color(highlightColorHex) },
+          uOpacity: { value: opacityScale }
+        },
+        vertexShader: vShader,
+        fragmentShader: fShader
+      });
+
+      const pointsObj = new THREE.Points(geom, mat);
+      pointsObj.frustumCulled = false;
+      pointsObj.name = "nova-instanced-belt";
+      sc.add(pointsObj);
+      window._novaAsteroidBelts.push(pointsObj);
+
+      const midRad = (innerRad + outerRad) * 0.5;
+      const tubeRad = (outerRad - innerRad) * 0.48;
+      const dustGeom = new THREE.TorusGeometry(midRad, tubeRad, 14, 96);
+      dustGeom.rotateX(Math.PI * 0.5);
+      dustGeom.scale(1.0, (thicknessY * 1.2) / Math.max(0.1, tubeRad), 1.0);
+      const dustMat = new THREE.ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        depthTest: true,
+        blending: THREE.AdditiveBlending,
+        uniforms: {
+          uDustColor: { value: new THREE.Color(highlightColorHex) },
+          uBaseAlpha: { value: opacityScale * 0.045 }
+        },
+        vertexShader: [
+          "varying vec3 vWPos;",
+          "varying vec3 vWNorm;",
+          "void main() {",
+          "  vec4 wp = modelMatrix * vec4(position, 1.0);",
+          "  vWPos = wp.xyz;",
+          "  vWNorm = normalize(mat3(modelMatrix) * normal);",
+          "  gl_Position = projectionMatrix * viewMatrix * wp;",
+          "}"
+        ].join("\n"),
+        fragmentShader: [
+          "uniform vec3 uDustColor;",
+          "uniform float uBaseAlpha;",
+          "varying vec3 vWPos;",
+          "varying vec3 vWNorm;",
+          "void main() {",
+          "  vec3 viewDir = normalize(cameraPosition - vWPos);",
+          "  float softEdge = pow(abs(dot(vWNorm, viewDir)), 1.75);",
+          "  float camDist = length(cameraPosition - vWPos);",
+          "  float fade = (1.0 - smoothstep(125.0, 240.0, camDist)) * smoothstep(5.0, 16.0, camDist);",
+          "  gl_FragColor = vec4(uDustColor, uBaseAlpha * softEdge * fade);",
+          "}"
+        ].join("\n")
+      });
+      const dustMesh = new THREE.Mesh(dustGeom, dustMat);
+      dustMesh.name = "nova-belt-dust-glow";
+      sc.add(dustMesh);
+      window._novaAsteroidBelts.push(dustMesh);
+    }
+
+    function upgradeOrbitLinesAndTerminators(sc, celObjs) {
+      const planetByRadius = [];
+      const tempP = new THREE.Vector3();
+
+      for (let i = 0; i < celObjs.length; i++) {
+        const m = celObjs[i];
+        if (!m || !m.userData) continue;
+        const id = String(m.userData.id || m.userData.name || m.name || "").toLowerCase();
+        m.getWorldPosition(tempP);
+        const r = Math.hypot(tempP.x, tempP.z);
+        if (r > 1.2 && r < 140.0 && id !== "sun" && id !== "moon") {
+          planetByRadius.push({ mesh: m, id: id, radius: r });
+        }
+
+        if (id !== "sun" && m.isMesh && m.material && m.userData._nasaTextured && !m.userData._terminatorEnhancedV2) {
+          m.userData._terminatorEnhancedV2 = true;
+          const atmoCol = getPlanetAtmosphericColor(id);
+          const mats = Array.isArray(m.material) ? m.material : [m.material];
+          mats.forEach(function(mat) {
+            if (!mat || mat.isShaderMaterial) return;
+            if (mat.emissiveIntensity !== undefined) {
+              mat.emissiveIntensity = 0.04;
+            }
+            mat.onBeforeCompile = function(shader) {
+              shader.uniforms.uSunPosition = { value: new THREE.Vector3(0, 0, 0) };
+              shader.uniforms.uAtmoRimColor = { value: atmoCol };
+              shader.vertexShader = "varying vec3 vNovaWorldPos;\nvarying vec3 vNovaWorldNormal;\n" + shader.vertexShader;
+              shader.vertexShader = shader.vertexShader.replace(
+                "#include <worldpos_vertex>",
+                "#include <worldpos_vertex>\n  vNovaWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;\n  vNovaWorldNormal = normalize(mat3(modelMatrix) * objectNormal);"
+              );
+              shader.fragmentShader = "uniform vec3 uSunPosition;\nuniform vec3 uAtmoRimColor;\nvarying vec3 vNovaWorldPos;\nvarying vec3 vNovaWorldNormal;\n" + shader.fragmentShader;
+              shader.fragmentShader = shader.fragmentShader.replace(
+                "#include <dithering_fragment>",
+                [
+                  "#include <dithering_fragment>",
+                  "vec3 nSunDir = normalize(uSunPosition - vNovaWorldPos);",
+                  "vec3 nViewDir = normalize(cameraPosition - vNovaWorldPos);",
+                  "vec3 nNorm = normalize(vNovaWorldNormal);",
+                  "float nSunDot = dot(nNorm, nSunDir);",
+                  "float dayFactor = smoothstep(-0.16, 0.26, nSunDot);",
+                  "gl_FragColor.rgb *= (0.10 + 0.98 * dayFactor);",
+                  "float fresnel = pow(1.0 - max(0.0, dot(nNorm, nViewDir)), 2.9);",
+                  "float sunlitCrescent = smoothstep(-0.10, 0.42, nSunDot);",
+                  "gl_FragColor.rgb += uAtmoRimColor * fresnel * sunlitCrescent * 0.72;"
+                ].join("\n")
+              );
+            };
+            mat.needsUpdate = true;
+          });
+        }
+      }
+
+      sc.traverse(function(obj) {
+        if ((obj.isLine || obj.isLineLoop) && obj.geometry && !obj.userData._orbitDepthUpgradedV2) {
+          if (obj.geometry.boundingSphere === null) obj.geometry.computeBoundingSphere();
+          const bRad = (obj.geometry.boundingSphere && obj.geometry.boundingSphere.radius) ? obj.geometry.boundingSphere.radius : 0;
+          if (bRad < 2.0 || bRad > 135.0) return;
+
+          obj.userData._orbitDepthUpgradedV2 = true;
+
+          let matchedPlanet = null;
+          let bestDiff = 999999;
+          for (let p = 0; p < planetByRadius.length; p++) {
+            const diff = Math.abs(planetByRadius[p].radius - bRad);
+            if (diff < bestDiff && diff < 3.5) {
+              bestDiff = diff;
+              matchedPlanet = planetByRadius[p];
+            }
+          }
+
+          const baseLineCol = matchedPlanet ? getPlanetAtmosphericColor(matchedPlanet.id) : new THREE.Color(0x94a3b8);
+          const orbitMat = new THREE.ShaderMaterial({
+            transparent: true,
+            depthWrite: false,
+            depthTest: true,
+            uniforms: {
+              uLineColor: { value: baseLineCol },
+              uPlanetPos: { value: new THREE.Vector3(bRad, 0, 0) },
+              uHasPlanet: { value: matchedPlanet ? 1.0 : 0.0 }
+            },
+            vertexShader: [
+              "varying vec3 vWorldPos;",
+              "void main() {",
+              "  vec4 wp = modelMatrix * vec4(position, 1.0);",
+              "  vWorldPos = wp.xyz;",
+              "  gl_Position = projectionMatrix * viewMatrix * wp;",
+              "}"
+            ].join("\n"),
+            fragmentShader: [
+              "uniform vec3 uLineColor;",
+              "uniform vec3 uPlanetPos;",
+              "uniform float uHasPlanet;",
+              "varying vec3 vWorldPos;",
+              "void main() {",
+              "  float distToCam = length(cameraPosition - vWorldPos);",
+              "  float sunToCam = length(cameraPosition);",
+              "  float depthRatio = clamp((sunToCam * 1.38 - distToCam) / max(8.0, sunToCam * 0.95), 0.0, 1.0);",
+              "  float baseAlpha = mix(0.08, 0.44, depthRatio);",
+              "  float trailBoost = 0.0;",
+              "  if (uHasPlanet > 0.5) {",
+              "    float angFragment = atan(vWorldPos.z, vWorldPos.x);",
+              "    float angPlanet = atan(uPlanetPos.z, uPlanetPos.x);",
+              "    float dAng = mod(angPlanet - angFragment + 6.2831853, 6.2831853);",
+              "    if (dAng < 0.72) {",
+              "      trailBoost = pow(1.0 - (dAng / 0.72), 1.75) * 0.62;",
+              "    }",
+              "  }",
+              "  float macroFade = 1.0 - smoothstep(145.0, 270.0, distToCam);",
+              "  vec3 finalCol = mix(vec3(0.75, 0.82, 0.92), uLineColor, 0.45 + trailBoost * 0.55);",
+              "  float finalAlpha = (baseAlpha + trailBoost) * macroFade;",
+              "  if (finalAlpha <= 0.01) discard;",
+              "  gl_FragColor = vec4(finalCol, finalAlpha);",
+              "}"
+            ].join("\n")
+          });
+
+          obj.material = orbitMat;
+          window._novaOrbitShaderLines.push({
+            line: obj,
+            planetMesh: matchedPlanet ? matchedPlanet.mesh : null
+          });
+        }
+      });
+    }
+
+    function initAndStepNovaDepthEngine(sc, cam, celObjs, isSunFocusedOrZoomed) {
+      if (!sc || !cam || !celObjs || celObjs.length < 8) return;
+      if (!window._texturesInitialized) return;
+
+      if (!window._novaDepthEngineInitialized) {
+        let rMars = 0, rJupiter = 0, rNeptune = 0;
+        const pVec = new THREE.Vector3();
+        for (let i = 0; i < celObjs.length; i++) {
+          const m = celObjs[i];
+          if (!m || !m.userData) continue;
+          const id = String(m.userData.id || m.userData.name || m.name || "").toLowerCase();
+          m.getWorldPosition(pVec);
+          const r = Math.hypot(pVec.x, pVec.z);
+          if (id === "mars") rMars = r;
+          else if (id === "jupiter") rJupiter = r;
+          else if (id === "neptune") rNeptune = r;
+        }
+
+        if (rMars > 1.0 && rJupiter > rMars) {
+          window._novaDepthEngineInitialized = true;
+          removeOldBeltMeshes(sc);
+
+          const beltInner = rMars + (rJupiter - rMars) * 0.22;
+          const beltOuter = rMars + (rJupiter - rMars) * 0.78;
+          const beltThick = (beltOuter - beltInner) * 0.14;
+          buildSunlitAsteroidBelt(sc, 6500, beltInner, beltOuter, beltThick, 0x8c6d46, 0xfcd34d, 0.85);
+
+          if (rNeptune > rJupiter) {
+            const kInner = rNeptune * 1.05;
+            const kOuter = rNeptune * 1.28;
+            const kThick = (kOuter - kInner) * 0.16;
+            buildSunlitAsteroidBelt(sc, 2800, kInner, kOuter, kThick, 0x475569, 0x7dd3fc, 0.50);
+          }
+
+          upgradeOrbitLinesAndTerminators(sc, celObjs);
+        }
+      }
+
+      const simTimeSec = Date.now() * 0.001;
+      for (let i = 0; i < window._novaAsteroidBelts.length; i++) {
+        const beltObj = window._novaAsteroidBelts[i];
+        if (!beltObj) continue;
+        if (isSunFocusedOrZoomed) {
+          window._hiddenForThisFrame.push(beltObj);
+          beltObj.visible = false;
+        } else if (beltObj.material && beltObj.material.uniforms && beltObj.material.uniforms.uTime) {
+          beltObj.material.uniforms.uTime.value = simTimeSec;
+        }
+      }
+
+      const pWorld = new THREE.Vector3();
+      for (let i = 0; i < window._novaOrbitShaderLines.length; i++) {
+        const item = window._novaOrbitShaderLines[i];
+        if (item.line && item.planetMesh && item.line.material && item.line.material.uniforms) {
+          item.planetMesh.getWorldPosition(pWorld);
+          item.line.material.uniforms.uPlanetPos.value.copy(pWorld);
+        }
+      }
+    }
+
+    window._novaBeforeRender = function(sc, cam, celObjs, labelEntries, currentActiveTarget) {
+      try {
+        window._novaSceneRef = sc;
+        window._novaCamRef = cam;
+        window._hiddenForThisFrame = [];
+        window._activeScreenOccluders = [];
+
+        if (!sc || !cam || !celObjs || !celObjs.length) return;
+
+        sc.updateMatrixWorld();
+
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const halfH = vh * 0.5;
+        const fovTan = Math.tan(THREE.MathUtils.degToRad(cam.fov) * 0.5);
+        const camPos = cam.position;
+
+        const bodyRecords = [];
+        const tempPos = new THREE.Vector3();
+        const tempScale = new THREE.Vector3();
+
+        for (let i = 0; i < celObjs.length; i++) {
+          const mesh = celObjs[i];
+          if (!mesh || !mesh.visible || !mesh.userData) continue;
+
+          const id = String(mesh.userData.id || mesh.userData.name || mesh.name || "").toLowerCase();
+          mesh.getWorldPosition(tempPos);
+          mesh.getWorldScale(tempScale);
+          const distToCam = camPos.distanceTo(tempPos);
+
+          const proj = tempPos.clone().project(cam);
+          if (proj.z <= 0 || proj.z >= 1.0) continue;
+
+          const sx = (proj.x * 0.5 + 0.5) * vw;
+          const sy = (-proj.y * 0.5 + 0.5) * vh;
+
+          const baseSize = Number(mesh.userData.size) || 0.5;
+          const scaleFactor = Math.max(tempScale.x, tempScale.y, tempScale.z);
+          const worldRadius = baseSize * scaleFactor;
+
+          const pxPerUnit = halfH / Math.max(0.1, fovTan * distToCam);
+          let screenRadPx = worldRadius * pxPerUnit;
+
+          if (id === "sun") {
+            screenRadPx *= 1.48;
+          } else {
+            screenRadPx *= 1.06;
+          }
+
+          bodyRecords.push({
+            mesh: mesh,
+            id: id,
+            isSun: (id === "sun"),
+            isFocused: (mesh === currentActiveTarget || mesh === window._spatialTargetMesh),
+            worldPos: tempPos.clone(),
+            worldRadius: worldRadius,
+            distToCam: distToCam,
+            sx: sx,
+            sy: sy,
+            screenRadPx: screenRadPx
+          });
+        }
+
+        if (bodyRecords.length === 0) return;
+
+        bodyRecords.sort(function(a, b) { return a.distToCam - b.distToCam; });
+
+        for (let i = 0; i < bodyRecords.length; i++) {
+          if (bodyRecords[i].screenRadPx > 10) {
+            window._activeScreenOccluders.push(bodyRecords[i]);
+          }
+        }
+
+        const sunRec = bodyRecords.find(function(b) { return b.isSun; });
+        const isSunFocusedOrZoomed = Boolean(
+          sunRec && (sunRec.isFocused || sunRec.screenRadPx > 95 || sunRec.distToCam < 22.0)
+        );
+
+        initAndStepNovaDepthEngine(sc, cam, celObjs, isSunFocusedOrZoomed);
+
+        for (let i = 0; i < bodyRecords.length; i++) {
+          const cand = bodyRecords[i];
+          if (!cand.mesh.visible || cand.isFocused || cand.isSun) continue;
+
+          for (let j = 0; j < bodyRecords.length; j++) {
+            if (i === j) continue;
+            const occ = bodyRecords[j];
+            if (occ.screenRadPx < 10) continue;
+
+            const screenDist = Math.hypot(cand.sx - occ.sx, cand.sy - occ.sy);
+            const touchThreshold = occ.screenRadPx + Math.min(cand.screenRadPx * 0.5, 14);
+
+            if (screenDist < touchThreshold) {
+              const isBehind = cand.distToCam > occ.distToCam;
+              // Always prevent dark night-side planet silhouettes from cutting across the Sun's bright yellow disc!
+              const isCrossingSunDisc = occ.isSun;
+
+              if (isBehind || isCrossingSunDisc) {
+                hideObjectAndAssociatedVisuals(cand.mesh);
+                break;
+              }
+            }
+          }
+        }
+
+        sc.traverse(function(obj) {
+          if (!obj.visible || obj.isScene || obj.isCamera || obj.isLight || obj.isPoints) return;
+
+          if ((obj.isLine || obj.isLineLoop || obj.isLineSegments) && isSunFocusedOrZoomed) {
+            hideObjectAndAssociatedVisuals(obj);
+            return;
+          }
+
+          if (obj.isMesh && !celObjs.includes(obj)) {
+            if (obj.name === "nova-belt-dust-glow") return;
+            let p = obj.parent;
+            while (p && p !== sc) {
+              if (celObjs.includes(p)) {
+                if (!p.visible) hideObjectAndAssociatedVisuals(obj);
+                return;
+              }
+              p = p.parent;
+            }
+          }
+        });
+      } catch (err) {
+        console.warn("Pre-render occlusion error:", err);
+      }
+    };
+
+    window._isScreenPointOccluded = function(planetSx, planetSy, labelX, labelY, entryId, entryMesh) {
+      if (!entryMesh || !entryMesh.visible) return true;
+      const occluders = window._activeScreenOccluders || [];
+      if (occluders.length === 0) return false;
+
+      const cam = window._novaCamRef;
+      if (!cam) return false;
+      const pos = new THREE.Vector3();
+      entryMesh.getWorldPosition(pos);
+      const candDist = cam.position.distanceTo(pos);
+      const lowerId = String(entryId || "").toLowerCase();
+
+      for (let i = 0; i < occluders.length; i++) {
+        const occ = occluders[i];
+        if (occ.mesh === entryMesh || occ.id === lowerId) {
+          if (occ.isSun && (occ.isFocused || occ.screenRadPx > 95)) return true;
+          continue;
+        }
+
+        const isSunZoom = occ.isSun;
+        if (candDist > occ.distToCam || isSunZoom) {
+          const dPlanet = Math.hypot(planetSx - occ.sx, planetSy - occ.sy);
+          const dLabelLeft = Math.hypot(labelX - occ.sx, labelY - occ.sy);
+          const dLabelMid = Math.hypot((labelX + 32) - occ.sx, labelY - occ.sy);
+          const rad = occ.screenRadPx * 1.05;
+          if (dPlanet < rad || dLabelLeft < rad || dLabelMid < rad) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    window._novaAfterRender = function() {
+      const list = window._hiddenForThisFrame;
+      if (!list || list.length === 0) return;
+      for (let i = 0; i < list.length; i++) {
+        if (list[i]) list[i].visible = true;
+      }
+      window._hiddenForThisFrame = [];
+    };
+
+    function enforceSceneDepthOcclusion() {
+      // Handled via _novaBeforeRender & _isScreenPointOccluded
+    }
+
+    const COURSE_METRIC_DECODER = [
+      {
+        match: ["photosphere", "surface temp", "effective temp", "kelvin", "temp"],
+        getTitle: function(planetName, val) {
+          if (String(planetName).toLowerCase().indexOf("sun") !== -1 || String(val).indexOf("5,772") !== -1) {
+            return "PHOTOSPHERE (VISIBLE SURFACE)";
+          }
+          return "SURFACE THERMAL EXTREMES";
+        },
+        getCourseTag: function(planetName, val) {
+          if (String(planetName).toLowerCase().indexOf("sun") !== -1 || String(val).indexOf("5,772") !== -1) {
+            return "ASTRO 101 • WIEN'S LAW";
+          }
+          return "PLANETARY THERMODYNAMICS";
+        },
+        scriptPhrases: ["5,772 k", "photosphere", "temperature swings", "430°c", "-180°c", "737 k", "runaway greenhouse", "kelvin", "thermal"],
+        explain: function(val, planetName) {
+          if (String(val).indexOf("5,772") !== -1 || String(planetName).toLowerCase().indexOf("sun") !== -1) {
+            return "At 5,772 K (9,930 °F), thermal radiation peaks in yellow-green visible light—matching human eye sensitivity.";
+          }
+          if (String(val).indexOf("100 K") !== -1 || String(planetName).toLowerCase().indexOf("mercury") !== -1) {
+            return "With no atmosphere to trap heat and a 176-day solar cycle, Mercury bakes at 430°C by day and plunges to -180°C at night.";
+          }
+          return "Surface temperature reflects the balance between incoming solar flux, surface reflectivity (albedo), and greenhouse gas trapping.";
+        }
+      },
+      {
+        match: ["bulk density", "mean density", "density"],
+        getTitle: function() { return "BULK DENSITY (MASS PER VOLUME)"; },
+        getCourseTag: function() { return "EARTH & PLANETARY SCIENCE"; },
+        scriptPhrases: ["5.514", "bulk density", "iron core", "silicate crust", "compressed hydrogen", "less dense than water"],
+        explain: function(val) {
+          const s = String(val);
+          if (s.indexOf("5.") !== -1) return "Surface rock is only ~2.7 g/cm³. A planetary average of " + s + " proves a dense metallic iron-nickel core hides inside.";
+          return "Comparing bulk density (" + s + ") to silicate rock (2.7 g/cm³) and iron (7.9 g/cm³) reveals a planet's core-to-mantle ratio.";
+        }
+      },
+      {
+        match: ["resonance", "spin-orbit", "rotation", "sidereal", "solar day", "period"],
+        getTitle: function() { return "SPIN-ORBIT RESONANCE & PERIOD"; },
+        getCourseTag: function() { return "ORBITAL MECHANICS"; },
+        scriptPhrases: ["3:2", "spin-orbit resonance", "retrograde rotation", "87.9", "243", "9.9-hour", "orbital period"],
+        explain: function(val) {
+          return String(val).indexOf("3:2") !== -1
+            ? "Solar gravity locked Mercury into spinning 3 times for every 2 orbits—making 1 sunny day on Mercury last 176 Earth days."
+            : "Tidal friction and angular momentum govern rotation speed and seasonal cycles.";
+        }
+      },
+      {
+        match: ["mass"],
+        getTitle: function() { return "GRAVITATIONAL MASS"; },
+        getCourseTag: function() { return "PHYSICS 101 • NEWTON'S GRAVITY"; },
+        scriptPhrases: ["fusing 600 million tons", "1.989", "317.8", "solar-mass", "4.297", "supermassive"],
+        explain: function() {
+          return "Mass governs gravitational pull (F = G·m₁m₂/r²), determining whether a body can ignite core fusion or retain an atmosphere.";
+        }
+      },
+      {
+        match: ["pressure", "atmosphere", "bar", "mpa"],
+        getTitle: function() { return "ATMOSPHERIC SURFACE PRESSURE"; },
+        getCourseTag: function() { return "THERMODYNAMICS & CLIMATOLOGY"; },
+        scriptPhrases: ["92 bar", "9.2 mpa", "crushing", "carbon dioxide atmosphere", "sulfuric acid"],
+        explain: function() {
+          return "Earth sea level is 1 bar. Venus's 92-bar CO₂ blanket crushes spacecraft and traps extreme runaway greenhouse heat.";
+        }
+      }
+    ];
+
+    function computeScriptTimedMetric(planetName, metricsList, scriptText) {
+      if (!planetName || !metricsList || !metricsList.length || !scriptText) return null;
+      if (planetName.toUpperCase().indexOf("SOLAR SYSTEM") !== -1) return null;
+
+      const lowerScript = String(scriptText).toLowerCase();
+      let bestMatch = null;
+      let bestCharPos = 999999;
+
+      for (let i = 0; i < metricsList.length; i++) {
+        const label = String(metricsList[i][0] || "");
+        const rawVal = String(metricsList[i][1] || "");
+        const l = label.toLowerCase();
+        const v = rawVal.toLowerCase();
+
+        if (l.indexOf("object") !== -1 || v.indexOf("objects") !== -1) continue;
+
+        const str = rawVal.trim();
+        const parenMatch = str.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+        const primary = parenMatch ? parenMatch[1].trim() : str;
+        const relative = parenMatch ? parenMatch[2].trim() : str;
+
+        for (let r = 0; r < COURSE_METRIC_DECODER.length; r++) {
+          const rule = COURSE_METRIC_DECODER[r];
+          const matchesMetric = rule.match.some(function(m) { return l.indexOf(m) !== -1 || v.indexOf(m) !== -1; });
+          if (!matchesMetric) continue;
+
+          for (let p = 0; p < rule.scriptPhrases.length; p++) {
+            const phrase = rule.scriptPhrases[p];
+            const pos = lowerScript.indexOf(phrase);
+            if (pos !== -1 && pos < bestCharPos) {
+              bestCharPos = pos;
+              bestMatch = {
+                plainTitle: rule.getTitle(planetName, rawVal),
+                courseTag: rule.getCourseTag(planetName, rawVal),
+                primaryVal: primary,
+                relativeVal: relative,
+                explanation: rule.explain(rawVal, planetName),
+                matchedPhrase: phrase,
+                charIndex: pos
+              };
+            }
+          }
+        }
+      }
+      return bestMatch;
+    }
+
+    const SURFACE_FEATURE_REGISTRY = {
+      "Sun": [
+        {
+          id: "sun-core",
+          name: "Proton-Proton Fusion Core",
+          keywords: ["fusing 600 million tons", "hydrogen into helium", "core"],
+          lat: 0, lon: 0, zoomRatio: 0.52,
+          courseNote: "Nuclear Astrophysics: At 1.57×10⁷ K, protons fuse into helium, converting 4 million tons of mass into radiant energy every second."
+        },
+        {
+          id: "sun-photosphere",
+          name: "Convective Photosphere",
+          keywords: ["photosphere", "convective", "corona", "5,772"],
+          lat: 12, lon: 18, zoomRatio: 0.55,
+          courseNote: "MHD & Plasma Physics: Boiling convection cells (1,000 km wide) carry 5,772 K plasma to the visible surface."
+        }
+      ],
+      "Mercury": [
+        {
+          id: "mercury-caloris",
+          name: "Caloris Impact Basin",
+          keywords: ["caloris impact basin", "caloris", "silicate crust"],
+          lat: 14.0, lon: -18.0, zoomRatio: 0.42,
+          courseNote: "Planetary Geology: A 1,550 km wide impact basin excavated by a 100 km asteroid ~3.9 billion years ago."
+        },
+        {
+          id: "mercury-scarps",
+          name: "Iron Core & Lobate Scarps",
+          keywords: ["iron core", "3:2", "resonance"],
+          lat: -10.0, lon: 15.0, zoomRatio: 0.45,
+          courseNote: "Geophysics: Mercury's giant iron core occupies ~85% of its radius. As it cooled, the crust crumpled into mile-high cliff faults."
+        }
+      ],
+      "Venus": [
+        {
+          id: "venus-clouds",
+          name: "Sulfuric Acid Cloud Deck",
+          keywords: ["sulfuric acid", "sulfuric", "greenhouse", "carbon dioxide"],
+          lat: 10.0, lon: -15.0, zoomRatio: 0.45,
+          courseNote: "Atmospheric Dynamics: Reflective H₂SO₄ clouds super-rotate around Venus in 4 days while trapping 737 K runaway greenhouse heat."
+        },
+        {
+          id: "venus-maat",
+          name: "Maat Mons & Pancake Domes",
+          keywords: ["maat mons", "pancake domes", "volcanic"],
+          lat: 4.0, lon: 18.0, zoomRatio: 0.42,
+          courseNote: "Volcanology: Under crushing 92-bar pressure, viscous lava erupts into flat 'pancake domes' and shield volcanoes."
+        }
+      ],
+      "Earth": [
+        {
+          id: "earth-oceans",
+          name: "Liquid Water Hydrosphere",
+          keywords: ["liquid water", "ocean", "tectonic", "biosphere"],
+          lat: 8.0, lon: -20.0, zoomRatio: 0.44,
+          courseNote: "Earth Systems Science: Liquid surface water lubricates tectonic plates, stabilizing Earth's long-term climate."
+        },
+        {
+          id: "earth-core",
+          name: "Geodynamo & Protective Atmosphere",
+          keywords: ["magnetic", "nitrogen", "oxygen", "5.514"],
+          lat: 16.0, lon: -15.0, zoomRatio: 0.46,
+          courseNote: "Geophysics: Earth's 5.514 g/cm³ density proves a liquid-iron outer core generates our protective magnetic shield."
+        }
+      ],
+      "Mars": [
+        {
+          id: "mars-olympus",
+          name: "Olympus Mons Shield Volcano",
+          keywords: ["olympus mons", "olympus", "volcano", "tharsis"],
+          lat: 16.0, lon: -22.0, zoomRatio: 0.42,
+          courseNote: "Tectonics: Without moving tectonic plates, Mars's crust sat stationary over a mantle hotspot, building a 21.9 km tall volcano."
+        },
+        {
+          id: "mars-valles",
+          name: "Valles Marineris Canyon",
+          keywords: ["valles marineris", "canyon", "iron oxide", "polar"],
+          lat: -12.0, lon: -18.0, zoomRatio: 0.44,
+          courseNote: "Structural Geology: A 4,000 km tectonic rift valley (7 km deep) carved across Mars's rust-rich basaltic crust."
+        }
+      ],
+      "Jupiter": [
+        {
+          id: "jupiter-grs",
+          name: "Great Red Spot Anticyclone",
+          keywords: ["great red spot", "anticyclonic", "ammonia", "bands"],
+          lat: -18.0, lon: 22.0, zoomRatio: 0.48,
+          courseNote: "Fluid Dynamics: Driven by Jupiter's rapid 9.9-hour spin and zero solid landmass friction, this high-pressure vortex is wider than Earth."
+        },
+        {
+          id: "jupiter-metallic",
+          name: "Metallic Hydrogen Envelope",
+          keywords: ["metallic hydrogen", "galilean"],
+          lat: 10.0, lon: 15.0, zoomRatio: 0.50,
+          courseNote: "Condensed Matter Physics: At 2 million bars of pressure, hydrogen electrons squeeze free into an electrically conductive liquid metal."
+        }
+      ],
+      "Saturn": [
+        {
+          id: "saturn-rings",
+          name: "Cassini Ring System",
+          keywords: ["ring", "cassini", "water-ice", "roche"],
+          lat: 4.0, lon: 28.0, zoomRatio: 0.52,
+          courseNote: "Celestial Mechanics: Inside Saturn's Roche Limit, tidal forces keep 99.9% pure water-ice boulders spread into a razor-thin ring plane."
+        },
+        {
+          id: "saturn-hexagon",
+          name: "North Polar Hexagon",
+          keywords: ["hexagon", "jet stream"],
+          lat: 28.0, lon: 0.0, zoomRatio: 0.46,
+          courseNote: "Wave Mechanics: Steep wind shear at 78°N creates a stable, 6-sided Rossby standing wave wider than two Earths."
+        }
+      ]
+    };
+
+    function getActivePlanetNameFromDOM() {
+      const nameEl = document.getElementById("spatial-target-name");
+      if (nameEl && nameEl.textContent && nameEl.textContent.trim()) {
+        return nameEl.textContent.trim();
+      }
+      return "";
+    }
+
+    function computeScriptTimedSurfaceFeature(rawName, scriptText) {
+      if (!rawName || !scriptText) return null;
+      if (rawName.toUpperCase().indexOf("SOLAR SYSTEM") !== -1) return null;
+      const lowerName = rawName.toLowerCase();
+      const lowerScript = String(scriptText).toLowerCase();
+
+      let candidates = [];
+      for (const key in SURFACE_FEATURE_REGISTRY) {
+        if (lowerName.indexOf(key.toLowerCase()) !== -1) {
+          candidates = SURFACE_FEATURE_REGISTRY[key];
+          break;
+        }
+      }
+      for (let i = 0; i < candidates.length; i++) {
+        const f = candidates[i];
+        const kws = f.keywords || [];
+        for (let j = 0; j < kws.length; j++) {
+          const pos = lowerScript.indexOf(kws[j].toLowerCase());
+          if (pos !== -1) {
+            return {
+              feature: f,
+              matchedKeyword: kws[j],
+              charIndex: pos
+            };
+          }
+        }
+      }
+      // Universal fallback for any other celestial object (Moon, Uranus, Neptune, Pluto, Exoplanets, Black Holes)
+      // so the Surface Zoom / Inspection feature works on 100% of objects in the tour!
+      if ( scriptText.length > 20 ) {
+        const firstClause = scriptText.split(/[.,;]/)[0] || rawName;
+        return {
+          feature: {
+            id: "universal-site",
+            name: rawName + " — Primary Feature",
+            keywords: [firstClause.trim().split(" ").slice(-1)[0] || rawName],
+            lat: 8.0, lon: -12.0, zoomRatio: 0.46,
+            courseNote: "Observational Telemetry: Close-approach inspection of " + rawName + "'s primary structural envelope."
+          },
+          matchedKeyword: firstClause.trim().split(" ").slice(-1)[0] || rawName,
+          charIndex: 25
+        };
+      }
+      return null;
+    }
+
+    // Issue 3 Fix: Persistent, Frame-Locked Surface Zoom that overrides OrbitControls.minDistance and works on ALL objects!
+    window.zoomToSurfaceFeature = function(siteId, e) {
+      try {
+        if (e && e.stopPropagation) e.stopPropagation();
+        const rawName = getActivePlanetNameFromDOM();
+        const state = window._tourBeatState;
+        let found = null;
+        for (const key in SURFACE_FEATURE_REGISTRY) {
+          if (rawName.toLowerCase().indexOf(key.toLowerCase()) !== -1) {
+            found = SURFACE_FEATURE_REGISTRY[key].find(function(f) { return f.id === siteId; });
+            if (found) break;
+          }
+        }
+        if (!found && state.matchedFeature && state.matchedFeature.id === siteId) {
+          found = state.matchedFeature;
+        }
+        if (!found) return;
+
+        window._activeSurfaceSite = found;
+
+        const cam = window._novaCamRef || window.camera;
+        const ctrl = window._novaCtrlRef || window.controls;
+        const zState = window._surfaceZoomState;
+        if (cam && ctrl) {
+          if (zState.savedMinDistance === null) {
+            zState.savedMinDistance = ctrl.minDistance || 0.1;
+          }
+          // Allow close-up surface inspection even on large bodies like the Sun!
+          ctrl.minDistance = 0.05;
+          if (!zState.lockedCamOffset) {
+            zState.lockedCamOffset = cam.position.clone().sub(ctrl.target);
+          }
+          zState.active = true;
+          zState.targetRatio = found.zoomRatio || 0.45;
+        }
+      } catch (err) {
+        console.warn("Zoom error:", err);
+      }
+    };
+
+    window.resetSurfaceFeatureZoom = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      window._activeSurfaceSite = null;
+      const zState = window._surfaceZoomState;
+      zState.targetRatio = 1.0;
+      const ctrl = window._novaCtrlRef || window.controls;
+      if (ctrl && zState.savedMinDistance !== null) {
+        setTimeout(function() {
+          if (!window._activeSurfaceSite && ctrl) {
+            ctrl.minDistance = zState.savedMinDistance;
+            zState.active = false;
+            zState.lockedCamOffset = null;
+          }
+        }, 750);
+      }
+    };
+
+    // Issue 2 Fix: Persistent single DOM card with smooth inner cross-fade (never abruptly destroys/recreates the outer card!)
+    function setSmoothSatelliteCardContent(satNodesEl, desiredKey, buildInnerHtmlFn) {
+      if (!satNodesEl) return;
+      const state = window._tourBeatState;
+      if (state.activePanelKey === desiredKey) return;
+      state.activePanelKey = desiredKey;
+
+      let outerNode = document.getElementById("spatial-sat-node-0");
+      if (!desiredKey) {
+        if (outerNode) {
+          outerNode.style.opacity = "0";
+          outerNode.style.pointerEvents = "none";
+        }
+        return;
+      }
+
+      if (!outerNode) {
+        satNodesEl.innerHTML =
+          '<div id="spatial-sat-node-0" style="opacity: 0;" class="spatial-satellite-node sat-beat-active">' +
+            '<div id="spatial-sat-inner-0" class="spatial-sat-inner">' + buildInnerHtmlFn() + '</div>' +
+          '</div>';
+        outerNode = document.getElementById("spatial-sat-node-0");
+        requestAnimationFrame(function() {
+          if (outerNode && state.activePanelKey === desiredKey) {
+            outerNode.style.opacity = "1";
+            outerNode.style.pointerEvents = "auto";
+          }
+        });
+        return;
+      }
+
+      // If card already exists, smoothly fade its inner content out, swap, and fade back in
+      outerNode.style.opacity = "1";
+      outerNode.style.pointerEvents = "auto";
+      const innerNode = document.getElementById("spatial-sat-inner-0");
+      if (innerNode) {
+        innerNode.classList.add("sat-content-hidden");
+        setTimeout(function() {
+          if (state.activePanelKey === desiredKey && innerNode) {
+            innerNode.innerHTML = buildInnerHtmlFn();
+            requestAnimationFrame(function() {
+              innerNode.classList.remove("sat-content-hidden");
+            });
+          }
+        }, 280);
+      }
+    }
+
+    function scheduleTourStepCues(rawName, activeText) {
+      const state = window._tourBeatState;
+      state.stepStartTime = nowMs();
+      state.lockedSideSign = -1;
+      state.lastCardX = null;
+      state.lastCardY = null;
+      state.lastDotX = null;
+      state.lastDotY = null;
+
+      // Reset any active surface zoom cleanly when switching to a new planet
+      window._activeSurfaceSite = null;
+      window._surfaceZoomState.active = false;
+      window._surfaceZoomState.currentRatio = 1.0;
+      window._surfaceZoomState.targetRatio = 1.0;
+      window._surfaceZoomState.lockedCamOffset = null;
+
+      const mainCard = document.getElementById("spatial-callout-card");
+      if (mainCard && rawName.toUpperCase().indexOf("SOLAR SYSTEM") === -1) {
+        mainCard.style.transition = "opacity 600ms cubic-bezier(0.16, 1, 0.3, 1)";
+        mainCard.style.opacity = "0";
+        setTimeout(function() {
+          if (mainCard) mainCard.style.opacity = "1";
+        }, 1750);
+      }
+
+      state.matchedMetric = computeScriptTimedMetric(rawName, window._spatialCurrentMetrics || [], activeText);
+      const siteMatch = computeScriptTimedSurfaceFeature(rawName, activeText);
+      state.matchedFeature = siteMatch ? siteMatch.feature : null;
+
+      // Wait 4.2 full seconds (1.8s camera flight + 2.4s calm reading time) before gently fading in the Satellite HUD!
+      if (state.matchedMetric) {
+        state.metricCueStartSec = 4.2;
+        state.metricCueEndSec = 14.5;
+      } else {
+        state.metricCueStartSec = -1;
+        state.metricCueEndSec = -1;
+      }
+
+      if (siteMatch) {
+        state.siteCueStartSec = 3.6;
+      } else {
+        state.siteCueStartSec = -1;
+      }
+    }
+
+    window.syncSatelliteCourseHUDs = function() {
+      try {
+        enforceSceneDepthOcclusion();
+        const satLayer = document.getElementById('spatial-satellite-layer');
+        const gridEl = document.getElementById('spatial-metrics-grid');
+        const sitesBar = document.getElementById('spatial-surface-sites-bar');
+
+        const tourRunning = isGuidedTourCurrentlyActive();
+        const hudEnabled = isOverviewHudEnabled();
+
+        if (!tourRunning || !hudEnabled) {
+          if (satLayer) satLayer.classList.add('hidden');
+          if (sitesBar) sitesBar.innerHTML = '';
+          if (gridEl && hudEnabled && (window._spatialCurrentMetrics || []).length > 0) {
+            gridEl.style.display = 'grid';
+          }
+          return;
+        }
+
+        if (gridEl) gridEl.style.display = 'none';
+
+        const rawName = getActivePlanetNameFromDOM();
+        const deck = window._spatialFactDeck || [];
+        const fIdx = window._spatialFactIndex || 0;
+        const activeFactObj = deck.length > 0 ? deck[((fIdx % deck.length) + deck.length) % deck.length] : null;
+        const sumEl = document.getElementById('spatial-target-summary');
+        const activeText = activeFactObj ? activeFactObj.text : (sumEl ? sumEl.textContent : '');
+
+        const sig = rawName + "|" + fIdx + "|" + activeText.slice(0, 32);
+        const state = window._tourBeatState;
+        if (sig !== state.stepSignature) {
+          state.stepSignature = sig;
+          scheduleTourStepCues(rawName, activeText);
+        }
+
+        if (sumEl && activeText && state.matchedFeature && sumEl.innerHTML.indexOf('spatial-inline-site-link') === -1) {
+          const f = state.matchedFeature;
+          let htmlText = activeText;
+          const kws = f.keywords || [];
+          for (let j = 0; j < kws.length; j++) {
+            const kw = kws[j];
+            const pos = htmlText.toLowerCase().indexOf(kw.toLowerCase());
+            if (pos !== -1) {
+              const matchedWord = htmlText.substr(pos, kw.length);
+              htmlText = htmlText.substr(0, pos) +
+                '<span class="spatial-inline-site-link" onclick="window.zoomToSurfaceFeature(\'' + f.id + '\', event)" title="Click to zoom camera into ' + f.name + '">' + matchedWord + ' ⌖</span>' +
+                htmlText.substr(pos + kw.length);
+              break;
+            }
+          }
+          sumEl.innerHTML = htmlText;
+        }
+      } catch (err) {
+        console.warn("syncSatelliteCourseHUDs error:", err);
+      }
+    };
+
+    window.updateSatelliteCourseHUDPositions = function() {
+      try {
+        enforceSceneDepthOcclusion();
+        const satLayer = document.getElementById('spatial-satellite-layer');
+        const mainLayer = document.getElementById('spatial-telemetry-layer');
+        const mainCard = document.getElementById('spatial-callout-card');
+        const satNodesEl = document.getElementById('spatial-satellite-nodes');
+        const pinContainer = document.getElementById('spatial-surface-pin-container');
+        const sitesBar = document.getElementById('spatial-surface-sites-bar');
+        const satSvg = document.getElementById('spatial-satellite-svg');
+        if (!satLayer || !mainLayer || !mainCard) return;
+
+        if (pinContainer && pinContainer.innerHTML !== '') {
+          pinContainer.innerHTML = '';
+        }
+
+        const tourRunning = isGuidedTourCurrentlyActive();
+        const hudEnabled = isOverviewHudEnabled();
+        const rect = mainCard.getBoundingClientRect();
+
+        if (!tourRunning || !hudEnabled || rect.width < 120) {
+          if (!satLayer.classList.contains('hidden')) {
+            satLayer.classList.add('hidden');
+          }
+          if (!tourRunning) {
+            const gridEl = document.getElementById('spatial-metrics-grid');
+            if (gridEl && hudEnabled && (window._spatialCurrentMetrics || []).length > 0) {
+              gridEl.style.display = 'grid';
+            }
+            if (sitesBar && sitesBar.innerHTML !== '') sitesBar.innerHTML = '';
+          }
+          return;
+        }
+
+        window.syncSatelliteCourseHUDs();
+
+        // Drive smooth, damped 3D camera surface zoom every frame if active!
+        const zState = window._surfaceZoomState;
+        const cam = window._novaCamRef || window.camera;
+        const ctrl = window._novaCtrlRef || window.controls;
+        if (zState.active && cam && ctrl && zState.lockedCamOffset) {
+          zState.currentRatio += (zState.targetRatio - zState.currentRatio) * 0.08;
+          const liveTarget = ctrl.target.clone();
+          if (window._spatialTargetMesh && typeof window._spatialTargetMesh.getWorldPosition === "function") {
+            window._spatialTargetMesh.getWorldPosition(liveTarget);
+          }
+          cam.position.copy(liveTarget).add(zState.lockedCamOffset.clone().multiplyScalar(zState.currentRatio));
+          ctrl.target.copy(liveTarget);
+        }
+
+        const state = window._tourBeatState;
+        const elapsedSec = (nowMs() - state.stepStartTime) / 1000.0;
+
+        const showSiteChipNow = Boolean(
+          state.matchedFeature &&
+          (elapsedSec >= state.siteCueStartSec || window._activeSurfaceSite)
+        );
+
+        if (sitesBar) {
+          if (!showSiteChipNow) {
+            if (sitesBar.innerHTML !== '') {
+              sitesBar.innerHTML = '';
+              sitesBar.removeAttribute('data-site-id');
+            }
+          } else {
+            const f = window._activeSurfaceSite || state.matchedFeature;
+            const isSel = Boolean(window._activeSurfaceSite && window._activeSurfaceSite.id === f.id);
+            const desiredChipHtml =
+              '<button type="button" onclick="window.zoomToSurfaceFeature(\'' + f.id + '\', event)" class="spatial-feature-chip ' + (isSel ? 'active-site' : '') + '"><span>⌖</span><span>' + (isSel ? 'Inspecting: ' : 'Inspect ') + f.name + '</span></button>' +
+              (window._activeSurfaceSite ? '<button type="button" onclick="window.resetSurfaceFeatureZoom(event)" class="text-[8.5px] font-mono text-cyan-300 hover:text-white ml-1.5 underline cursor-pointer">Reset Zoom</button>' : '');
+            if (sitesBar.getAttribute('data-site-id') !== (f.id + "|" + isSel)) {
+              sitesBar.setAttribute('data-site-id', f.id + "|" + isSel);
+              sitesBar.innerHTML = desiredChipHtml;
+            }
+          }
+        }
+
+        const activeSite = window._activeSurfaceSite;
+        const showMetricNow = Boolean(
+          !activeSite &&
+          state.matchedMetric &&
+          elapsedSec >= state.metricCueStartSec &&
+          elapsedSec <= state.metricCueEndSec
+        );
+
+        if (activeSite) {
+          const siteKey = "SITE:" + activeSite.id;
+          setSmoothSatelliteCardContent(satNodesEl, siteKey, function() {
+            return '<div class="flex items-center justify-between gap-1 mb-0.5">' +
+                '<span class="text-[8px] font-mono uppercase tracking-widest text-cyan-300 font-semibold">SURFACE SITE • ' + activeSite.lat.toFixed(1) + '°, ' + activeSite.lon.toFixed(1) + '°</span>' +
+                '<button type="button" onclick="window.resetSurfaceFeatureZoom(event)" class="text-[8px] font-mono text-cyan-200 hover:text-white underline cursor-pointer">✕ EXIT ZOOM</button>' +
+              '</div>' +
+              '<div class="text-[11px] font-mono font-bold text-white my-0.5">' + activeSite.name + '</div>' +
+              '<p class="text-[9.5px] leading-snug text-slate-200/95 font-sans border-t border-white/10 pt-1.5 mt-1">' + activeSite.courseNote + '</p>';
+          });
+        } else if (showMetricNow) {
+          const d = state.matchedMetric;
+          const relMode = Boolean(window._spatialMetricRelativeMode);
+          const shownVal = relMode ? d.relativeVal : d.primaryVal;
+          const metricKey = "METRIC:" + d.plainTitle + "|" + shownVal;
+          setSmoothSatelliteCardContent(satNodesEl, metricKey, function() {
+            const secondaryBadge = (d.relativeVal && d.relativeVal !== shownVal)
+              ? '<span class="text-[9.5px] font-mono text-cyan-200/90">' + d.relativeVal + '</span>'
+              : '';
+            return '<div onclick="window.toggleSpatialMetricMode(event)" class="cursor-pointer">' +
+              '<div class="flex items-center justify-between gap-1 mb-0.5">' +
+                '<span class="text-[8px] font-mono uppercase tracking-widest text-cyan-300 font-semibold">' + d.courseTag + '</span>' +
+                '<span class="text-[8px] font-mono text-slate-400">⇄</span>' +
+              '</div>' +
+              '<div class="text-[9px] font-mono uppercase tracking-wider text-slate-200 font-semibold">' + d.plainTitle + '</div>' +
+              '<div class="flex items-baseline justify-between gap-2 my-1">' +
+                '<span class="text-[12px] font-mono font-bold text-white">' + shownVal + '</span>' +
+                secondaryBadge +
+              '</div>' +
+              '<p class="text-[9.5px] leading-snug text-slate-200/95 font-sans border-t border-white/10 pt-1 mt-1">' + d.explanation + '</p>' +
+            '</div>';
+          });
+        } else {
+          setSmoothSatelliteCardContent(satNodesEl, "", null);
+        }
+
+        const nodeEl = document.getElementById('spatial-sat-node-0');
+        if (!nodeEl || (!activeSite && !showMetricNow)) {
+          if (satSvg) satSvg.innerHTML = '';
+          return;
+        }
+
+        satLayer.classList.remove('hidden');
+        satLayer.style.opacity = window.getComputedStyle(mainCard).opacity || '1';
+
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        let rawSx = vw * 0.5;
+        let rawSy = vh * 0.5;
+        const origLine = document.getElementById('spatial-leader-line') || document.querySelector('#spatial-telemetry-layer line');
+        if (origLine) {
+          const x1 = parseFloat(origLine.getAttribute('x1'));
+          const y1 = parseFloat(origLine.getAttribute('y1'));
+          if (!isNaN(x1) && !isNaN(y1) && x1 > 20 && y1 > 20) {
+            rawSx = x1;
+            rawSy = y1;
+          }
+        }
+
+        const sideSign = -1; // Always keep Satellite HUD calmly anchored on the left side during Tour stops
+        const nodeW = 232;
+        const nodeH = nodeEl.offsetHeight || 112;
+
+        let desiredX = rawSx - 68 - nodeW - 56;
+        let desiredY = rect.top + 4;
+        desiredX = Math.max(24, Math.min(vw - nodeW - 24, desiredX));
+        desiredY = Math.max(68, Math.min(vh - nodeH - 96, desiredY));
+
+        // Issue 1 Fix: Deadzone hysteresis + GPU translate3d eliminates all micro-shaking in place!
+        if (state.lastCardX === null || Math.hypot(desiredX - state.lastCardX, desiredY - state.lastCardY) > 1.2) {
+          state.lastCardX = state.lastCardX === null ? desiredX : (state.lastCardX + (desiredX - state.lastCardX) * 0.22);
+          state.lastCardY = state.lastCardY === null ? desiredY : (state.lastCardY + (desiredY - state.lastCardY) * 0.22);
+        }
+
+        const finalX = state.lastCardX;
+        const finalY = state.lastCardY;
+        nodeEl.style.transform = "translate3d(" + finalX.toFixed(1) + "px, " + finalY.toFixed(1) + "px, 0)";
+
+        let targetDotX = rawSx - 42;
+        let targetDotY = rawSy - 12;
+        if (activeSite) {
+          const latOff = Math.max(-16, Math.min(16, -((activeSite.lat || 0) / 90) * 18));
+          const lonOff = Math.max(-16, Math.min(16, ((activeSite.lon || 0) / 180) * 18));
+          targetDotX = rawSx + lonOff;
+          targetDotY = rawSy + latOff;
+        }
+
+        if (state.lastDotX === null || Math.hypot(targetDotX - state.lastDotX, targetDotY - state.lastDotY) > 1.0) {
+          state.lastDotX = state.lastDotX === null ? targetDotX : (state.lastDotX + (targetDotX - state.lastDotX) * 0.22);
+          state.lastDotY = state.lastDotY === null ? targetDotY : (state.lastDotY + (targetDotY - state.lastDotY) * 0.22);
+        }
+
+        const attachX = finalX + nodeW;
+        const attachY = finalY + nodeH * 0.5;
+
+        if (satSvg) {
+          satSvg.innerHTML =
+            '<line x1="' + state.lastDotX.toFixed(1) + '" y1="' + state.lastDotY.toFixed(1) + '" x2="' + attachX.toFixed(1) + '" y2="' + attachY.toFixed(1) + '" stroke="rgba(56, 189, 248, 0.45)" stroke-width="1" stroke-dasharray="3 3" />' +
+            '<circle cx="' + state.lastDotX.toFixed(1) + '" cy="' + state.lastDotY.toFixed(1) + '" r="' + (activeSite ? '3.5' : '2.2') + '" fill="#38bdf8" />';
+        }
+      } catch (err) {
+        console.warn("Position loop error:", err);
+      }
+    };
+
+    (function startSelfContainedLoop() {
+      function step() {
+        requestAnimationFrame(step);
+        if (window.updateSatelliteCourseHUDPositions) {
+          window.updateSatelliteCourseHUDPositions();
+        }
+      }
+      requestAnimationFrame(step);
+    })();
+
     function renderSpatialMetricsGrid() {
+      try { if (typeof camera !== 'undefined') window._novaCamRef = camera; if (typeof controls !== 'undefined') window._novaCtrlRef = controls; } catch(e) {}
       const gridEl = document.getElementById('spatial-metrics-grid');
       const unitBtnLabel = document.getElementById('spatial-unit-toggle-label');
       if (!gridEl) return;
@@ -5069,7 +6792,7 @@
     window.toggleSpatialMetricMode = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
       window._spatialMetricRelativeMode = !window._spatialMetricRelativeMode;
-      renderSpatialMetricsGrid();
+      renderSpatialMetricsGrid(); if (window.syncSatelliteCourseHUDs) window.syncSatelliteCourseHUDs();
     };
 
     window.cycleSpatialFactDeck = function(e) {
@@ -5077,7 +6800,7 @@
       const deck = window._spatialFactDeck || [];
       if (deck.length <= 1) return;
       window._spatialFactIndex = (window._spatialFactIndex + 1) % deck.length;
-      renderSpatialFactDeck();
+      renderSpatialFactDeck(); if (window.syncSatelliteCourseHUDs) window.syncSatelliteCourseHUDs();
     };
 
     window.populateSpatialCallout = function(data, isTierOverview = false) {
@@ -5107,7 +6830,7 @@
         : (ASTROPHYSICAL_ARCHIVE[(data.id || '').toLowerCase()] || null);
 
       window._spatialCurrentMetrics = (profile && profile.metrics) ? profile.metrics.slice(0, 4) : [];
-      renderSpatialMetricsGrid();
+      renderSpatialMetricsGrid(); if (window.syncSatelliteCourseHUDs) window.syncSatelliteCourseHUDs();
 
       // Build interactive Fact Deck: [Overview Summary, Fact 1, Fact 2, Fact 3]
       const deck = [];
@@ -5120,7 +6843,7 @@
         });
       }
       window._spatialFactDeck = deck;
-      renderSpatialFactDeck();
+      renderSpatialFactDeck(); if (window.syncSatelliteCourseHUDs) window.syncSatelliteCourseHUDs();
     };
 
     window.dismissSpatialCallout = function(e) {
@@ -7768,6 +9491,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       }
 
       controls.update();
+      if (window._novaBeforeRender) window._novaBeforeRender(scene, camera, celestialObjects, celestialLabelEntries, activeTargetMesh);
       updateCelestialLabels(camDist);
       if (!window._texturesInitialized && celestialObjects.length > 5) {
         applyCharacteristicTexturesToScene();
@@ -7777,7 +9501,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       if (typeof window.updateNovaAttitudeSphere === "function") {
         window.updateNovaAttitudeSphere();
       }
-      renderer.render(scene, camera);
+      renderer.render(scene, camera); if (window._novaAfterRender) window._novaAfterRender();
     }
 
     // === STREAMLINED SIDEBAR-INTEGRATED GUIDED COSMIC TOUR ENGINE ===
