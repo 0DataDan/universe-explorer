@@ -310,7 +310,8 @@
     .celestial-label:hover,
     .celestial-label--active {
       color: #ffffff;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.45), 0 1px 4px rgba(0, 0, 0, 0.98);
+      letter-spacing: 0.25em;
+      text-shadow: 0 0 6px rgba(255, 255, 255, 0.92), 0 0 16px rgba(248, 250, 252, 0.55), 0 1px 4px rgba(0, 0, 0, 0.98);
     }
 
     /* ==========================================================================
@@ -495,7 +496,11 @@
     }
 
   </style>
-</head>
+  
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg?v=5">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png?v=5">
+    <link rel="shortcut icon" href="/assets/favicon.ico?v=5">
+  </head>
 <body class="relative w-screen h-screen overflow-hidden select-none">
 
   <!-- Cinematic Boot Sequence & Wormhole Transition Overlay -->
@@ -535,6 +540,59 @@
 
   <!-- 3D-Tracked NASA Eyes Minimalist Celestial Name Labels Layer -->
   <div id="celestial-labels-layer" aria-hidden="true"></div>
+
+  <!-- 2D Screen-Aligned Spatial HUD Callout Layer (Tethered to Selected 3D Object) -->
+  <div id="spatial-telemetry-layer" class="opacity-0" aria-live="polite">
+    <svg id="spatial-leader-svg" class="w-full h-full overflow-visible pointer-events-none">
+      <polyline id="spatial-leader-line" points="0,0 0,0 0,0" fill="none" stroke="rgba(248, 250, 252, 0.68)" stroke-width="1.15" stroke-Linecap="round" stroke-Linejoin="round" />
+      <circle id="spatial-anchor-dot" cx="0" cy="0" r="2.4" fill="#ffffff" style="filter: drop-shadow(0 0 6px rgba(255,255,255,0.95));" />
+      <circle id="spatial-anchor-ring" cx="0" cy="0" r="6.2" fill="none" stroke="rgba(248, 250, 252, 0.45)" stroke-width="0.9" stroke-dasharray="2.5 2" />
+    </svg>
+
+    <div id="spatial-callout-card" class="select-none">
+      <!-- Header: Un-truncated Title + Clean Scientific Order Badge -->
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center justify-between gap-2">
+            <span id="spatial-target-name" class="text-[12.5px] font-semibold tracking-[0.15em] uppercase text-white leading-tight">EARTH</span>
+            <span id="spatial-target-scale" class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.08] text-slate-200 shrink-0">10^7 m</span>
+          </div>
+          <p id="spatial-target-meta" class="text-[10px] font-mono text-cyan-300/90 truncate mt-0.5">Terrestrial Planet • 1.00 AU</p>
+        </div>
+        <button type="button" onclick="window.dismissSpatialCallout(event)" aria-label="Dismiss Telemetry Callout" class="text-slate-400 hover:text-white transition-colors p-0.5 -mr-1 -mt-0.5 cursor-pointer shrink-0">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Borderless 2x2 Laser-Hairline Telemetry Grid (Click to toggle Absolute SI vs Relative Comparison) -->
+      <div id="spatial-metrics-grid" onclick="window.toggleSpatialMetricMode(event)" title="" class="spatial-hairline-grid my-2 cursor-pointer group"></div>
+
+      <!-- Interactive Fact & Summary Micro-Deck (Click text or Next button to cycle Overview + 3 NASA/JPL Facts) -->
+      <div class="relative">
+        <div class="flex items-center justify-between mb-0.5">
+          <span id="spatial-deck-label" class="text-[8.5px] font-mono uppercase tracking-widest text-cyan-300/85">OVERVIEW</span>
+          <button id="spatial-deck-next-btn" type="button" onclick="window.cycleSpatialFactDeck(event)" class="text-[9px] font-mono uppercase tracking-wider text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer transition-colors">
+            <span id="spatial-deck-counter">1 / 4</span>
+            <span class="text-cyan-300">▸</span>
+          </button>
+        </div>
+        <p id="spatial-target-summary" onclick="window.cycleSpatialFactDeck(event)" class="text-[11px] leading-[1.48] text-slate-100/95 font-normal cursor-pointer transition-opacity duration-150"></p>
+      </div>
+
+      <!-- Progressive Disclosure Action Bar: Interactive Unit Comparator + Deep Archive Trigger -->
+      <div class="mt-2.5 pt-1.5 border-t border-white/10 flex items-center justify-between">
+        <button id="spatial-unit-toggle-btn" type="button" onclick="window.toggleSpatialMetricMode(event)" class="text-[9px] font-mono uppercase tracking-wider text-slate-300 hover:text-cyan-300 flex items-center gap-1 cursor-pointer transition-colors">
+          <span class="text-cyan-300">⇄</span>
+          <span id="spatial-unit-toggle-label">VS EARTH / SUN</span>
+        </button>
+        <button type="button" onclick="window.expandDeepArchiveFromCallout(event)" class="text-[9px] font-mono uppercase tracking-wider text-cyan-300 hover:text-white flex items-center gap-1 cursor-pointer transition-colors">
+          <span>+ Deep Archive & AI</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Top Navigation Header -->
   <header id="header-nav" class="fixed top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
@@ -1753,6 +1811,7 @@
 
     // Main Sidebar Tab handler (right-edge tab & attached drawer tab): opens/closes on the VERY FIRST click!
     window.toggleSidebarDrawerTab = function(e) {
+      window._forceFullSidebarOpen = true;
       if (e && e.stopPropagation) e.stopPropagation();
       const inspector = document.getElementById("inspector");
       if (!inspector) return;
@@ -1778,6 +1837,7 @@
 
     // Bottom-bar Overview Toggle Button handler: toggles the sidebar overview drawer on/off without hiding the Overview Sidebar tab itself
     window.toggleSidebarVisibility = function(e) {
+      window._forceFullSidebarOpen = true;
       if (e && e.stopPropagation) e.stopPropagation();
       const sidebarBtn = document.getElementById("btn-toggle-sidebar");
       const inspector = document.getElementById("inspector");
@@ -4226,13 +4286,65 @@
         }
       }
 
+      const _focusTargetMesh = hoveredCelestialMesh || activeTargetMesh;
+      const _focusTargetId = (_focusTargetMesh && _focusTargetMesh.userData && _focusTargetMesh.userData.id)
+        ? String(_focusTargetMesh.userData.id).toLowerCase()
+        : "";
+      const _hasPlanetFocus = Boolean(_focusTargetMesh && _focusTargetId && _focusTargetId !== "sun");
+
       for (let i = 0; i < celestialLabelEntries.length; i++) {
         const entry = celestialLabelEntries[i];
         if (!entry.visible) continue;
         const finalX = entry.sx + entry.offsetX;
         const finalY = entry.sy;
+        const isEntryFocused = (entry.mesh === _focusTargetMesh);
+        const isCalloutActiveOnMesh = Boolean(
+          window._isSpatialCalloutVisible && activeTargetMesh && entry.mesh === activeTargetMesh
+        );
+        const effectiveAlpha = isCalloutActiveOnMesh
+          ? 0.0
+          : (_hasPlanetFocus ? (isEntryFocused ? 1.0 : entry.alpha * 0.52) : entry.alpha);
         entry.el.style.transform = `translate3d(${finalX.toFixed(1)}px, ${finalY.toFixed(1)}px, 0) translateY(-50%)`;
-        entry.el.style.opacity = entry.alpha.toFixed(3);
+        entry.el.style.opacity = effectiveAlpha.toFixed(3);
+        entry.el.style.pointerEvents = isCalloutActiveOnMesh ? "none" : "auto";
+      }
+
+      // === 60FPS 3D-TO-2D SPATIAL HUD CALLOUT PROJECTION ===
+      if (typeof window.updateSpatialCalloutPosition === "function") {
+        window.updateSpatialCalloutPosition();
+      }
+
+      // Live Starlight Orbital Path Highlighting (Zero Cyan - Pure Optical Contrast)
+      for (let i = 0; i < celestialObjects.length; i++) {
+        const mesh = celestialObjects[i];
+        if (!mesh || !mesh.userData || !mesh.userData.orbitLine) continue;
+        const mat = mesh.userData.orbitLine.material;
+        if (!mat) continue;
+
+        if (mat.userData === undefined) mat.userData = {};
+        if (mat.userData.baseOpacity === undefined) mat.userData.baseOpacity = mat.opacity || 0.35;
+        if (mat.userData.baseColorHex === undefined && mat.color) mat.userData.baseColorHex = mat.color.getHex();
+
+        const isMeshFocused = (mesh === _focusTargetMesh);
+        if (_hasPlanetFocus) {
+          if (isMeshFocused) {
+            mat.blending = THREE.AdditiveBlending;
+            mat.opacity += (0.95 - mat.opacity) * 0.22;
+            if (mat.color) mat.color.lerp(new THREE.Color(0xffffff), 0.25);
+          } else {
+            mat.blending = THREE.NormalBlending;
+            mat.opacity += (0.11 - mat.opacity) * 0.18;
+            if (mat.color && mat.userData.baseColorHex !== undefined) {
+              mat.color.lerp(new THREE.Color(mat.userData.baseColorHex), 0.18);
+            }
+          }
+        } else {
+          mat.blending = THREE.NormalBlending;
+          mat.opacity += (mat.userData.baseOpacity - mat.opacity) * 0.16;
+          if (mat.color && mat.userData.baseColorHex !== undefined) {
+            mat.color.lerp(new THREE.Color(mat.userData.baseColorHex), 0.16);
+          }
+        }
       }
     }
 
@@ -4832,7 +4944,10 @@
         else tourCtrl.classList.add('hidden');
       }
 
-      if (isOverviewToggleActive && !isSidebarUserHidden) {
+      if (typeof window.populateSpatialCallout === 'function') {
+        window.populateSpatialCallout(data, isTierOverview);
+      }
+      if (isOverviewToggleActive && !isSidebarUserHidden && window._forceFullSidebarOpen) {
         document.getElementById('inspector').classList.remove('translate-x-[430px]');
       } else {
         document.getElementById('inspector').classList.add('translate-x-[430px]');
@@ -4848,8 +4963,277 @@
       document.getElementById('inspector').classList.add('translate-x-[430px]');
       activeTarget = null;
       activeTargetMesh = null;
+      window._spatialCalloutDismissedForMesh = null;
       if (typeof lastTrackedTargetPos !== 'undefined') lastTrackedTargetPos.set(0, 0, 0);
+      const spLayer = document.getElementById('spatial-telemetry-layer');
+      if (spLayer) spLayer.classList.add('opacity-0');
       updateSidebarToggleStyle();
+    };
+
+    window._spatialCalloutDismissedForMesh = null;
+    window._forceFullSidebarOpen = false;
+    window._isSpatialCalloutVisible = false;
+    window._spatialMetricRelativeMode = false;
+    window._spatialCurrentMetrics = [];
+    window._spatialFactDeck = [];
+    window._spatialFactIndex = 0;
+    const _spatialWorldPos = new THREE.Vector3();
+    const _spatialProjVec = new THREE.Vector3();
+
+    // Split "6,051.8 km (0.95 R⊕)" into cleanly separated Absolute vs Relative strings so neither truncates
+    function splitMetricValue(rawVal, label) {
+      const str = String(rawVal || "").trim();
+      const parenMatch = str.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+      if (parenMatch) {
+        return {
+          primary: parenMatch[1].trim(),
+          relative: parenMatch[2].trim()
+        };
+      }
+      // If no parenthetical exists, provide intelligent astronomical context where possible
+      return {
+        primary: str,
+        relative: str
+      };
+    }
+
+    function renderSpatialMetricsGrid() {
+      const gridEl = document.getElementById('spatial-metrics-grid');
+      const unitBtnLabel = document.getElementById('spatial-unit-toggle-label');
+      if (!gridEl) return;
+
+      const metrics = window._spatialCurrentMetrics || [];
+      if (metrics.length === 0) {
+        gridEl.style.display = 'none';
+        gridEl.innerHTML = '';
+        return;
+      }
+
+      gridEl.style.display = 'grid';
+      const useRel = Boolean(window._spatialMetricRelativeMode);
+      if (unitBtnLabel) {
+        unitBtnLabel.textContent = useRel ? 'ABSOLUTE SI' : 'VS EARTH / SUN';
+      }
+
+      gridEl.innerHTML = metrics.map(([lbl, rawVal]) => {
+        const parsed = splitMetricValue(rawVal, lbl);
+        const displayVal = useRel ? parsed.relative : parsed.primary;
+        const valColor = useRel ? 'text-cyan-200' : 'text-slate-100';
+        return `
+          <div class="spatial-hairline-cell">
+            <span class="block text-[8.5px] font-mono uppercase tracking-wider text-slate-400 truncate">${lbl}</span>
+            <span class="block text-[10.5px] font-mono font-semibold ${valColor} leading-snug mt-0.5 break-words">${displayVal}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderSpatialFactDeck() {
+      const sumEl = document.getElementById('spatial-target-summary');
+      const lblEl = document.getElementById('spatial-deck-label');
+      const cntEl = document.getElementById('spatial-deck-counter');
+      const nextBtn = document.getElementById('spatial-deck-next-btn');
+      if (!sumEl) return;
+
+      const deck = window._spatialFactDeck || [];
+      if (deck.length === 0) {
+        sumEl.textContent = '';
+        if (nextBtn) nextBtn.style.display = 'none';
+        return;
+      }
+
+      const idx = ((window._spatialFactIndex % deck.length) + deck.length) % deck.length;
+      const item = deck[idx];
+      if (lblEl) lblEl.textContent = item.heading;
+      if (cntEl) cntEl.textContent = `${idx + 1} / ${deck.length}`;
+      if (nextBtn) nextBtn.style.display = deck.length > 1 ? 'flex' : 'none';
+      sumEl.textContent = item.text;
+    }
+
+    window.toggleSpatialMetricMode = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      window._spatialMetricRelativeMode = !window._spatialMetricRelativeMode;
+      renderSpatialMetricsGrid();
+    };
+
+    window.cycleSpatialFactDeck = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      const deck = window._spatialFactDeck || [];
+      if (deck.length <= 1) return;
+      window._spatialFactIndex = (window._spatialFactIndex + 1) % deck.length;
+      renderSpatialFactDeck();
+    };
+
+    window.populateSpatialCallout = function(data, isTierOverview = false) {
+      if (!data) return;
+      window._spatialCalloutDismissedForMesh = null;
+      window._spatialFactIndex = 0;
+
+      const nameEl = document.getElementById('spatial-target-name');
+      const scaleEl = document.getElementById('spatial-target-scale');
+      const metaEl = document.getElementById('spatial-target-meta');
+      if (!nameEl) return;
+
+      nameEl.textContent = data.name || data.title || 'OBJECT';
+
+      // Extract clean order of magnitude (e.g. "10^15 m") without verbose parentheticals so title never truncates
+      const rawScale = String(data.scale_order || '').trim();
+      const cleanScale = rawScale.replace(/\s*\([^)]*\)/g, '').trim();
+      scaleEl.textContent = cleanScale;
+      scaleEl.style.display = cleanScale ? 'inline-block' : 'none';
+
+      const typeStr = data.type || '';
+      const distStr = data.distance ? String(data.distance).replace(/\s*\([^)]*\)/g, '').trim() : '';
+      metaEl.textContent = (typeStr && distStr) ? `${typeStr} • ${distStr}` : (typeStr || distStr);
+
+      const profile = isTierOverview
+        ? data
+        : (ASTROPHYSICAL_ARCHIVE[(data.id || '').toLowerCase()] || null);
+
+      window._spatialCurrentMetrics = (profile && profile.metrics) ? profile.metrics.slice(0, 4) : [];
+      renderSpatialMetricsGrid();
+
+      // Build interactive Fact Deck: [Overview Summary, Fact 1, Fact 2, Fact 3]
+      const deck = [];
+      if (data.summary) {
+        deck.push({ heading: 'OVERVIEW', text: data.summary });
+      }
+      if (profile && Array.isArray(profile.facts)) {
+        profile.facts.forEach((f, idx) => {
+          deck.push({ heading: `ASTROPHYSICAL LOG 0${idx + 1}`, text: f });
+        });
+      }
+      window._spatialFactDeck = deck;
+      renderSpatialFactDeck();
+    };
+
+    window.dismissSpatialCallout = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      window._spatialCalloutDismissedForMesh = activeTargetMesh;
+      window._isSpatialCalloutVisible = false;
+      const layer = document.getElementById('spatial-telemetry-layer');
+      if (layer) layer.classList.add('opacity-0');
+    };
+
+    window.expandDeepArchiveFromCallout = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      window._forceFullSidebarOpen = true;
+      window._isSpatialCalloutVisible = false;
+      isOverviewToggleActive = true;
+      isSidebarUserHidden = false;
+      const inspector = document.getElementById('inspector');
+      if (inspector) inspector.classList.remove('translate-x-[430px]');
+      updateSidebarToggleStyle();
+      if (typeof window.syncInteractiveMapKey === 'function') window.syncInteractiveMapKey();
+    };
+
+    window.updateSpatialCalloutPosition = function() {
+      const layer = document.getElementById('spatial-telemetry-layer');
+      const card = document.getElementById('spatial-callout-card');
+      const line = document.getElementById('spatial-leader-line');
+      const dot = document.getElementById('spatial-anchor-dot');
+      const ring = document.getElementById('spatial-anchor-ring');
+      if (!layer || !card || !line || !dot || !ring) return;
+
+      const inspector = document.getElementById('inspector');
+      const isFullSidebarOpen = inspector && !inspector.classList.contains('translate-x-[430px]');
+      if (!isFullSidebarOpen) {
+        window._forceFullSidebarOpen = false;
+      }
+
+      const targetId = (activeTargetMesh && activeTargetMesh.userData && activeTargetMesh.userData.id)
+        ? String(activeTargetMesh.userData.id).toLowerCase()
+        : '';
+
+      if (
+        !activeTargetMesh ||
+        !activeTarget ||
+        isFullSidebarOpen ||
+        window._spatialCalloutDismissedForMesh === activeTargetMesh ||
+        !isNodeVisible(activeTargetMesh)
+      ) {
+        window._isSpatialCalloutVisible = false;
+        layer.classList.add('opacity-0');
+        card.style.pointerEvents = 'none';
+        return;
+      }
+
+      if (targetId === 'sun' && !isTourActive && camera.position.length() > 14.5 && !window._userClickedSunExplicitly) {
+        window._isSpatialCalloutVisible = false;
+        layer.classList.add('opacity-0');
+        card.style.pointerEvents = 'none';
+        return;
+      }
+
+      activeTargetMesh.getWorldPosition(_spatialWorldPos);
+      _spatialProjVec.copy(_spatialWorldPos).project(camera);
+
+      if (_spatialProjVec.z > 1.0) {
+        window._isSpatialCalloutVisible = false;
+        layer.classList.add('opacity-0');
+        card.style.pointerEvents = 'none';
+        return;
+      }
+
+      const sx = (_spatialProjVec.x * 0.5 + 0.5) * window.innerWidth;
+      const sy = (-_spatialProjVec.y * 0.5 + 0.5) * window.innerHeight;
+
+      if (sx < 20 || sx > window.innerWidth - 20 || sy < 20 || sy > window.innerHeight - 20) {
+        window._isSpatialCalloutVisible = false;
+        layer.classList.add('opacity-0');
+        card.style.pointerEvents = 'none';
+        return;
+      }
+
+      window._isSpatialCalloutVisible = true;
+      layer.classList.remove('opacity-0');
+      card.style.pointerEvents = 'auto';
+
+      // Compute Apparent Screen Radius in Pixels so the leader line anchors on the outer limb and NEVER covers the object or accretion disk
+      const distToCam = Math.max(0.1, camera.position.distanceTo(_spatialWorldPos));
+      const fovRad = (camera.fov * Math.PI) / 180.0;
+      const pxPerUnit = (window.innerHeight * 0.5) / Math.max(0.05, Math.tan(fovRad * 0.5) * distToCam);
+      const baseSize = (activeTarget && activeTarget.size) ? Number(activeTarget.size) : 1.0;
+
+      // Account for rings / relativistic accretion disks on Saturn, Uranus, Sagittarius A*, M87*, TON 618
+      let haloMultiplier = 1.15;
+      if (targetId === 'saturn' || targetId === 'uranus') haloMultiplier = 2.15;
+      else if (targetId === 'sagittarius-a' || targetId === 'm87-star' || targetId === 'ton-618') haloMultiplier = 2.35;
+
+      const apparentRadiusPx = Math.max(14, Math.min(185, baseSize * haloMultiplier * pxPerUnit));
+
+      const cardW = 312;
+      const cardH = card.offsetHeight || 182;
+      const flipLeft = sx > window.innerWidth * 0.56;
+      const dir = flipLeft ? -1 : 1;
+
+      card.classList.toggle('callout-flipped-left', flipLeft);
+
+      // Anchor reticle on the 35-degree upper outer limb of the object's visual perimeter
+      const limbAngle = 0.48; // ~27.5 deg above horizontal
+      const anchorX = sx + dir * Math.cos(limbAngle) * (apparentRadiusPx * 0.88);
+      const anchorY = sy - Math.sin(limbAngle) * (apparentRadiusPx * 0.88);
+
+      const elbowX = anchorX + dir * 32;
+      const elbowY = anchorY - 22;
+      const endX = elbowX + dir * 22;
+
+      let cardX = flipLeft ? (endX - cardW) : endX;
+      let cardY = elbowY - 26;
+
+      // Clamp safely inside viewport away from top header and bottom HUD
+      cardX = Math.max(18, Math.min(window.innerWidth - cardW - 24, cardX));
+      cardY = Math.max(62, Math.min(window.innerHeight - cardH - 88, cardY));
+
+      const attachX = flipLeft ? (cardX + cardW) : cardX;
+      const attachY = Math.max(cardY + 16, Math.min(cardY + cardH - 16, elbowY));
+
+      card.style.transform = `translate3d(${cardX.toFixed(1)}px, ${cardY.toFixed(1)}px, 0)`;
+      dot.setAttribute('cx', anchorX.toFixed(1));
+      dot.setAttribute('cy', anchorY.toFixed(1));
+      ring.setAttribute('cx', anchorX.toFixed(1));
+      ring.setAttribute('cy', anchorY.toFixed(1));
+      line.setAttribute('points', `${anchorX.toFixed(1)},${anchorY.toFixed(1)} ${elbowX.toFixed(1)},${attachY.toFixed(1)} ${attachX.toFixed(1)},${attachY.toFixed(1)}`);
     };
 
     window.smoothFlyToTarget = function(durationMs = 2600) {
@@ -8367,7 +8751,87 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
     pointer-events: none !important;
     z-index: 99997;
   }
-</style>
+
+    /* === UPDATE 5: Subtle Idle HUD Dimming === */
+    html:not(.is-booting) #bottom-hud,
+    html:not(.is-booting) #header-nova-pill,
+    html:not(.is-booting) #inspector-edge-tab,
+    html:not(.is-booting) #map-key-summon-btn {
+      transition: opacity 260ms cubic-bezier(0.22, 1, 0.36, 1), transform 700ms cubic-bezier(0.22, 1, 0.36, 1), border-color 300ms ease, background-color 300ms ease, box-shadow 300ms ease;
+    }
+    html:not(.is-booting).nova-hud-idle #bottom-hud,
+    html:not(.is-booting).nova-hud-idle #header-nova-pill,
+    html:not(.is-booting).nova-hud-idle #inspector-edge-tab,
+    html:not(.is-booting).nova-hud-idle #map-key-summon-btn {
+      opacity: 0.38 !important;
+      transition: opacity 1200ms cubic-bezier(0.22, 1, 0.36, 1), transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    html:not(.is-booting).nova-hud-idle #bottom-hud:hover,
+    html:not(.is-booting).nova-hud-idle #header-nova-pill:hover,
+    html:not(.is-booting).nova-hud-idle #inspector-edge-tab:hover,
+    html:not(.is-booting).nova-hud-idle #map-key-summon-btn:hover {
+      opacity: 1 !important;
+    }
+
+  
+    /* === SPATIAL 2D SCREEN-ALIGNED HUD CALLOUT === */
+    html.is-booting #spatial-telemetry-layer {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+    }
+    #spatial-telemetry-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 18;
+      pointer-events: none;
+      overflow: hidden;
+      transition: opacity 240ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #spatial-callout-card {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 312px;
+      pointer-events: auto;
+      background: rgba(2, 6, 18, 0.44);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-left: 2px solid rgba(248, 250, 252, 0.88);
+      border-radius: 10px;
+      padding: 11px 13px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      will-change: transform, opacity;
+      transition: opacity 200ms ease, border-color 200ms ease;
+    }
+    #spatial-callout-card.callout-flipped-left {
+      border-left: 1px solid rgba(255, 255, 255, 0.11);
+      border-right: 2px solid rgba(248, 250, 252, 0.88);
+    }
+    .spatial-hairline-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-top: 1px solid rgba(255, 255, 255, 0.09);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    }
+    .spatial-hairline-cell {
+      padding: 5px 6px;
+    }
+    .spatial-hairline-cell:nth-child(odd) {
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      padding-left: 0;
+    }
+    .spatial-hairline-cell:nth-child(even) {
+      padding-left: 8px;
+      padding-right: 0;
+    }
+    .spatial-hairline-cell:nth-child(1),
+    .spatial-hairline-cell:nth-child(2) {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+  </style>
 
 <div id="nova-cursor-dot" style="pointer-events: none !important;"></div>
 <div id="nova-cursor-halo" style="pointer-events: none !important;"></div>
@@ -8979,6 +9443,135 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       setTimeout(syncAllInitial, 150);
       setTimeout(syncAllInitial, 600);
 
+
+
+      
+
+      
+
+      // === UPDATE 5: Subtle Idle HUD Dimming + Flight-Deck Keyboard Shortcuts ===
+      (function initIdleDimmingAndHotkeys() {
+        const IDLE_TIMEOUT_MS = 6000;
+        let idleTimer = null;
+        let isPointerOverHud = false;
+
+        // Add clean accessible aria-labels to icon-only controls without browser title tooltips
+        const ariaMap = {
+          "btn-cosmic-tour": "Toggle Guided Cosmic Tour (Shortcut: T)",
+          "nova-attitude-sphere": "Reset Attitude to Solar System View (Shortcut: R)",
+          "btn-cosmic-web": "Toggle Network Filaments [N] (Shortcut: N)",
+          "btn-orbits": "Toggle Orbital Motion [O] (Shortcut: O)",
+          "btn-toggle-labels": "Toggle Viewport Labels [V] (Shortcut: V)",
+          "btn-t0": "Toggle Aperture Scale Depth [A] (Shortcut: A)",
+          "btn-toggle-sidebar": "Toggle Overview Sidebar (Shortcut: I)",
+          "btn-fullscreen-zen": "Toggle Fullscreen Mode (Shortcut: F)",
+          "inspector-edge-tab": "Toggle Overview Sidebar Drawer (Shortcut: I)",
+          "map-key-summon-btn": "Open Map Key Drawer (Shortcut: M)",
+          "map-key-attached-tab": "Close Map Key Drawer (Shortcut: M)"
+        };
+        Object.keys(ariaMap).forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.setAttribute("aria-label", ariaMap[id]);
+            el.removeAttribute("title");
+          }
+        });
+
+        function wakeHud() {
+          document.documentElement.classList.remove("nova-hud-idle");
+          if (idleTimer) clearTimeout(idleTimer);
+          idleTimer = setTimeout(() => {
+            if (document.documentElement.classList.contains("is-booting")) return;
+            if (isPointerOverHud) return;
+            // Keep HUD fully awake if Map Key drawer is actively open
+            const mk = document.getElementById("map-key-drawer");
+            const isMkOpen = mk && !mk.classList.contains("translate-x-[300px]");
+            if (isMkOpen) return;
+            document.documentElement.classList.add("nova-hud-idle");
+          }, IDLE_TIMEOUT_MS);
+        }
+
+        // Track whether cursor is resting on any HUD element so it never dims under the user's hand
+        document.addEventListener("pointermove", (e) => {
+          if (e.target && e.target.closest) {
+            isPointerOverHud = Boolean(
+              e.target.closest("#bottom-hud, #inspector, #map-key-drawer, #inspector-edge-tab, #map-key-summon-btn, #header-nova-pill")
+            );
+          }
+          wakeHud();
+        }, { passive: true });
+
+        ["pointerdown", "wheel", "touchstart", "keydown"].forEach((evt) => {
+          window.addEventListener(evt, wakeHud, { passive: true });
+        });
+
+        wakeHud();
+
+        // Flight-Deck Keyboard Shortcuts
+        window.addEventListener("keydown", (e) => {
+          if (e.defaultPrevented) return;
+          if (e.metaKey || e.ctrlKey || e.altKey) return;
+          if (document.documentElement.classList.contains("is-booting")) return;
+
+          const activeEl = document.activeElement;
+          if (activeEl && (
+            activeEl.tagName === "INPUT" ||
+            activeEl.tagName === "TEXTAREA" ||
+            activeEl.tagName === "SELECT" ||
+            activeEl.isContentEditable
+          )) {
+            // Allow arrow keys on range slider, ignore letter hotkeys if typing in text field
+            if (activeEl.type !== "range") return;
+          }
+
+          const key = (e.key || "").toLowerCase();
+          switch (key) {
+            case "n":
+              e.preventDefault();
+              if (typeof window.handleNovaNClick === "function") window.handleNovaNClick(e);
+              break;
+            case "o":
+              e.preventDefault();
+              if (typeof window.handleNovaOClick === "function") window.handleNovaOClick(e);
+              break;
+            case "v":
+              e.preventDefault();
+              if (typeof window.handleNovaVClick === "function") window.handleNovaVClick(e);
+              break;
+            case "a":
+              e.preventDefault();
+              if (typeof window.handleNovaAClick === "function") window.handleNovaAClick(e);
+              break;
+            case "r":
+              e.preventDefault();
+              if (typeof window.triggerMapKeyReset === "function") {
+                window.triggerMapKeyReset(e);
+              } else {
+                const sphere = document.getElementById("nova-attitude-sphere");
+                if (sphere) sphere.click();
+              }
+              break;
+            case "m":
+            case "k":
+              e.preventDefault();
+              if (typeof window.toggleMapKey === "function") window.toggleMapKey(e);
+              break;
+            case "i":
+            case "s":
+              e.preventDefault();
+              if (typeof window.toggleSidebarVisibility === "function") window.toggleSidebarVisibility(e);
+              break;
+            case "f":
+              e.preventDefault();
+              if (typeof window.toggleFullscreenZen === "function") window.toggleFullscreenZen();
+              break;
+            case "t":
+              e.preventDefault();
+              if (typeof window.toggleCosmicTour === "function") window.toggleCosmicTour(e);
+              break;
+          }
+        });
+      })();
 
     })();
 
