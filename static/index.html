@@ -4626,13 +4626,18 @@
         const isCalloutActiveOnMesh = Boolean(
           window._isSpatialCalloutVisible && activeTargetMesh && entry.mesh === activeTargetMesh
         );
-        const isLabelOccludedByDisc = Boolean(window._isScreenPointOccluded && window._isScreenPointOccluded(entry.sx, entry.sy, finalX, finalY, entry.id, entry.mesh));
-        const effectiveAlpha = (isCalloutActiveOnMesh || isLabelOccludedByDisc)
-          ? 0.0
-          : (_hasPlanetFocus ? (isEntryFocused ? 1.0 : entry.alpha * 0.52) : entry.alpha);
+        const occlusionVis = window._getScreenPointOcclusionFactor
+          ? window._getScreenPointOcclusionFactor(entry.sx, entry.sy, finalX, finalY, entry.id, entry.mesh)
+          : 1.0;
+
+        const baseAlpha = _hasPlanetFocus
+          ? (isEntryFocused ? 1.0 : entry.alpha * 0.52)
+          : entry.alpha;
+
+        const effectiveAlpha = isCalloutActiveOnMesh ? 0.0 : (baseAlpha * occlusionVis);
         entry.el.style.transform = `translate3d(${finalX.toFixed(1)}px, ${finalY.toFixed(1)}px, 0) translateY(-50%)`;
         entry.el.style.opacity = effectiveAlpha.toFixed(3);
-        entry.el.style.pointerEvents = isCalloutActiveOnMesh ? "none" : "auto";
+        entry.el.style.pointerEvents = (isCalloutActiveOnMesh || effectiveAlpha < 0.15) ? "none" : "auto";
       }
 
       // === 60FPS 3D-TO-2D SPATIAL HUD CALLOUT PROJECTION ===
@@ -5909,13 +5914,7 @@
           const worldRadius = baseSize * scaleFactor;
 
           const pxPerUnit = halfH / Math.max(0.1, fovTan * distToCam);
-          let screenRadPx = worldRadius * pxPerUnit;
-
-          if (id === "sun") {
-            screenRadPx *= 1.48;
-          } else {
-            screenRadPx *= 1.06;
-          }
+          const screenRadPx = worldRadius * pxPerUnit * (id === "sun" ? 1.02 : 1.04);
 
           bodyRecords.push({
             mesh: mesh,
@@ -5936,42 +5935,17 @@
         bodyRecords.sort(function(a, b) { return a.distToCam - b.distToCam; });
 
         for (let i = 0; i < bodyRecords.length; i++) {
-          if (bodyRecords[i].screenRadPx > 10) {
+          if (bodyRecords[i].screenRadPx > 8) {
             window._activeScreenOccluders.push(bodyRecords[i]);
           }
         }
 
         const sunRec = bodyRecords.find(function(b) { return b.isSun; });
         const isSunFocusedOrZoomed = Boolean(
-          sunRec && (sunRec.isFocused || sunRec.screenRadPx > 95 || sunRec.distToCam < 22.0)
+          sunRec && (sunRec.isFocused || sunRec.screenRadPx > 130 || sunRec.distToCam < 18.0)
         );
 
         initAndStepNovaDepthEngine(sc, cam, celObjs, isSunFocusedOrZoomed);
-
-        for (let i = 0; i < bodyRecords.length; i++) {
-          const cand = bodyRecords[i];
-          if (!cand.mesh.visible || cand.isFocused || cand.isSun) continue;
-
-          for (let j = 0; j < bodyRecords.length; j++) {
-            if (i === j) continue;
-            const occ = bodyRecords[j];
-            if (occ.screenRadPx < 10) continue;
-
-            const screenDist = Math.hypot(cand.sx - occ.sx, cand.sy - occ.sy);
-            const touchThreshold = occ.screenRadPx + Math.min(cand.screenRadPx * 0.5, 14);
-
-            if (screenDist < touchThreshold) {
-              const isBehind = cand.distToCam > occ.distToCam;
-              // Always prevent dark night-side planet silhouettes from cutting across the Sun's bright yellow disc!
-              const isCrossingSunDisc = occ.isSun;
-
-              if (isBehind || isCrossingSunDisc) {
-                hideObjectAndAssociatedVisuals(cand.mesh);
-                break;
-              }
-            }
-          }
-        }
 
         sc.traverse(function(obj) {
           if (!obj.visible || obj.isScene || obj.isCamera || obj.isLight || obj.isPoints) return;
@@ -5998,37 +5972,42 @@
       }
     };
 
-    window._isScreenPointOccluded = function(planetSx, planetSy, labelX, labelY, entryId, entryMesh) {
-      if (!entryMesh || !entryMesh.visible) return true;
+    window._getScreenPointOcclusionFactor = function(planetSx, planetSy, labelX, labelY, entryId, entryMesh) {
+      if (!entryMesh || !entryMesh.visible) return 0.0;
       const occluders = window._activeScreenOccluders || [];
-      if (occluders.length === 0) return false;
+      if (occluders.length === 0) return 1.0;
 
       const cam = window._novaCamRef;
-      if (!cam) return false;
+      if (!cam) return 1.0;
       const pos = new THREE.Vector3();
       entryMesh.getWorldPosition(pos);
       const candDist = cam.position.distanceTo(pos);
       const lowerId = String(entryId || "").toLowerCase();
 
+      let visibility = 1.0;
+
       for (let i = 0; i < occluders.length; i++) {
         const occ = occluders[i];
         if (occ.mesh === entryMesh || occ.id === lowerId) {
-          if (occ.isSun && (occ.isFocused || occ.screenRadPx > 95)) return true;
+          if (occ.isSun && (occ.isFocused || occ.screenRadPx > 130)) return 0.0;
           continue;
         }
 
-        const isSunZoom = occ.isSun;
-        if (candDist > occ.distToCam || isSunZoom) {
+        if (candDist > occ.distToCam + occ.worldRadius * 0.25) {
           const dPlanet = Math.hypot(planetSx - occ.sx, planetSy - occ.sy);
-          const dLabelLeft = Math.hypot(labelX - occ.sx, labelY - occ.sy);
-          const dLabelMid = Math.hypot((labelX + 32) - occ.sx, labelY - occ.sy);
-          const rad = occ.screenRadPx * 1.05;
-          if (dPlanet < rad || dLabelLeft < rad || dLabelMid < rad) {
-            return true;
+          const innerLimb = occ.screenRadPx * 0.92;
+          const outerLimb = occ.screenRadPx * 1.32 + 8.0;
+
+          if (dPlanet <= innerLimb) {
+            return 0.0;
+          } else if (dPlanet < outerLimb) {
+            const t = (dPlanet - innerLimb) / Math.max(1.0, outerLimb - innerLimb);
+            const smoothFade = t * t * (3.0 - 2.0 * t);
+            visibility = Math.min(visibility, smoothFade);
           }
         }
       }
-      return false;
+      return visibility;
     };
 
     window._novaAfterRender = function() {
@@ -8976,6 +8955,8 @@
     function createAnimatedSunMaterial() {
       return new THREE.ShaderMaterial({
         uniforms: window.sunShaderUniforms,
+        depthWrite: true,
+        depthTest: true,
         vertexShader: `
           varying vec3 vNormal;
           varying vec3 vPosition;
