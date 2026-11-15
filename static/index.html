@@ -743,7 +743,7 @@
   <!-- Cinematic Boot Sequence & Wormhole Transition Overlay -->
   <div id="nova-boot-overlay">
     <!-- Forward-moving Starfield Traversal Canvas -->
-    <canvas id="nova-warp-canvas" class="pointer-events-none absolute inset-0 z-10 opacity-0"></canvas>
+    <canvas id="nova-warp-canvas" class="pointer-events-none absolute inset-0 z-10 opacity-100"></canvas>
 
     <!-- Centered Logo & Portal Container -->
     <div id="nova-boot-center-container" class="relative z-20 flex flex-col items-center justify-center will-change-transform">
@@ -10195,6 +10195,286 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         portalO.addEventListener("click", onPortalTriggerClick, { once: true });
       }
 
+      // =========================================================================
+      // INTERACTIVE MONOCHROME BOOT FIELD & VECTOR WORDMARK PHYSICS (ZERO COLOR)
+      // =========================================================================
+      let stopIdleBootField = (function initInteractiveBootField() {
+        const canvas = document.getElementById("nova-warp-canvas");
+        const svgEl = document.getElementById("nova-boot-svg");
+        const overlayEl = document.getElementById("nova-boot-overlay");
+        if (!canvas || !svgEl || !overlayEl) return null;
+
+        const ctx = canvas.getContext("2d");
+        let w = (canvas.width = window.innerWidth);
+        let h = (canvas.height = window.innerHeight);
+        canvas.style.opacity = "1";
+
+        // Sample original SVG wordmark paths so cursor & clicks physically flex the letters
+        const pathIds = ["nova-base-n", "nova-svg-o-top", "nova-svg-o-bot", "nova-base-v", "nova-base-a"];
+        const idlePaths = [];
+        pathIds.forEach((id) => {
+          const el = document.getElementById(id);
+          if (!el || typeof el.getTotalLength !== "function") return;
+          const totalLen = el.getTotalLength();
+          const numPts = Math.max(48, Math.ceil(totalLen / 2.5));
+          const pts = [];
+          for (let i = 0; i <= numPts; i++) {
+            const pt = el.getPointAtLength((i / numPts) * totalLen);
+            pts.push({ ox: pt.x, oy: pt.y, vx: 0, vy: 0, dx: 0, dy: 0 });
+          }
+          idlePaths.push({ el, pts });
+        });
+
+        const dotEl = document.getElementById("nova-base-a-dot");
+        const idleDot = { ox: 657.5, oy: 71.5, r: 11.5, vx: 0, vy: 0, dx: 0, dy: 0 };
+
+        // Monochrome background particles with spring-return home anchors
+        const particleCount = 72;
+        const bgParticles = [];
+        function seedParticles() {
+          bgParticles.length = 0;
+          for (let i = 0; i < particleCount; i++) {
+            const hx = Math.random() * w;
+            const hy = Math.random() * h;
+            bgParticles.push({
+              hx, hy,
+              x: hx, y: hy,
+              vx: 0, vy: 0,
+              size: 0.8 + Math.random() * 1.35,
+              baseAlpha: 0.14 + Math.random() * 0.28,
+              phase: Math.random() * Math.PI * 2
+            });
+          }
+        }
+        seedParticles();
+
+        const onResize = () => {
+          w = canvas.width = window.innerWidth;
+          h = canvas.height = window.innerHeight;
+          seedParticles();
+        };
+        window.addEventListener("resize", onResize);
+
+        const pointer = { x: -9999, y: -9999, vx: 0, vy: 0, active: false };
+        const ripples = [];
+
+        const onMove = (e) => {
+          if (pointer.active) {
+            pointer.vx = e.clientX - pointer.x;
+            pointer.vy = e.clientY - pointer.y;
+          }
+          pointer.x = e.clientX;
+          pointer.y = e.clientY;
+          pointer.active = true;
+        };
+
+        const onDown = (e) => {
+          // If clicking anywhere outside the 'O' portal trigger, emit a physical shockwave
+          if (e.target && e.target.closest && e.target.closest("#nova-portal-o")) return;
+          ripples.push({
+            x: e.clientX,
+            y: e.clientY,
+            r: 4,
+            maxR: Math.max(w, h) * 0.45,
+            alpha: 0.45,
+            strength: 1.0
+          });
+        };
+
+        window.addEventListener("pointermove", onMove, { passive: true });
+        overlayEl.addEventListener("pointerdown", onDown);
+
+        let isRunning = true;
+        let rafId = null;
+
+        function tick(now) {
+          if (!isRunning) return;
+          const t = now * 0.001;
+          ctx.clearRect(0, 0, w, h);
+
+          pointer.vx *= 0.85;
+          pointer.vy *= 0.85;
+
+          // 1. Find the 3 to 4 closest background particles within magnetic range (190px)
+          const pullRadius = 190;
+          const candidates = [];
+          if (pointer.active) {
+            for (let i = 0; i < bgParticles.length; i++) {
+              const p = bgParticles[i];
+              const d = Math.hypot(pointer.x - p.hx, pointer.y - p.hy);
+              if (d < pullRadius) {
+                candidates.push({ idx: i, d });
+              }
+            }
+            candidates.sort((a, b) => a.d - b.d);
+          }
+          const pulledSet = new Set(candidates.slice(0, 4).map((c) => c.idx));
+
+          // 2. Update & draw monochrome background particles
+          for (let i = 0; i < bgParticles.length; i++) {
+            const p = bgParticles[i];
+            // Subtle ambient drift around home anchor
+            const targetHx = p.hx + Math.cos(t * 0.45 + p.phase) * 3.5;
+            const targetHy = p.hy + Math.sin(t * 0.45 + p.phase) * 3.5;
+
+            if (pulledSet.has(i)) {
+              // Heavy, smooth magnetic pull toward cursor (capped so it never overshoots)
+              const dx = pointer.x - p.x;
+              const dy = pointer.y - p.y;
+              const dist = Math.hypot(dx, dy);
+              const pullFactor = Math.max(0, 1 - dist / pullRadius);
+              p.vx += dx * 0.018 * pullFactor;
+              p.vy += dy * 0.018 * pullFactor;
+              // Gentle spring back to home anchor so it orbits/tethers smoothly
+              p.vx += (targetHx - p.x) * 0.028;
+              p.vy += (targetHy - p.y) * 0.028;
+
+              // Ultra-subtle monochrome tether line to the 3-4 pulled particles
+              const lineAlpha = pullFactor * 0.14;
+              if (lineAlpha > 0.01) {
+                ctx.strokeStyle = `rgba(255, 255, 255, ${lineAlpha.toFixed(3)})`;
+                ctx.lineWidth = 0.65;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(pointer.x, pointer.y);
+                ctx.stroke();
+              }
+            } else {
+              // Smooth return to background home position
+              p.vx += (targetHx - p.x) * 0.042;
+              p.vy += (targetHy - p.y) * 0.042;
+            }
+
+            // Apply impulse from any active click shockwaves
+            for (let r = 0; r < ripples.length; r++) {
+              const rip = ripples[r];
+              const rx = p.x - rip.x;
+              const ry = p.y - rip.y;
+              const rDist = Math.hypot(rx, ry) || 1;
+              const bandDist = Math.abs(rDist - rip.r);
+              if (bandDist < 42) {
+                const waveForce = (1 - bandDist / 42) * rip.strength * 2.4;
+                p.vx += (rx / rDist) * waveForce;
+                p.vy += (ry / rDist) * waveForce;
+              }
+            }
+
+            // Heavy damping for smooth, weighted physics
+            p.vx *= 0.86;
+            p.vy *= 0.86;
+            p.x += p.vx;
+            p.y += p.vy;
+
+            const activeBoost = pulledSet.has(i) ? 0.35 : 0;
+            const alpha = Math.min(0.85, p.baseAlpha + activeBoost);
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, pulledSet.has(i) ? p.size * 1.25 : p.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // 3. Update & draw expanding monochrome click shockwave rings
+          for (let r = ripples.length - 1; r >= 0; r--) {
+            const rip = ripples[r];
+            rip.r += (rip.maxR - rip.r) * 0.055 + 3.2;
+            rip.alpha *= 0.94;
+            rip.strength *= 0.95;
+
+            if (rip.alpha <= 0.01) {
+              ripples.splice(r, 1);
+              continue;
+            }
+
+            ctx.strokeStyle = `rgba(255, 255, 255, ${rip.alpha.toFixed(3)})`;
+            ctx.lineWidth = 1.0;
+            ctx.beginPath();
+            ctx.arc(rip.x, rip.y, rip.r, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          // 4. Reactive SVG Wordmark Physics (Cursor proximity & click ripples gently warp NOVA letters)
+          const svgRect = svgEl.getBoundingClientRect();
+          if (svgRect.width > 0 && svgRect.height > 0) {
+            const scaleX = 734 / svgRect.width;
+            const scaleY = 144 / svgRect.height;
+            const svgMouseX = (pointer.x - svgRect.left) * scaleX;
+            const svgMouseY = (pointer.y - svgRect.top) * scaleY;
+            const svgRadius = 95; // SVG coordinate interaction radius
+
+            function stepSvgPoint(pt) {
+              // Spring restore toward original glyph coordinate
+              let fx = -pt.dx * 0.12;
+              let fy = -pt.dy * 0.12;
+
+              if (pointer.active) {
+                const mx = pt.ox + pt.dx - svgMouseX;
+                const my = pt.oy + pt.dy - svgMouseY;
+                const mDist = Math.hypot(mx, my);
+                if (mDist < svgRadius && mDist > 0.01) {
+                  const falloff = Math.pow(1 - mDist / svgRadius, 2);
+                  // Subtle elastic repulsion + cursor velocity drag
+                  fx += (mx / mDist) * falloff * 1.45 + pointer.vx * 0.035 * falloff;
+                  fy += (my / mDist) * falloff * 1.45 + pointer.vy * 0.035 * falloff;
+                }
+              }
+
+              // Click shockwave ripple through the NOVA letters
+              for (let r = 0; r < ripples.length; r++) {
+                const rip = ripples[r];
+                const ripSvgX = (rip.x - svgRect.left) * scaleX;
+                const ripSvgY = (rip.y - svgRect.top) * scaleY;
+                const ripSvgR = rip.r * scaleX;
+                const rx = pt.ox - ripSvgX;
+                const ry = pt.oy - ripSvgY;
+                const rDist = Math.hypot(rx, ry) || 1;
+                const band = Math.abs(rDist - ripSvgR);
+                if (band < 36) {
+                  const push = (1 - band / 36) * rip.strength * 2.8;
+                  fx += (rx / rDist) * push;
+                  fy += (ry / rDist) * push;
+                }
+              }
+
+              pt.vx = (pt.vx + fx) * 0.82;
+              pt.vy = (pt.vy + fy) * 0.82;
+              pt.dx += pt.vx;
+              pt.dy += pt.vy;
+            }
+
+            idlePaths.forEach((item) => {
+              const pts = item.pts;
+              let dStr = "";
+              for (let i = 0; i < pts.length; i++) {
+                stepSvgPoint(pts[i]);
+                const px = pts[i].ox + pts[i].dx;
+                const py = pts[i].oy + pts[i].dy;
+                dStr += (i === 0 ? "M " : " L ") + px.toFixed(2) + " " + py.toFixed(2);
+              }
+              item.el.setAttribute("d", dStr);
+            });
+
+            if (dotEl) {
+              stepSvgPoint(idleDot);
+              dotEl.setAttribute("cx", (idleDot.ox + idleDot.dx).toFixed(2));
+              dotEl.setAttribute("cy", (idleDot.oy + idleDot.dy).toFixed(2));
+            }
+          }
+
+          rafId = requestAnimationFrame(tick);
+        }
+
+        rafId = requestAnimationFrame(tick);
+
+        return function cleanupIdleBootField() {
+          isRunning = false;
+          if (rafId) cancelAnimationFrame(rafId);
+          window.removeEventListener("resize", onResize);
+          window.removeEventListener("pointermove", onMove);
+          overlayEl.removeEventListener("pointerdown", onDown);
+          if (ctx) ctx.clearRect(0, 0, w, h);
+        };
+      })();
+
       // Pure monochrome starfield warp canvas (Zero color tints, pure white stars)
       function runStarfieldWarp(cx, cy, duration = 6200) {
         const canvas = document.getElementById("nova-warp-canvas");
@@ -10406,7 +10686,11 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       function onPortalTriggerClick(e) {
         if (isWormholeRunning) return;
         isWormholeRunning = true;
-            document.body.classList.remove('nova-portal-o-active', 'nova-cursor-hover');
+        if (typeof stopIdleBootField === "function") {
+          stopIdleBootField();
+          stopIdleBootField = null;
+        }
+        document.body.classList.remove('nova-portal-o-active', 'nova-cursor-hover');
         if (e && e.stopPropagation) e.stopPropagation();
 
         const portalO = document.getElementById("nova-portal-o");
