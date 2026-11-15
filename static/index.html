@@ -2352,10 +2352,12 @@
             "  // Keep far-side rocks legible (min 0.48) while foreground rocks pop at 1.15",
             "  float depthFade = clamp(1.25 - (camDist / max(12.0, sunCamDist * 1.75)) * 0.45, 0.48, 1.15);",
             "  float macroFade = 1.0 - smoothstep(280.0, 560.0, camDist);",
+            "  // Subtle in standard overview (camDist ~25-45), full crispness when zoomed near Ceres/belt (camDist < 14)",
+            "  float closeupBoost = mix(1.85, 1.0, smoothstep(7.0, 24.0, camDist));",
             "  vec3 col = mix(uShadowColor, uLitColor, clamp(diff * 0.85, 0.0, 1.0)) + uHighlightColor * specRim * 0.55;",
             "  col *= vBrightness * depthFade;",
             "  float edgeSoft = smoothstep(1.0, 0.52, rad);",
-            "  float alpha = uBaseOpacity * vFeather * depthFade * edgeSoft * macroFade;",
+            "  float alpha = clamp(uBaseOpacity * closeupBoost * vFeather * depthFade * edgeSoft * macroFade, 0.0, 0.95);",
             "  if (alpha <= 0.004) discard;",
             "  gl_FragColor = vec4(col, alpha);",
             "}"
@@ -2371,12 +2373,12 @@
         const rockMat = new THREE.MeshStandardMaterial({
           color: highlightHex,
           emissive: litHex,
-          emissiveIntensity: 0.42,
+          emissiveIntensity: 0.28,
           roughness: 0.78,
           metalness: 0.15,
           flatShading: true,
           transparent: true,
-          opacity: 0.86
+          opacity: Math.min(0.82, baseOpacity * 0.95)
         });
         const instRocks = new THREE.InstancedMesh(rockGeo, rockMat, boulderCount);
         instRocks.raycast = () => {};
@@ -2401,17 +2403,17 @@
         parentGroup.add(instRocks);
       }
 
-      // Layer A: MAIN ASTEROID BELT (Neutral Warm Silver-Stone / Pale Chondrite Ash — Crisp & Floating)
+      // Layer A: MAIN ASTEROID BELT (Subtle in standard view, full depth when zoomed in)
       addVolumetricBeltLayer(
         asteroidBelt,
-        4600,          // 4,600 distinct neutral stone/silver grains with generous dark space between them
-        220,           // 220 3D faceted floating boulders
+        3600,          // 3,600 distinct neutral stone/silver grains
+        180,           // 180 3D faceted floating boulders
         16.8, 22.2,    // Feathered span between Mars & Jupiter
         0.78,          // Vertical floating depth
         0x475569,      // Neutral slate shadow side
         0xcbd5e1,      // Crisp pale silver-stone body
         0xf8fafc,      // Pure starlight-white sunlit facet highlight
-        0.84,          // Strong per-grain visibility (no solid dust torus)
+        0.34,          // Toned-down base opacity for standard view (boosted on close approach)
         0.058          // 3D boulder scale
       );
 
@@ -5613,11 +5615,12 @@
         "  float camDist = length(cameraPosition - vWorldPos);",
         "  float sunCamDist = length(cameraPosition);",
         "  float depthAtten = clamp(1.22 - (camDist / max(8.0, sunCamDist * 1.45)) * 0.52, 0.32, 1.18);",
-        "  float macroFade = (1.0 - smoothstep(130.0, 250.0, camDist)) * smoothstep(2.5, 9.0, camDist);",
+        "  float macroFade = 1.0 - smoothstep(130.0, 250.0, camDist);",
+        "  float closeupBoost = mix(2.1, 1.0, smoothstep(6.0, 22.0, camDist));",
         "  vec3 col = mix(uCoreColor, uHighlightColor, clamp(rockLight * 0.65 + phaseCos * 0.25, 0.0, 1.0));",
         "  col *= vAlbedo * depthAtten * (0.75 + 0.45 * rockLight);",
         "  float edgeSoft = smoothstep(1.0, 0.35, r2);",
-        "  float alpha = uOpacity * edgeSoft * macroFade * depthAtten;",
+        "  float alpha = clamp(uOpacity * closeupBoost * edgeSoft * macroFade * depthAtten, 0.0, 0.92);",
         "  if (alpha <= 0.01) discard;",
         "  gl_FragColor = vec4(col, alpha);",
         "}"
@@ -5844,7 +5847,7 @@
           const beltInner = rMars + (rJupiter - rMars) * 0.22;
           const beltOuter = rMars + (rJupiter - rMars) * 0.78;
           const beltThick = (beltOuter - beltInner) * 0.14;
-          buildSunlitAsteroidBelt(sc, 6500, beltInner, beltOuter, beltThick, 0x8c6d46, 0xfcd34d, 0.85);
+          buildSunlitAsteroidBelt(sc, 4500, beltInner, beltOuter, beltThick, 0x8c6d46, 0xfcd34d, 0.32);
 
           if (rNeptune > rJupiter) {
             const kInner = rNeptune * 1.05;
