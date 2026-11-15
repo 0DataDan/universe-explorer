@@ -8031,13 +8031,12 @@
       return volumetricIds.includes(mesh.userData.id) && !mesh.userData._volumetricBuilt;
     });
     let vIdx = 0;
-    function processNextVolumetricBatch() {
-      const startT = performance.now();
-      while (vIdx < volQueue.length && (performance.now() - startT) < 8) {
-        const mesh = volQueue[vIdx++];
-        const id = mesh.userData.id;
-        if (mesh.userData._volumetricBuilt) continue;
-        mesh.userData._volumetricBuilt = true;
+    function buildOneVolumetric(mesh) {
+      if (!mesh || !mesh.userData || !mesh.userData.id) return;
+      const id = mesh.userData.id;
+      if (!volumetricIds.includes(id)) return;
+      if (mesh.userData._volumetricBuilt) return;
+      mesh.userData._volumetricBuilt = true;
 
         const R = mesh.userData.size || 2.5;
 
@@ -8901,13 +8900,17 @@
           addMultiMagnitudeStarField(volGroup, R * cfg.starSpan, cfg.starCount, cfg.starColors, 0.88);
         }
       }
-      if (vIdx < volQueue.length) {
-        setTimeout(processNextVolumetricBatch, 0);
+      function processNextVolumetricBatch() {
+        const startT = performance.now();
+        while (vIdx < volQueue.length && (performance.now() - startT) < 8) {
+          buildOneVolumetric(volQueue[vIdx++]);
+        }
+        if (vIdx < volQueue.length) {
+          setTimeout(processNextVolumetricBatch, 0);
+        }
       }
+      processNextVolumetricBatch();
     }
-    processNextVolumetricBatch();
-    }
-
 
     // === COSMIC PERSPECTIVE & DEPTH SHELL RESCALER ===
     function applyCosmicDepthProportions(item) {
