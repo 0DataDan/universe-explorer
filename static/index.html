@@ -10,12 +10,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
   <script>
     (function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const forceBoot = urlParams.has("boot") || urlParams.has("intro");
-      const hasBooted = !forceBoot && localStorage.getItem("hasBootedSession") === "true";
-      if (!hasBooted) {
-        document.documentElement.classList.add("is-booting");
-      }
+      document.documentElement.classList.add("is-booting");
     })();
   </script>
   <script type="importmap">
@@ -10122,9 +10117,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
     };
 
     (function initNovaCinematicBoot() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const forceBoot = urlParams.has("boot") || urlParams.has("intro");
-      const hasBooted = !forceBoot && (localStorage.getItem("hasBootedSession") === "true");
+      const hasBooted = false;
 
       const overlay = document.getElementById("nova-boot-overlay");
       if (hasBooted) {
