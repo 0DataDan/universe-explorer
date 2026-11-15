@@ -10209,14 +10209,14 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         let h = (canvas.height = window.innerHeight);
         canvas.style.opacity = "1";
 
-        // Sample original SVG wordmark paths with high vertex density for smooth, dramatic curves
+        // Sample original SVG wordmark paths for smooth, controlled elastic flexing
         const pathIds = ["nova-base-n", "nova-svg-o-top", "nova-svg-o-bot", "nova-base-v", "nova-base-a"];
         const idlePaths = [];
         pathIds.forEach((id) => {
           const el = document.getElementById(id);
           if (!el || typeof el.getTotalLength !== "function") return;
           const totalLen = el.getTotalLength();
-          const numPts = Math.max(64, Math.ceil(totalLen / 1.8));
+          const numPts = Math.max(56, Math.ceil(totalLen / 2.0));
           const pts = [];
           for (let i = 0; i <= numPts; i++) {
             const pt = el.getPointAtLength((i / numPts) * totalLen);
@@ -10228,7 +10228,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         const dotEl = document.getElementById("nova-base-a-dot");
         const idleDot = { ox: 657.5, oy: 71.5, r: 11.5, vx: 0, vy: 0, dx: 0, dy: 0, dr: 0, vr: 0 };
 
-        // Monochrome background particles (denser field so page-wide ripples are unmistakably visible)
+        // Monochrome background particles (kept identical to current feel)
         const particleCount = 115;
         const bgParticles = [];
         function seedParticles() {
@@ -10257,28 +10257,11 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
         const pointer = { x: -9999, y: -9999, vx: 0, vy: 0, active: false };
         const ripples = [];
-        let lastWakeTime = 0;
 
         const onMove = (e) => {
           if (pointer.active) {
             pointer.vx = e.clientX - pointer.x;
             pointer.vy = e.clientY - pointer.y;
-            const speed = Math.hypot(pointer.vx, pointer.vy);
-            const now = performance.now();
-            // Emit a subtle cursor wake ripple when sweeping fast across the page
-            if (speed > 26 && now - lastWakeTime > 140) {
-              lastWakeTime = now;
-              ripples.push({
-                x: e.clientX,
-                y: e.clientY,
-                r: 6,
-                maxR: Math.max(w, h) * 0.35,
-                speed: 6.5,
-                alpha: 0.28,
-                strength: 0.65,
-                bandWidth: 55
-              });
-            }
           }
           pointer.x = e.clientX;
           pointer.y = e.clientY;
@@ -10287,30 +10270,17 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
         const onDown = (e) => {
           if (e.target && e.target.closest && e.target.closest("#nova-portal-o")) return;
-          // Primary high-energy shockwave + secondary trailing harmonic wave across the whole page
+          // Single, whisper-thin hairline ripple that pushes particles and gently flexes letters
           ripples.push({
             x: e.clientX,
             y: e.clientY,
             r: 4,
-            maxR: Math.hypot(w, h) * 0.85,
-            speed: 9.2,
-            alpha: 0.72,
-            strength: 1.65,
-            bandWidth: 85
+            maxR: Math.hypot(w, h) * 0.75,
+            speed: 8.2,
+            alpha: 0.16,
+            strength: 1.05,
+            bandWidth: 72
           });
-          setTimeout(() => {
-            if (!isRunning) return;
-            ripples.push({
-              x: e.clientX,
-              y: e.clientY,
-              r: 2,
-              maxR: Math.hypot(w, h) * 0.75,
-              speed: 7.4,
-              alpha: 0.42,
-              strength: 1.05,
-              bandWidth: 65
-            });
-          }, 140);
         };
 
         window.addEventListener("pointermove", onMove, { passive: true });
@@ -10324,10 +10294,10 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           const t = now * 0.001;
           ctx.clearRect(0, 0, w, h);
 
-          pointer.vx *= 0.86;
-          pointer.vy *= 0.86;
+          pointer.vx *= 0.85;
+          pointer.vy *= 0.85;
 
-          // 1. Find the 4 closest background particles within magnetic range (220px)
+          // 1. Find the 4 closest background particles within magnetic range (220px) — UNCHANGED
           const pullRadius = 220;
           const candidates = [];
           if (pointer.active) {
@@ -10342,41 +10312,27 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           }
           const pulledSet = new Set(candidates.slice(0, 4).map((c) => c.idx));
 
-          // 2. Update & draw expanding monochrome shockwave rings & radial distortion glow
+          // 2. Update & draw ultra-subtle hairline ripple ring (no heavy radial fill glow)
           for (let r = ripples.length - 1; r >= 0; r--) {
             const rip = ripples[r];
             rip.r += rip.speed;
             const progress = rip.r / rip.maxR;
-            rip.alpha *= 0.978;
-            rip.strength *= 0.982;
+            rip.alpha *= 0.972;
+            rip.strength *= 0.980;
 
-            if (rip.alpha <= 0.008 || progress >= 1.0) {
+            if (rip.alpha <= 0.004 || progress >= 1.0) {
               ripples.splice(r, 1);
               continue;
             }
 
-            // Soft radial monochrome luminance band along the shockwave front
-            const innerR = Math.max(0, rip.r - rip.bandWidth * 0.7);
-            const outerR = rip.r + rip.bandWidth * 0.3;
-            const grad = ctx.createRadialGradient(rip.x, rip.y, innerR, rip.x, rip.y, outerR);
-            grad.addColorStop(0.0, "rgba(255, 255, 255, 0)");
-            grad.addColorStop(0.7, `rgba(255, 255, 255, ${(rip.alpha * 0.14).toFixed(3)})`);
-            grad.addColorStop(0.92, `rgba(255, 255, 255, ${(rip.alpha * 0.28).toFixed(3)})`);
-            grad.addColorStop(1.0, "rgba(255, 255, 255, 0)");
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.arc(rip.x, rip.y, outerR, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Crisp leading wavefront ring
-            ctx.strokeStyle = `rgba(255, 255, 255, ${(rip.alpha * 0.65).toFixed(3)})`;
-            ctx.lineWidth = 1.35;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${rip.alpha.toFixed(3)})`;
+            ctx.lineWidth = 0.75;
             ctx.beginPath();
             ctx.arc(rip.x, rip.y, rip.r, 0, Math.PI * 2);
             ctx.stroke();
           }
 
-          // 3. Update & draw monochrome background particles
+          // 3. Update & draw monochrome background particles — UNCHANGED
           for (let i = 0; i < bgParticles.length; i++) {
             const p = bgParticles[i];
             const targetHx = p.hx + Math.cos(t * 0.45 + p.phase) * 3.5;
@@ -10406,7 +10362,6 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
               p.vy += (targetHy - p.y) * 0.038;
             }
 
-            // Strong wave displacement & brightness flash as shockwaves sweep past particles
             let waveHighlight = 0;
             for (let r = 0; r < ripples.length; r++) {
               const rip = ripples[r];
@@ -10417,10 +10372,10 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
               if (Math.abs(bandDist) < rip.bandWidth) {
                 const phase = (bandDist / rip.bandWidth) * Math.PI;
                 const env = Math.cos(phase * 0.5);
-                const waveForce = -Math.sin(phase) * env * rip.strength * 3.8;
+                const waveForce = -Math.sin(phase) * env * rip.strength * 3.4;
                 p.vx += (rx / rDist) * waveForce;
                 p.vy += (ry / rDist) * waveForce;
-                waveHighlight = Math.max(waveHighlight, env * rip.alpha * 0.85);
+                waveHighlight = Math.max(waveHighlight, env * rip.strength * 0.32);
               }
             }
 
@@ -10431,26 +10386,26 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
             const activeBoost = (pulledSet.has(i) ? 0.42 : 0) + waveHighlight;
             const alpha = Math.min(0.98, p.baseAlpha + activeBoost);
-            const radius = p.size * (1 + (pulledSet.has(i) ? 0.35 : 0) + waveHighlight * 0.8);
+            const radius = p.size * (1 + (pulledSet.has(i) ? 0.35 : 0) + waveHighlight * 0.6);
             ctx.fillStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
             ctx.beginPath();
             ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
             ctx.fill();
           }
 
-          // 4. Pronounced Elastic SVG Wordmark Distortion (Cursor Lensing & Wave Undulation)
+          // 4. Balanced Elastic SVG Wordmark Flexing (Smooth, legible, zero twisting knots)
           const svgRect = svgEl.getBoundingClientRect();
           if (svgRect.width > 0 && svgRect.height > 0) {
             const scaleX = 734 / svgRect.width;
             const scaleY = 144 / svgRect.height;
             const svgMouseX = (pointer.x - svgRect.left) * scaleX;
             const svgMouseY = (pointer.y - svgRect.top) * scaleY;
-            const svgRadius = 165; // Wide gravitational lensing zone around cursor
+            const svgRadius = 120; // Balanced proximity radius
 
             function stepSvgPoint(pt, isDot) {
-              // Softer spring constant (0.075) & higher conservarion (0.86) for fluid, visible elastic wobble
-              let fx = -pt.dx * 0.075;
-              let fy = -pt.dy * 0.075;
+              // Firmer spring return (0.11) and controlled damping (0.82)
+              let fx = -pt.dx * 0.11;
+              let fy = -pt.dy * 0.11;
 
               if (pointer.active) {
                 const mx = pt.ox + pt.dx - svgMouseX;
@@ -10459,41 +10414,39 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
                 if (mDist < svgRadius && mDist > 0.01) {
                   const norm = 1 - mDist / svgRadius;
                   const falloff = norm * norm;
-                  // Strong radial warp + tangential swirl + cursor velocity drag
-                  const swirl = Math.sin(norm * Math.PI) * 2.2;
-                  fx += (mx / mDist) * falloff * 4.8 - (my / mDist) * swirl + pointer.vx * 0.095 * falloff;
-                  fy += (my / mDist) * falloff * 4.8 + (mx / mDist) * swirl + pointer.vy * 0.095 * falloff;
+                  fx += (mx / mDist) * falloff * 2.4 + pointer.vx * 0.045 * falloff;
+                  fy += (my / mDist) * falloff * 2.4 + pointer.vy * 0.045 * falloff;
                 }
               }
 
-              // Pronounced crest-and-trough wave undulation when a click ripple crosses the NOVA wordmark
+              // Smooth, medium wave undulation when a click ripple passes through the letters
               for (let r = 0; r < ripples.length; r++) {
                 const rip = ripples[r];
                 const ripSvgX = (rip.x - svgRect.left) * scaleX;
                 const ripSvgY = (rip.y - svgRect.top) * scaleY;
                 const ripSvgR = rip.r * scaleX;
-                const bandW = rip.bandWidth * scaleX * 1.15;
+                const bandW = rip.bandWidth * scaleX;
                 const rx = pt.ox - ripSvgX;
                 const ry = pt.oy - ripSvgY;
                 const rDist = Math.hypot(rx, ry) || 1;
                 const diff = rDist - ripSvgR;
                 if (Math.abs(diff) < bandW) {
-                  const phase = (diff / bandW) * Math.PI * 1.5;
-                  const env = Math.cos((diff / bandW) * Math.PI * 0.5);
-                  const radialWave = -Math.sin(phase) * env * rip.strength * 7.2;
-                  const vertWave = Math.cos(phase) * env * rip.strength * 5.8;
+                  const phase = (diff / bandW) * Math.PI;
+                  const env = Math.cos(phase * 0.5);
+                  const radialWave = -Math.sin(phase) * env * rip.strength * 2.8;
+                  const vertWave = Math.cos(phase) * env * rip.strength * 2.2;
                   fx += (rx / rDist) * radialWave;
-                  fy += (ry / rDist) * radialWave * 0.55 + vertWave;
+                  fy += (ry / rDist) * radialWave * 0.45 + vertWave;
                   if (isDot) {
-                    pt.vr += radialWave * 0.08;
+                    pt.vr += radialWave * 0.04;
                   }
                 }
               }
 
-              pt.vx = (pt.vx + fx) * 0.86;
-              pt.vy = (pt.vy + fy) * 0.86;
-              pt.dx = Math.max(-42, Math.min(42, pt.dx + pt.vx));
-              pt.dy = Math.max(-38, Math.min(38, pt.dy + pt.vy));
+              pt.vx = (pt.vx + fx) * 0.82;
+              pt.vy = (pt.vy + fy) * 0.82;
+              pt.dx = Math.max(-14, Math.min(14, pt.dx + pt.vx));
+              pt.dy = Math.max(-12, Math.min(12, pt.dy + pt.vy));
             }
 
             idlePaths.forEach((item) => {
@@ -10510,8 +10463,8 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
             if (dotEl) {
               stepSvgPoint(idleDot, true);
-              idleDot.vr = (idleDot.vr - idleDot.dr * 0.1) * 0.84;
-              idleDot.dr = Math.max(-5, Math.min(8, idleDot.dr + idleDot.vr));
+              idleDot.vr = (idleDot.vr - idleDot.dr * 0.12) * 0.82;
+              idleDot.dr = Math.max(-2.5, Math.min(3.5, idleDot.dr + idleDot.vr));
               dotEl.setAttribute("cx", (idleDot.ox + idleDot.dx).toFixed(2));
               dotEl.setAttribute("cy", (idleDot.oy + idleDot.dy).toFixed(2));
               dotEl.setAttribute("r", (idleDot.r + idleDot.dr).toFixed(2));
@@ -10670,24 +10623,24 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           const nx = dist > 0.0001 ? dx / dist : 0;
           const ny = dist > 0.0001 ? dy / dist : 0;
 
-          const waveSpeed = 440.0;
-          const waveFront = tWave * 1.55 * waveSpeed;
+          const waveSpeed = 425.0;
+          const waveFront = tWave * 1.5 * waveSpeed;
           const distFromFront = dist - waveFront;
 
-          const packetWidth = 145.0;
+          const packetWidth = 125.0;
           const env = Math.exp(-(distFromFront * distFromFront) / (2.0 * packetWidth * packetWidth));
           const timeEnvelope = Math.sin(Math.min(1.0, tWave) * Math.PI);
           const activeEnv = env * timeEnvelope;
 
-          // Amplified gravitational crest & trough distortion across N-O-V-A letters
-          const radialWave = Math.sin((distFromFront / packetWidth) * Math.PI * 2.4);
-          const radialOffset = radialWave * 46.0 * activeEnv;
-          const verticalOffset = Math.cos((dist * 0.026) - (tWave * 8.5)) * 38.0 * activeEnv;
+          // Balanced gravitational crest & trough across N-O-V-A letters
+          const radialWave = Math.sin((distFromFront / packetWidth) * Math.PI * 2.2);
+          const radialOffset = radialWave * 32.0 * activeEnv;
+          const verticalOffset = Math.cos((dist * 0.024) - (tWave * 7.4)) * 26.0 * activeEnv;
 
           return {
             x: px + nx * radialOffset,
-            y: py + ny * (radialOffset * 0.65) + verticalOffset,
-            scale: 1.0 + radialWave * 0.52 * activeEnv
+            y: py + ny * (radialOffset * 0.55) + verticalOffset,
+            scale: 1.0 + radialWave * 0.36 * activeEnv
           };
         }
 
@@ -10695,36 +10648,20 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           const elapsed = now - startTime;
           const tWave = Math.min(1.0, elapsed / waveDuration);
 
-          // Render an expanding page-wide monochrome shockwave ring from the 'O' before the warp stars take over
+          // Subtle hairline monochrome ripple ring from the 'O' before the warp stars take over
           if (!warpStarted && warpCtx && warpCanvasEl) {
             const cw = warpCanvasEl.width || window.innerWidth;
             const ch = warpCanvasEl.height || window.innerHeight;
             warpCtx.clearRect(0, 0, cw, ch);
-            const maxR = Math.hypot(cw, ch) * 0.75;
-            const r1 = Math.pow(tWave, 0.78) * maxR;
-            const r2 = Math.max(0, r1 - 95);
-            const alpha = Math.max(0, (1.0 - tWave * 0.85) * 0.55);
+            const maxR = Math.hypot(cw, ch) * 0.72;
+            const r1 = Math.pow(tWave, 0.8) * maxR;
+            const alpha = Math.max(0, (1.0 - tWave * 0.9) * 0.18);
 
-            const grad = warpCtx.createRadialGradient(waveScreenCx, waveScreenCy, Math.max(0, r1 - 80), waveScreenCx, waveScreenCy, r1 + 30);
-            grad.addColorStop(0.0, "rgba(255,255,255,0)");
-            grad.addColorStop(0.75, `rgba(255,255,255,${(alpha * 0.22).toFixed(3)})`);
-            grad.addColorStop(1.0, "rgba(255,255,255,0)");
-            warpCtx.fillStyle = grad;
-            warpCtx.beginPath();
-            warpCtx.arc(waveScreenCx, waveScreenCy, r1 + 30, 0, Math.PI * 2);
-            warpCtx.fill();
-
-            warpCtx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
-            warpCtx.lineWidth = 1.6;
-            warpCtx.beginPath();
-            warpCtx.arc(waveScreenCx, waveScreenCy, r1, 0, Math.PI * 2);
-            warpCtx.stroke();
-
-            if (r2 > 8) {
-              warpCtx.strokeStyle = `rgba(255,255,255,${(alpha * 0.45).toFixed(3)})`;
-              warpCtx.lineWidth = 0.9;
+            if (alpha > 0.004) {
+              warpCtx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+              warpCtx.lineWidth = 0.75;
               warpCtx.beginPath();
-              warpCtx.arc(waveScreenCx, waveScreenCy, r2, 0, Math.PI * 2);
+              warpCtx.arc(waveScreenCx, waveScreenCy, r1, 0, Math.PI * 2);
               warpCtx.stroke();
             }
           }
