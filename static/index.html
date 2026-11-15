@@ -3253,21 +3253,21 @@
           //    Combines Screenshot 5.39.28 PM (360° fiery golden-orange-crimson turbulent ring around event horizon)
           //    with Screenshot 5.40.09 PM & 5.41.38 PM (incandescent white-gold upper/lower lensed Einstein arches)
           const lensedCanvas = document.createElement("canvas");
-          lensedCanvas.width = 1024;
-          lensedCanvas.height = 1024;
+          lensedCanvas.width = 512;
+          lensedCanvas.height = 512;
           const lCtx = lensedCanvas.getContext("2d");
-          const lImg = lCtx.createImageData(1024, 1024);
+          const lImg = lCtx.createImageData(512, 512);
           const lData = lImg.data;
           const rHoriz = 1.0 / 3.35; // Event horizon radius on plane of width R * 6.7
 
-          for (let py = 0; py < 1024; py++) {
-            const ny = (py / 1023) * 2.0 - 1.0;
-            for (let px = 0; px < 1024; px++) {
-              const nx = (px / 1023) * 2.0 - 1.0;
+          for (let py = 0; py < 512; py++) {
+            const ny = (py / 511) * 2.0 - 1.0;
+            for (let px = 0; px < 512; px++) {
+              const nx = (px / 511) * 2.0 - 1.0;
               const r2 = nx * nx + ny * ny;
               if (r2 >= 1.0) continue;
               const r = Math.sqrt(r2);
-              const idx = (py * 1024 + px) * 4;
+              const idx = (py * 512 + px) * 4;
 
               // Strictly transparent inside the black hole shadow so the 3D sphere stays pure #000000
               if (r < rHoriz * 0.968) continue;
@@ -3362,18 +3362,18 @@
 
           // 2. Hyperluminous 140-Trillion-Sun Relativistic Quasar Accretion Disk (5.40.09 PM & 5.41.38 PM)
           const diskCanvas = document.createElement("canvas");
-          diskCanvas.width = 1024;
-          diskCanvas.height = 1024;
+          diskCanvas.width = ;
+          diskCanvas.height = ;
           const dCtx = diskCanvas.getContext("2d");
-          const dImg = dCtx.createImageData(1024, 1024);
+          const dImg = dCtx.createImageData(, );
           const dData = dImg.data;
           const rDiskInner = 0.185; // Matches event horizon radius R on a plane of width R * 10.8
           const rDiskOuter = 0.985;
 
-          for (let py = 0; py < 1024; py++) {
-            const ny = (py / 1023) * 2.0 - 1.0;
-            for (let px = 0; px < 1024; px++) {
-              const nx = (px / 1023) * 2.0 - 1.0;
+          for (let py = 0; py < ; py++) {
+            const ny = (py / 511) * 2.0 - 1.0;
+            for (let px = 0; px < ; px++) {
+              const nx = (px / 511) * 2.0 - 1.0;
               const r2 = nx * nx + ny * ny;
               if (r2 >= 1.0) continue;
               const r = Math.sqrt(r2);
@@ -3425,7 +3425,7 @@
               const finalB = Math.min(255, cB * lum);
               const finalA = Math.min(255, innerFade * outerFade * (0.48 + 0.52 * grooveMask) * 252);
 
-              const idx = (py * 1024 + px) * 4;
+              const idx = (py *  + px) * 4;
               dData[idx]     = finalR | 0;
               dData[idx + 1] = finalG | 0;
               dData[idx + 2] = finalB | 0;
@@ -3995,21 +3995,21 @@
 
           // 2. Gravitationally Lensed Einstein Arches (Upper & Lower Warped Disk Halo) + Razor-Sharp Photon Ring
           const lensedHaloCanvas = document.createElement("canvas");
-          lensedHaloCanvas.width = 1024;
-          lensedHaloCanvas.height = 1024;
+          lensedHaloCanvas.width = ;
+          lensedHaloCanvas.height = ;
           const lCtx = lensedHaloCanvas.getContext("2d");
-          const lImg = lCtx.createImageData(1024, 1024);
+          const lImg = lCtx.createImageData(, );
           const lData = lImg.data;
           const rHoriz = 1.0 / 3.2; // Event horizon radius in normalized [-1,1] space
 
-          for (let py = 0; py < 1024; py++) {
-            const ny = (py / 1023) * 2.0 - 1.0; // -1 (top) to +1 (bottom)
-            for (let px = 0; px < 1024; px++) {
-              const nx = (px / 1023) * 2.0 - 1.0;
+          for (let py = 0; py < ; py++) {
+            const ny = (py / 511) * 2.0 - 1.0; // -1 (top) to +1 (bottom)
+            for (let px = 0; px < ; px++) {
+              const nx = (px / 511) * 2.0 - 1.0;
               const r2 = nx * nx + ny * ny;
               if (r2 >= 1.0) continue;
               const r = Math.sqrt(r2);
-              const idx = (py * 1024 + px) * 4;
+              const idx = (py *  + px) * 4;
 
               // Strictly transparent inside the black hole shadow so the 3D black sphere stays pure #000000
               if (r < rHoriz * 0.965) {
@@ -4086,18 +4086,18 @@
 
           // 3. 3D Relativistic Equatorial Accretion Disk with Multi-Band Plasma Streams (SS3, SS4, SS5)
           const diskCanvas = document.createElement("canvas");
-          diskCanvas.width = 1024;
-          diskCanvas.height = 1024;
+          diskCanvas.width = ;
+          diskCanvas.height = ;
           const dCtx = diskCanvas.getContext("2d");
-          const dImg = dCtx.createImageData(1024, 1024);
+          const dImg = dCtx.createImageData(, );
           const dData = dImg.data;
           const rDiskInner = 0.192; // Matches event horizon radius R on a plane of width R * 10.6
           const rDiskOuter = 0.985;
 
-          for (let py = 0; py < 1024; py++) {
-            const ny = (py / 1023) * 2.0 - 1.0;
-            for (let px = 0; px < 1024; px++) {
-              const nx = (px / 1023) * 2.0 - 1.0;
+          for (let py = 0; py < ; py++) {
+            const ny = (py / 511) * 2.0 - 1.0;
+            for (let px = 0; px < ; px++) {
+              const nx = (px / 511) * 2.0 - 1.0;
               const r2 = nx * nx + ny * ny;
               if (r2 >= 1.0) continue;
               const r = Math.sqrt(r2);
@@ -4177,7 +4177,7 @@
               const finalB = Math.min(255, cB * lum + flareBoost * 255);
               const finalA = Math.min(255, innerFade * outerFade * (0.45 + 0.55 * grooveMask + flareBoost * 0.5) * 250);
 
-              const idx = (py * 1024 + px) * 4;
+              const idx = (py *  + px) * 4;
               dData[idx]     = finalR | 0;
               dData[idx + 1] = finalG | 0;
               dData[idx + 2] = finalB | 0;
@@ -8025,12 +8025,18 @@
       ];
 
       
-    // Ensure any cosmic web lines connecting nodes update to the new deep-space positions
-    celestialObjects.forEach((mesh) => {
-        if (!mesh || !mesh.userData || !mesh.userData.id) return;
+    // Time-sliced volumetric builder so each 512x512 fBm nebula yields to the browser cursor loop
+    const volQueue = celestialObjects.filter((mesh) => {
+      if (!mesh || !mesh.userData || !mesh.userData.id) return false;
+      return volumetricIds.includes(mesh.userData.id) && !mesh.userData._volumetricBuilt;
+    });
+    let vIdx = 0;
+    function processNextVolumetricBatch() {
+      const startT = performance.now();
+      while (vIdx < volQueue.length && (performance.now() - startT) < 8) {
+        const mesh = volQueue[vIdx++];
         const id = mesh.userData.id;
-        if (!volumetricIds.includes(id)) return;
-        if (mesh.userData._volumetricBuilt) return;
+        if (mesh.userData._volumetricBuilt) continue;
         mesh.userData._volumetricBuilt = true;
 
         const R = mesh.userData.size || 2.5;
@@ -8894,10 +8900,15 @@
           // Deep 3-tier field of faint background galaxies/stars, medium members, and bright central cD galaxies/stars
           addMultiMagnitudeStarField(volGroup, R * cfg.starSpan, cfg.starCount, cfg.starColors, 0.88);
         }
-      });
+      }
+      if (vIdx < volQueue.length) {
+        setTimeout(processNextVolumetricBatch, 0);
+      }
+    }
+    processNextVolumetricBatch();
     }
 
-    
+
     // === COSMIC PERSPECTIVE & DEPTH SHELL RESCALER ===
     function applyCosmicDepthProportions(item) {
       if (!item || !item.position || item.position.length < 3) return;
@@ -9202,63 +9213,86 @@
     }
 
     function applyCharacteristicTexturesToScene() {
+      if (window._isApplyingTextures) return;
+      window._isApplyingTextures = true;
       ensurePhotorealisticLighting();
-      let texturedCount = 0;
 
+      const meshQueue = [];
       scene.traverse((obj) => {
         if (!obj.isMesh || !obj.geometry || !obj.material) return;
+        if (obj.userData && obj.userData._nasaTextured) return;
         if (obj.geometry.type === 'RingGeometry' || obj.geometry.type === 'TorusGeometry' || obj.geometry.type === 'ConeGeometry') return;
 
         const meta = (obj.userData && obj.userData.name) ? obj.userData :
                      (obj.parent && obj.parent.userData && obj.parent.userData.name) ? obj.parent.userData : null;
         if (!meta || !meta.name) return;
-
         if (obj.material.wireframe) return;
         if (['sagittarius-a-star', 'ton-618', 'andromeda', 'triangulum', 'sombrero-galaxy', 'messier-87', 'bootes-void', 'el-gordo', 'centaurus-a', 'crab-nebula', 'eagle-nebula', 'orion-nebula', 'lmc', 'smc', 'great-attractor', 'shapley-supercluster', 'smacs-0723', 'gn-z11'].includes(meta.id)) return;
         if (obj.material.transparent && obj.material.opacity < 0.75) return;
 
         const kind = classifyMeshTextureKind(meta.name, meta.type);
         if (!kind) return;
-
-        const procTex = buildNASACanvasTexture(kind);
-        const bumpTex = nasaBumpCache[kind];
-        const isSelfLuminous = (kind === 'sun' || kind.startsWith('star-') || kind === 'stephenson' || kind.startsWith('nebula-') || kind.startsWith('galaxy-'));
-
-        if (kind === 'sun') {
-              obj.material = createAnimatedSunMaterial();
-              if (!obj.getObjectByName("sun-chromosphere-spicules")) {
-                obj.add(createAnimatedCoronaLayer((meta && meta.size) ? meta.size : 2.5));
-              }
-            } else if (isSelfLuminous) {
-              obj.material = new THREE.MeshStandardMaterial({
-                map: procTex,
-                emissiveMap: procTex,
-                emissive: new THREE.Color(0xffffff),
-                emissiveIntensity: 1.15,
-                roughness: 0.9,
-                metalness: 0.0
-              });
-        } else {
-          const isOceanWorld = (kind === 'earth');
-          const isGasGiant = (kind === 'jupiter' || kind === 'saturn' || kind === 'uranus' || kind === 'neptune' || kind === 'venus');
-          const isOumuamua = (kind === 'oumuamua');
-          obj.material = new THREE.MeshStandardMaterial({
-            map: procTex,
-            bumpMap: bumpTex || null,
-            bumpScale: isGasGiant ? 0.012 : isOceanWorld ? 0.035 : isOumuamua ? 0.115 : 0.065,
-            roughness: isOceanWorld ? 0.42 : isGasGiant ? 0.68 : isOumuamua ? 0.76 : 0.88,
-            metalness: isOceanWorld ? 0.12 : isOumuamua ? 0.08 : 0.04,
-            emissiveMap: procTex,
-            emissive: new THREE.Color(0xffffff),
-            emissiveIntensity: isOumuamua ? 0.26 : 0.12
-          });
-        }
-        obj.material.needsUpdate = true;
-        obj.userData._nasaTextured = true;
-        texturedCount++;
+        meshQueue.push({ obj, meta, kind });
       });
-      console.log(`[NOVA] Applied 3D fBm & PBR materials to ${texturedCount} celestial bodies.`);
-      buildVolumetricCelestialStructures();
+
+      let qIdx = 0;
+      let texturedCount = 0;
+
+      function processTextureBatch() {
+        const startT = performance.now();
+        while (qIdx < meshQueue.length && (performance.now() - startT) < 8) {
+          const { obj, meta, kind } = meshQueue[qIdx++];
+          if (obj.userData._nasaTextured) continue;
+
+          const procTex = buildNASACanvasTexture(kind);
+          const bumpTex = nasaBumpCache[kind];
+          const isSelfLuminous = (kind === 'sun' || kind.startsWith('star-') || kind === 'stephenson' || kind.startsWith('nebula-') || kind.startsWith('galaxy-'));
+
+          if (kind === 'sun') {
+            obj.material = createAnimatedSunMaterial();
+            if (!obj.getObjectByName("sun-chromosphere-spicules")) {
+              obj.add(createAnimatedCoronaLayer((meta && meta.size) ? meta.size : 2.5));
+            }
+          } else if (isSelfLuminous) {
+            obj.material = new THREE.MeshStandardMaterial({
+              map: procTex,
+              emissiveMap: procTex,
+              emissive: new THREE.Color(0xffffff),
+              emissiveIntensity: 1.15,
+              roughness: 0.9,
+              metalness: 0.0
+            });
+          } else {
+            const isOceanWorld = (kind === 'earth');
+            const isGasGiant = (kind === 'jupiter' || kind === 'saturn' || kind === 'uranus' || kind === 'neptune' || kind === 'venus');
+            const isOumuamua = (kind === 'oumuamua');
+            obj.material = new THREE.MeshStandardMaterial({
+              map: procTex,
+              bumpMap: bumpTex || null,
+              bumpScale: isGasGiant ? 0.012 : isOceanWorld ? 0.035 : isOumuamua ? 0.115 : 0.065,
+              roughness: isOceanWorld ? 0.42 : isGasGiant ? 0.68 : isOumuamua ? 0.76 : 0.88,
+              metalness: isOceanWorld ? 0.12 : isOumuamua ? 0.08 : 0.04,
+              emissiveMap: procTex,
+              emissive: new THREE.Color(0xffffff),
+              emissiveIntensity: isOumuamua ? 0.26 : 0.12
+            });
+          }
+          obj.material.needsUpdate = true;
+          obj.userData._nasaTextured = true;
+          texturedCount++;
+        }
+
+        if (qIdx < meshQueue.length) {
+          setTimeout(processTextureBatch, 0);
+        } else {
+          window._isApplyingTextures = false;
+          window._texturesInitialized = true;
+          console.log(`[NOVA] Applied 3D fBm & PBR materials to ${texturedCount} celestial bodies.`);
+          buildVolumetricCelestialStructures();
+        }
+      }
+
+      processTextureBatch();
     }
 
     function animate(time = performance.now()) {
@@ -10743,42 +10777,22 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       return { x: width / 2, y: height / 2, r: 0, active: false };
     }
 
-    const initPortal = getPortalOCenterAndRadius();
-    let initialX = initPortal.x;
-    let initialY = initPortal.y;
-
-    let mouse = { x: initialX, y: initialY };
-    let haloPos = { x: initialX, y: initialY };
+    let mouse = { x: -100, y: -100 };
+    let haloPos = { x: -100, y: -100 };
     let hasUserMovedPointer = false;
 
-    if (dot) { dot.style.left = `${initialX}px`; dot.style.top = `${initialY}px`; }
-    if (halo) { halo.style.left = `${initialX}px`; halo.style.top = `${initialY}px`; }
-    if (initPortal.active) {
-      document.body.classList.add('nova-portal-o-active');
-      document.body.classList.remove('nova-cursor-hover');
-    }
-
-    // Re-sync exact center across layout/font/SVG settle frames until the user moves the mouse
-    function syncInitialPortalCenter() {
-      if (hasUserMovedPointer) return;
-      const p = getPortalOCenterAndRadius();
-      if (p.active) {
-        mouse.x = haloPos.x = p.x;
-        mouse.y = haloPos.y = p.y;
-        if (dot) { dot.style.left = `${p.x}px`; dot.style.top = `${p.y}px`; }
-        if (halo) { halo.style.left = `${p.x}px`; halo.style.top = `${p.y}px`; }
-        document.body.classList.add('nova-portal-o-active');
-      document.body.classList.remove('nova-cursor-hover');
-      }
-    }
-    requestAnimationFrame(syncInitialPortalCenter);
-    setTimeout(syncInitialPortalCenter, 60);
-    setTimeout(syncInitialPortalCenter, 200);
-    window.addEventListener('resize', syncInitialPortalCenter);
+    if (dot) { dot.style.opacity = '0'; }
+    if (halo) { halo.style.opacity = '0'; }
 
     // Check on every pointer move whether the cursor is anywhere inside or on the letter O circle
     window.addEventListener('mousemove', (e) => {
-      hasUserMovedPointer = true;
+      if (!hasUserMovedPointer) {
+        hasUserMovedPointer = true;
+        mouse.x = haloPos.x = e.clientX;
+        mouse.y = haloPos.y = e.clientY;
+        if (dot) { dot.style.opacity = '1'; }
+        if (halo) { halo.style.opacity = '1'; }
+      }
       const p = getPortalOCenterAndRadius();
       if (p.active) {
         const dist = Math.hypot(e.clientX - p.x, e.clientY - p.y);
