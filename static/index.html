@@ -5769,19 +5769,25 @@
               uHasPlanet: { value: matchedPlanet ? 1.0 : 0.0 }
             },
             vertexShader: [
+              "#include <common>",
+              "#include <logdepthbuf_pars_vertex>",
               "varying vec3 vWorldPos;",
               "void main() {",
               "  vec4 wp = modelMatrix * vec4(position, 1.0);",
               "  vWorldPos = wp.xyz;",
               "  gl_Position = projectionMatrix * viewMatrix * wp;",
+              "  #include <logdepthbuf_vertex>",
               "}"
             ].join("\n"),
             fragmentShader: [
+              "#include <common>",
+              "#include <logdepthbuf_pars_fragment>",
               "uniform vec3 uLineColor;",
               "uniform vec3 uPlanetPos;",
               "uniform float uHasPlanet;",
               "varying vec3 vWorldPos;",
               "void main() {",
+              "  #include <logdepthbuf_fragment>",
               "  float distToCam = length(cameraPosition - vWorldPos);",
               "  float sunToCam = length(cameraPosition);",
               "  float depthRatio = clamp((sunToCam * 1.38 - distToCam) / max(8.0, sunToCam * 0.95), 0.0, 1.0);",
@@ -8958,6 +8964,8 @@
         depthWrite: true,
         depthTest: true,
         vertexShader: `
+          #include <common>
+          #include <logdepthbuf_pars_vertex>
           varying vec3 vNormal;
           varying vec3 vPosition;
           varying vec3 vWorldNormal;
@@ -8995,9 +9003,12 @@
             vViewDir = normalize(cameraPosition - worldPos.xyz);
 
             gl_Position = projectionMatrix * viewMatrix * worldPos;
+            #include <logdepthbuf_vertex>
           }
         `,
         fragmentShader: `
+          #include <common>
+          #include <logdepthbuf_pars_fragment>
           varying vec3 vNormal;
           varying vec3 vPosition;
           varying vec3 vWorldNormal;
@@ -9035,7 +9046,6 @@
           }
 
           // Sharp cellular ridge noise for bubbling Bénard solar convection cells
-          // (bright hot upwelling granule centers + dark cooled intergranular downflow lanes)
           float granulationCells(vec3 p) {
             float n1 = 1.0 - abs(noise3D(p) * 2.0 - 1.0);
             float n2 = 1.0 - abs(noise3D(p * 2.12 + vec3(7.3, -4.1, 11.8)) * 2.0 - 1.0);
@@ -9044,34 +9054,29 @@
           }
 
           void main() {
-            // Noticeable, organic convective churning speed
+            #include <logdepthbuf_fragment>
             float t = uTime * 0.72;
             vec3 p = normalize(vPosition);
 
-            // 3D fluid domain-warping so plasma filaments & convection cells swirl and evolve continuously
             vec3 warp = vec3(
               fbm(p * 5.0 + vec3(t * 0.55, -t * 0.42, t * 0.25)),
               fbm(p * 5.0 + vec3(-t * 0.48, t * 0.52, 8.3 - t * 0.3)),
               fbm(p * 5.0 + vec3(4.1 + t * 0.35, -t * 0.5, t * 0.45))
             );
 
-            // Multi-scale solar granulation (fine granules + mesogranulation + supergranulation)
             float fineCells = granulationCells(p * 28.0 + warp * 2.8 + vec3(t * 1.15, -t * 0.95, t * 1.05));
             float medCells  = granulationCells(p * 13.0 + warp * 2.0 - vec3(t * 0.75, t * 0.65, -t * 0.8));
             float macroFlow = fbm(p * 4.2 + warp * 1.1 + vec3(0.0, t * 0.3, 0.0));
 
-            // Realistic Sunspot Active Belts (+/- 12° to 28° solar latitude)
             float latBelt = exp(-pow((abs(p.y) - 0.26) * 4.5, 2.0));
             float activeField = fbm(p * 6.0 + warp * 0.55 + vec3(t * 0.16, 0.0, -t * 0.14));
             float spotMetric = activeField * (0.68 + 0.42 * latBelt);
             float umbra    = smoothstep(0.67, 0.77, spotMetric);
             float penumbra = smoothstep(0.56, 0.68, spotMetric);
 
-            // Bright white-hot magnetic faculae / plage filaments threading around active regions
             float filamentNoise = granulationCells(p * 34.0 - warp * 3.2 + vec3(t * 1.4));
             float faculae = smoothstep(0.47, 0.60, spotMetric) * (1.0 - penumbra) * pow(filamentNoise, 0.85);
 
-            // Combine photospheric thermal intensity
             float heat = fineCells * 0.50 + medCells * 0.32 + macroFlow * 0.18;
             heat = pow(clamp(heat, 0.0, 1.0), 0.92);
             heat += faculae * 0.48;
@@ -9079,22 +9084,19 @@
             heat -= umbra * 0.58;
             heat = clamp(heat, 0.0, 1.35);
 
-            // Physical Eddington Limb Darkening + Fiery Chromospheric Spicule Rim (matching reference video)
             float mu = clamp(dot(normalize(vWorldNormal), normalize(vViewDir)), 0.0, 1.0);
             float limbDarkening = pow(mu, 0.48);
             float rimFactor = pow(1.0 - mu, 2.35);
 
-            // Dynamic flickering plasma spicules & micro-prominences along the solar limb
             float spiculeWave = granulationCells(p * 38.0 + vec3(uTime * 1.9, -uTime * 1.6, uTime * 1.7));
             float rimSpicules = rimFactor * (0.6 + 0.95 * spiculeWave);
 
-            // High-dynamic-range SDO / Photosphere / Chromosphere palette
-            vec3 colUmbra    = vec3(0.12, 0.015, 0.002); // Dark magnetic sunspot core
-            vec3 colDarkLane = vec3(0.72, 0.16, 0.01);   // Deep crimson-orange intergranular downflow lanes
-            vec3 colPhoto    = vec3(0.98, 0.52, 0.05);   // Rich solar amber-orange photosphere
-            vec3 colGranule  = vec3(1.00, 0.84, 0.32);   // Bright golden-yellow upwelling granule tops
-            vec3 colFaculae  = vec3(1.00, 0.98, 0.88);   // Incandescent white-hot magnetic faculae/plages
-            vec3 colChromo   = vec3(1.00, 0.26, 0.02);   // Fiery chromospheric rim
+            vec3 colUmbra    = vec3(0.12, 0.015, 0.002);
+            vec3 colDarkLane = vec3(0.72, 0.16, 0.01);
+            vec3 colPhoto    = vec3(0.98, 0.52, 0.05);
+            vec3 colGranule  = vec3(1.00, 0.84, 0.32);
+            vec3 colFaculae  = vec3(1.00, 0.98, 0.88);
+            vec3 colChromo   = vec3(1.00, 0.26, 0.02);
 
             vec3 baseColor;
             if (heat < 0.25) {
@@ -9107,7 +9109,6 @@
               baseColor = mix(colGranule, colFaculae, clamp((heat - 0.84) / 0.38, 0.0, 1.0));
             }
 
-            // Apply realistic limb darkening toward the edges while keeping magnetic faculae bright near the limb
             vec3 limbTinted = mix(colChromo * 0.82, baseColor, 0.28 + 0.72 * limbDarkening);
             vec3 finalColor = limbTinted
                             + colChromo * rimSpicules * 0.65
@@ -9118,7 +9119,7 @@
         `
       });
     }
-
+    
     function createAnimatedCoronaLayer(sunRadius) {
       const coronaGeo = new THREE.SphereGeometry(sunRadius * 1.055, 64, 64);
       const coronaMat = new THREE.ShaderMaterial({
