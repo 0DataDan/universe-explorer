@@ -3362,17 +3362,17 @@
 
           // 2. Hyperluminous 140-Trillion-Sun Relativistic Quasar Accretion Disk (5.40.09 PM & 5.41.38 PM)
           const diskCanvas = document.createElement("canvas");
-          diskCanvas.width = ;
-          diskCanvas.height = ;
+          diskCanvas.width = 512;
+          diskCanvas.height = 512;
           const dCtx = diskCanvas.getContext("2d");
-          const dImg = dCtx.createImageData(, );
+          const dImg = dCtx.createImageData(512, 512);
           const dData = dImg.data;
           const rDiskInner = 0.185; // Matches event horizon radius R on a plane of width R * 10.8
           const rDiskOuter = 0.985;
 
-          for (let py = 0; py < ; py++) {
+          for (let py = 0; py < 512; py++) {
             const ny = (py / 511) * 2.0 - 1.0;
-            for (let px = 0; px < ; px++) {
+            for (let px = 0; px < 512; px++) {
               const nx = (px / 511) * 2.0 - 1.0;
               const r2 = nx * nx + ny * ny;
               if (r2 >= 1.0) continue;
@@ -3399,8 +3399,6 @@
               const outerFade = Math.pow(1.0 - u, 1.48);
               const dopplerBoost = 1.0 - 0.18 * (nx / r);
 
-              // Quasar blackbody temperature gradient (Screenshot 5.40.09 PM & 5.41.38 PM):
-              // Blinding white-gold ISCO -> incandescent golden-yellow -> fiery orange-amber -> deep crimson-red outer disk
               let cR, cG, cB;
               if (u < 0.22) {
                 const t = u / 0.22;
@@ -3425,7 +3423,7 @@
               const finalB = Math.min(255, cB * lum);
               const finalA = Math.min(255, innerFade * outerFade * (0.48 + 0.52 * grooveMask) * 252);
 
-              const idx = (py *  + px) * 4;
+              const idx = (py * 512 + px) * 4;
               dData[idx]     = finalR | 0;
               dData[idx + 1] = finalG | 0;
               dData[idx + 2] = finalB | 0;
@@ -3995,21 +3993,21 @@
 
           // 2. Gravitationally Lensed Einstein Arches (Upper & Lower Warped Disk Halo) + Razor-Sharp Photon Ring
           const lensedHaloCanvas = document.createElement("canvas");
-          lensedHaloCanvas.width = ;
-          lensedHaloCanvas.height = ;
+          lensedHaloCanvas.width = 512;
+          lensedHaloCanvas.height = 512;
           const lCtx = lensedHaloCanvas.getContext("2d");
-          const lImg = lCtx.createImageData(, );
+          const lImg = lCtx.createImageData(512, 512);
           const lData = lImg.data;
           const rHoriz = 1.0 / 3.2; // Event horizon radius in normalized [-1,1] space
 
-          for (let py = 0; py < ; py++) {
+          for (let py = 0; py < 512; py++) {
             const ny = (py / 511) * 2.0 - 1.0; // -1 (top) to +1 (bottom)
-            for (let px = 0; px < ; px++) {
+            for (let px = 0; px < 512; px++) {
               const nx = (px / 511) * 2.0 - 1.0;
               const r2 = nx * nx + ny * ny;
               if (r2 >= 1.0) continue;
               const r = Math.sqrt(r2);
-              const idx = (py *  + px) * 4;
+              const idx = (py * 512 + px) * 4;
 
               // Strictly transparent inside the black hole shadow so the 3D black sphere stays pure #000000
               if (r < rHoriz * 0.965) {
@@ -4086,17 +4084,17 @@
 
           // 3. 3D Relativistic Equatorial Accretion Disk with Multi-Band Plasma Streams (SS3, SS4, SS5)
           const diskCanvas = document.createElement("canvas");
-          diskCanvas.width = ;
-          diskCanvas.height = ;
+          diskCanvas.width = 512;
+          diskCanvas.height = 512;
           const dCtx = diskCanvas.getContext("2d");
-          const dImg = dCtx.createImageData(, );
+          const dImg = dCtx.createImageData(512, 512);
           const dData = dImg.data;
           const rDiskInner = 0.192; // Matches event horizon radius R on a plane of width R * 10.6
           const rDiskOuter = 0.985;
 
-          for (let py = 0; py < ; py++) {
+          for (let py = 0; py < 512; py++) {
             const ny = (py / 511) * 2.0 - 1.0;
-            for (let px = 0; px < ; px++) {
+            for (let px = 0; px < 512; px++) {
               const nx = (px / 511) * 2.0 - 1.0;
               const r2 = nx * nx + ny * ny;
               if (r2 >= 1.0) continue;
@@ -4127,11 +4125,6 @@
               // Relativistic Doppler beaming (brighter on approaching left/front wing)
               const dopplerBoost = 1.0 - 0.16 * (nx / r);
 
-              // Multi-zone relativistic color ramp (SS3 + SS4):
-              // Zone 0 (u < 0.08): Electric blue-violet inner Doppler rim into blinding white-gold ISCO
-              // Zone 1 (0.08..0.38): White-hot cream, golden-amber, and luminous rose-violet streaks
-              // Zone 2 (0.38..0.75): Fiery golden-orange and coral-amber plasma streams
-              // Zone 3 (0.75..1.00): Deep burnt orange-red and smoky bronze outer disk
               let cR, cG, cB;
               const ribbonTint = Math.sin(u * 64.0 + theta * 2.0) * 0.5 + 0.5;
 
@@ -4142,7 +4135,6 @@
                 cB = 255;
               } else if (u < 0.36) {
                 const t = (u - 0.075) / 0.285;
-                // Blend warm white-gold (SS4) with subtle rose-violet relativistic ribbons (SS3)
                 const violetStreak = (1.0 - t) * Math.pow(ribbonTint, 1.8) * 0.38;
                 cR = 255;
                 cG = (242 - t * 52) * (1.0 - violetStreak * 0.28);
@@ -4177,7 +4169,7 @@
               const finalB = Math.min(255, cB * lum + flareBoost * 255);
               const finalA = Math.min(255, innerFade * outerFade * (0.45 + 0.55 * grooveMask + flareBoost * 0.5) * 250);
 
-              const idx = (py *  + px) * 4;
+              const idx = (py * 512 + px) * 4;
               dData[idx]     = finalR | 0;
               dData[idx + 1] = finalG | 0;
               dData[idx + 2] = finalB | 0;
