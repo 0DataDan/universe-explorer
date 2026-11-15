@@ -10287,7 +10287,23 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         overlayEl.addEventListener("pointerdown", onDown);
 
         let isRunning = true;
+        let isPortalLaunching = false;
         let rafId = null;
+
+        window.triggerPortalIdleShockwave = function(cx, cy) {
+          isPortalLaunching = true;
+          pointer.active = false;
+          ripples.push({
+            x: cx,
+            y: cy,
+            r: 4,
+            maxR: Math.hypot(w, h) * 0.78,
+            speed: 8.6,
+            alpha: 0.20,
+            strength: 1.35,
+            bandWidth: 80
+          });
+        };
 
         function tick(now) {
           if (!isRunning) return;
@@ -10393,9 +10409,9 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
             ctx.fill();
           }
 
-          // 4. Balanced Elastic SVG Wordmark Flexing (Smooth, legible, zero twisting knots)
+         // 4. Balanced Elastic SVG Wordmark Flexing (Smooth, legible, zero twisting knots)
           const svgRect = svgEl.getBoundingClientRect();
-          if (svgRect.width > 0 && svgRect.height > 0) {
+          if (!isPortalLaunching && svgRect.width > 0 && svgRect.height > 0) {
             const scaleX = 734 / svgRect.width;
             const scaleY = 144 / svgRect.height;
             const svgMouseX = (pointer.x - svgRect.left) * scaleX;
@@ -10648,24 +10664,6 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           const elapsed = now - startTime;
           const tWave = Math.min(1.0, elapsed / waveDuration);
 
-          // Subtle hairline monochrome ripple ring from the 'O' before the warp stars take over
-          if (!warpStarted && warpCtx && warpCanvasEl) {
-            const cw = warpCanvasEl.width || window.innerWidth;
-            const ch = warpCanvasEl.height || window.innerHeight;
-            warpCtx.clearRect(0, 0, cw, ch);
-            const maxR = Math.hypot(cw, ch) * 0.72;
-            const r1 = Math.pow(tWave, 0.8) * maxR;
-            const alpha = Math.max(0, (1.0 - tWave * 0.9) * 0.18);
-
-            if (alpha > 0.004) {
-              warpCtx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
-              warpCtx.lineWidth = 0.75;
-              warpCtx.beginPath();
-              warpCtx.arc(waveScreenCx, waveScreenCy, r1, 0, Math.PI * 2);
-              warpCtx.stroke();
-            }
-          }
-
           // 1. Update wave wobble deformation
           if (elapsed <= waveDuration + 100) {
             sampledPaths.forEach(item => {
@@ -10703,8 +10701,13 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
             const viewCenterX = window.innerWidth / 2;
             const viewCenterY = window.innerHeight / 2;
-            if (!warpStarted && pZoom >= 0.22) {
+            // Start starfield warp right as zoom accelerates, seamlessly handing off from the idle particle canvas
+            if (!warpStarted && pZoom >= 0.08) {
               warpStarted = true;
+              if (typeof stopIdleBootField === "function") {
+                stopIdleBootField();
+                stopIdleBootField = null;
+              }
               onStartWarp(viewCenterX, viewCenterY, 6200);
             }
 
@@ -10719,6 +10722,9 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
           }
         }
 
+        if (typeof window.triggerPortalIdleShockwave === "function") {
+          window.triggerPortalIdleShockwave(waveScreenCx, waveScreenCy);
+        }
         requestAnimationFrame(stepFrame);
       }
 
@@ -10726,10 +10732,6 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       function onPortalTriggerClick(e) {
         if (isWormholeRunning) return;
         isWormholeRunning = true;
-        if (typeof stopIdleBootField === "function") {
-          stopIdleBootField();
-          stopIdleBootField = null;
-        }
         document.body.classList.remove('nova-portal-o-active', 'nova-cursor-hover');
         if (e && e.stopPropagation) e.stopPropagation();
 
