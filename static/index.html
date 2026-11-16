@@ -9868,18 +9868,6 @@
     window.toggleCosmicTour = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
       if (isTourActive) {
-        window.stopCosmicTour();
-      } else {
-        window.startCosmicTour();
-      }
-    };
-
-    // Flag to ensure NOVA only introduces herself once per session
-    let isFirstTourRun = true;
-
-    window.toggleCosmicTour = function(e) {
-      if (e && e.stopPropagation) e.stopPropagation();
-      if (isTourActive) {
         window.stopCosmicTour(e);
       } else {
         window.startCosmicTour();
