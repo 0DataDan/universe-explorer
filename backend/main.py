@@ -6,10 +6,18 @@ from fastapi.responses import FileResponse
 
 app = FastAPI(title="NOVA")
 
-# Mount the local audio folder so Uvicorn can serve the MP3s to the frontend
-import os
-if os.path.exists("audio"):
-    app.mount("/audio", StaticFiles(directory="audio"), name="audio")
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+
+# Resolve the exact project root directory (one level up from /backend/main.py)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+AUDIO_DIR = PROJECT_ROOT / "audio"
+
+if AUDIO_DIR.is_dir():
+    app.mount("/audio", StaticFiles(directory=str(AUDIO_DIR)), name="audio")
+    print(f"[NOVA Backend] Mounted /audio from: {AUDIO_DIR}")
+else:
+    print(f"[NOVA Backend] WARNING: Audio directory not found at {AUDIO_DIR}")
 
 @app.middleware("http")
 async def disable_cache(request, call_next):
