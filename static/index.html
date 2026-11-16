@@ -9874,6 +9874,18 @@
       }
     };
 
+    // Flag to ensure NOVA only introduces herself once per session
+    let isFirstTourRun = true;
+
+    window.toggleCosmicTour = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (isTourActive) {
+        window.stopCosmicTour(e);
+      } else {
+        window.startCosmicTour();
+      }
+    };
+
     window.startCosmicTour = async function() {
       if (celestialObjects.length === 0) {
         await fetchCatalog();
@@ -9897,11 +9909,13 @@
 
       const spatialTourControls = document.getElementById("spatial-tour-controls");
       if (spatialTourControls) spatialTourControls.classList.remove("hidden");
+      const sidebarTourCtrl = document.getElementById("sidebar-tour-controls");
+      if (sidebarTourCtrl) sidebarTourCtrl.classList.remove("hidden");
 
       updatePauseButtonIcon(false);
       updateTourButtonStyle(true);
 
-      // If it's the first run, play NOVA's introduction before executing step 0
+      // First run: Play NOVA's introduction before starting step 0
       if (isFirstTourRun) {
         isFirstTourRun = false;
         stopTourAudio();
@@ -9912,7 +9926,6 @@
         if (badgeEl) badgeEl.textContent = "NOVA";
         if (counterEl) counterEl.textContent = "INTRO";
 
-        // Play introduction audio
         const introAudio = new Audio('./audio/tour/intro.mp3');
         introAudio.preload = "auto";
         currentTourAudio = introAudio;
@@ -9937,49 +9950,31 @@
       }
     };
 
-    window.nextTourStep = function(e) {
+    window.stopCosmicTour = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
-      if (!isTourActive) return;
-      tourIndex = (tourIndex + 1) % tourPlaylist.length;
-      executeTourStep();
-    };
+      stopTourAudio();
+      isTourActive = false;
+      isTourPaused = false;
+      isSidebarUserHidden = false;
+      clearTourTimers();
+      updateTourButtonStyle(false);
 
-    window.prevTourStep = function(e) {
-      if (e && e.stopPropagation) e.stopPropagation();
-      if (!isTourActive) return;
-      tourIndex = (tourIndex - 1 + tourPlaylist.length) % tourPlaylist.length;
-      executeTourStep();
-    };
+      const spatialTourControls = document.getElementById("spatial-tour-controls");
+      if (spatialTourControls) spatialTourControls.classList.add("hidden");
+      const sidebarTourCtrl = document.getElementById("sidebar-tour-controls");
+      if (sidebarTourCtrl) sidebarTourCtrl.classList.add("hidden");
 
-    window.togglePauseCosmicTour = function(e) {
-      if (e && e.stopPropagation) e.stopPropagation();
-      if (!isTourActive) return;
-      isTourPaused = !isTourPaused;
-      updatePauseButtonIcon(isTourPaused);
-      
-      if (isTourPaused) {
-        clearTourTimers();
-        if (currentTourAudio && !currentTourAudio.paused) {
-          currentTourAudio.pause();
-        }
-      } else {
-        if (currentTourAudio && currentTourAudio.paused && currentTourAudio.currentTime < (currentTourAudio.duration || Infinity)) {
-          currentTourAudio.play().catch(() => scheduleNextTourStep(5000));
-        } else {
-          scheduleNextTourStep(2500);
-        }
+      window.dismissSpatialCallout();
+      activeTarget = null;
+      activeTargetMesh = null;
+      if (typeof lastTrackedTargetPos !== "undefined") lastTrackedTargetPos.set(0, 0, 0);
+
+      applyZenUI(false);
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
       }
+      updateSidebarToggleStyle();
     };
-
-    const tourBtnEl = document.getElementById("btn-cosmic-tour");
-    if (tourBtnEl) {
-      tourBtnEl.onclick = null;
-      tourBtnEl.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        window.toggleCosmicTour(e);
-      });
-    }
 
     // === AUTONOMOUS OBSERVATORY STANDBY / SCREENSAVER SYSTEM ===
     let screensaverIdleTimer = null;
