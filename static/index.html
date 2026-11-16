@@ -9836,19 +9836,12 @@
     // Flag to ensure NOVA only introduces herself once per session
     let isFirstTourRun = true;
 
-    window.toggleCosmicTour = function(e) {
-      if (e && e.stopPropagation) e.stopPropagation();
-      if (isTourActive) {
-        window.stopCosmicTour(e);
-      } else {
-        window.startCosmicTour();
-      }
-    };
-
     window.startCosmicTour = async function() {
+      // 1. STRICT WAIT: Ensure the universe is fully loaded before continuing
       if (celestialObjects.length === 0) {
         await fetchCatalog();
       }
+      
       tourPlaylist = buildCosmicTourPlaylist();
       if (tourPlaylist.length === 0) return;
 
