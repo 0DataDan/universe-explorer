@@ -10011,6 +10011,15 @@
 
       const step = tourPlaylist[tourIndex];
       if (typeof updateTourProgressUI === 'function') updateTourProgressUI();
+      if (typeof clearTourTimers === 'function') clearTourTimers();
+
+      // --- FIX 3: BULLETPROOF AUTO-ADVANCE TIMER ---
+      if (window._tourAutoAdvance) clearTimeout(window._tourAutoAdvance);
+      window._tourAutoAdvance = setTimeout(() => {
+        if (isTourActive && !isTourPaused && typeof window.nextTourStep === 'function') {
+          window.nextTourStep();
+        }
+      }, step.dwellMs || 10000);
 
       if (step.kind === "tier-intro") {
         activeTargetMesh = null;
@@ -10031,7 +10040,9 @@
           const startTarget = controls.target.clone();
           const endCam = new THREE.Vector3(step.camPos.x, step.camPos.y, step.camPos.z);
           const endTarget = new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z);
-          const cinematicDuration = Math.max(step.dwellMs * 0.85, 15000);
+          
+          // --- FIX 1: FAST 3.5s CINEMATIC DIVE ---
+          const cinematicDuration = 3500; 
 
           const tweenObj = { t: 0 };
           new TWEEN.Tween(tweenObj)
@@ -10055,8 +10066,33 @@
         activeTarget = step.data;
         if (typeof window.populateSpatialCallout === "function") window.populateSpatialCallout(step.data, false);
         if (typeof speakTourNarration === "function") speakTourNarration(step, step.dwellMs);
-        if (typeof window.flyToTarget === "function") {
-          window.flyToTarget(step.mesh, step.camPos, step.targetPos, () => {});
+        
+        // --- FIX 2: GUARANTEED OBJECT ZOOM ---
+        if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
+          TWEEN.removeAll();
+          isFlyingToTarget = true;
+          controls.autoRotate = false;
+          
+          const startCam = camera.position.clone();
+          const startTarget = controls.target.clone();
+          const endCam = new THREE.Vector3(step.camPos.x, step.camPos.y, step.camPos.z);
+          const endTarget = new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z);
+
+          const tweenObj = { t: 0 };
+          new TWEEN.Tween(tweenObj)
+            .to({ t: 1 }, 2500) // Crisp 2.5s zoom directly to the object
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .onUpdate(() => {
+              camera.position.lerpVectors(startCam, endCam, tweenObj.t);
+              controls.target.lerpVectors(startTarget, endTarget, tweenObj.t);
+              if (controls.update) controls.update();
+            })
+            .onComplete(() => {
+              isFlyingToTarget = false;
+              controls.autoRotate = true;
+              controls.autoRotateSpeed = 1.0; 
+            })
+            .start();
         }
       }
     };
