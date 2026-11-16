@@ -9930,7 +9930,7 @@
 
           const tweenObj = { t: 0 };
           new TWEEN.Tween(tweenObj)
-            .to({ t: 1 }, 21000) // 21-second sweep perfectly matches audio duration
+            .to({ t: 1 }, 25000) // Extended to 25 seconds to encompass the full audio
             .easing(TWEEN.Easing.Sinusoidal.InOut)
             .onUpdate(() => {
               camera.position.lerpVectors(sweepStart, sweepEnd, tweenObj.t);
@@ -9939,6 +9939,9 @@
             })
             .onComplete(() => {
               isFlyingToTarget = false;
+              // Seamlessly hand off to a slow cinematic orbit once the zoom finishes
+              controls.autoRotate = true;
+              controls.autoRotateSpeed = 0.5;
             })
             .start();
         }
