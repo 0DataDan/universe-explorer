@@ -10013,7 +10013,6 @@
       if (typeof updateTourProgressUI === 'function') updateTourProgressUI();
       if (typeof clearTourTimers === 'function') clearTourTimers();
 
-      // --- FIX 3: FLAWLESS AUTO-ADVANCE VIA AUDIO SYNC ---
       const setupAutoAdvance = () => {
         setTimeout(() => {
           if (typeof currentTourAudio !== 'undefined' && currentTourAudio) {
@@ -10023,12 +10022,11 @@
               }
             };
           } else {
-            // Fallback timer just in case audio gets blocked
             window._tourAutoAdvance = setTimeout(() => {
               if (isTourActive && !isTourPaused && typeof window.nextTourStep === 'function') window.nextTourStep();
             }, step.dwellMs || 10000);
           }
-        }, 300); // Brief delay ensures the audio file has loaded
+        }, 300); 
       };
 
       if (step.kind === "tier-intro") {
@@ -10051,9 +10049,6 @@
           const startTarget = controls.target.clone();
           const endCam = new THREE.Vector3(step.camPos.x, step.camPos.y, step.camPos.z);
           const endTarget = new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z);
-          
-          // --- FIX 1: RESTORED SLOW CINEMATIC SWEEP ---
-          // Ties the camera motion directly to the duration of the audio
           const cinematicDuration = step.dwellMs || 25000; 
 
           const tweenObj = { t: 0 };
@@ -10073,15 +10068,21 @@
             .start();
         }
 
-      } else if (step.kind === "object") { // --- FIX 2: REMOVED STRICT MESH CHECK ---
+      } else if (step.kind === "object") {
         activeTargetMesh = step.mesh || null;
         activeTarget = step.data;
         if (typeof window.populateSpatialCallout === "function") window.populateSpatialCallout(step.data, false);
         if (typeof speakTourNarration === "function") speakTourNarration(step, step.dwellMs);
         setupAutoAdvance();
         
-        // --- GUARANTEED INLINE OBJECT ZOOM ---
-        if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
+        // --- FIX: EXPLICITLY CALL FLYTOTARGET IF AVAILABLE ---
+        if (typeof window.flyToTarget === 'function') {
+           // Use the pre-calculated camera and target positions from the step data
+           window.flyToTarget(activeTargetMesh, step.camPos, step.targetPos, () => {
+             // Optional: add any subtle rotation or effects after zoom finishes
+           });
+        } else if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
+          // --- FALLBACK ZOOM IF FLYTOTARGET IS UNAVAILABLE ---
           TWEEN.removeAll();
           isFlyingToTarget = true;
           controls.autoRotate = false;
@@ -10093,7 +10094,7 @@
 
           const tweenObj = { t: 0 };
           new TWEEN.Tween(tweenObj)
-            .to({ t: 1 }, 2500) // Crisp 2.5s zoom
+            .to({ t: 1 }, 2500)
             .easing(TWEEN.Easing.Cubic.InOut)
             .onUpdate(() => {
               camera.position.lerpVectors(startCam, endCam, tweenObj.t);
