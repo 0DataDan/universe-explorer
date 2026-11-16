@@ -9682,11 +9682,13 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
     function preloadTourStepAudio(stepIndex) {
       if (!tourPlaylist || tourPlaylist.length === 0) return;
       const idx = (stepIndex + tourPlaylist.length) % tourPlaylist.length;
-      const text = getStepNarrationText(tourPlaylist[idx]);
-      if (!text || preloadedAudioUrls.has(text)) return;
-      // const url = `/api/tts?text=${encodeURIComponent(text)}`;
-      // preloadedAudioUrls.set(text, url);
-      // fetch(url).catch(() => {});
+      const step = tourPlaylist[idx];
+      const filename = step.kind === "tier-intro" ? `tier-${step.tier}` : (step.data.id || "").toLowerCase();
+      if (!filename || preloadedAudioUrls.has(filename)) return;
+
+      const url = `./audio/tour/${filename}.mp3`;
+      preloadedAudioUrls.set(filename, url);
+      fetch(url).catch(() => {});
     }
 
     function stopTourAudio() {
@@ -9697,10 +9699,9 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         currentTourAudio.currentTime = 0;
         currentTourAudio = null;
       }
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     }
 
-    function speakTourNarration(textToSpeak, fallbackDwellMs = 19000) {
+    function speakTourNarration(stepData, fallbackDwellMs = 19000) {
       stopTourAudio();
       clearTourTimers();
 
@@ -9711,32 +9712,28 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         preloadTourStepAudio(tourIndex + 3);
       }
 
-      if (isTourVoiceMuted || !textToSpeak) {
+      if (isTourVoiceMuted || !stepData) {
         if (isTourActive && !isTourPaused) {
           scheduleNextTourStep(fallbackDwellMs);
         }
         return;
       }
 
-      // const cleanText = cleanNarrationText(textToSpeak);
-      // const url = `/api/tts?text=${encodeURIComponent(cleanText)}`;
-      // const audio = new Audio(url);
-      // audio.preload = "auto";
-      // currentTourAudio = audio;
-      if (isTourActive && !isTourPaused) {
-        scheduleNextTourStep(fallbackDwellMs);
-      }
-      return;
+      const filename = stepData.kind === "tier-intro" ? `tier-${stepData.tier}` : (stepData.data.id || "").toLowerCase();
+      const url = `./audio/tour/${filename}.mp3`;
 
-      /*
-      // Advance smoothly 1.8s after narration finishes
+      const audio = new Audio(url);
+      audio.preload = "auto";
+      currentTourAudio = audio;
+
+      // Advance smoothly 1.5s after narration finishes
       audio.onended = () => {
         if (currentTourAudio === audio && isTourActive && !isTourPaused) {
-          scheduleNextTourStep(1800);
+          scheduleNextTourStep(1500);
         }
       };
 
-      // Fallback timer if audio errors out
+      // Fallback timer if the MP3 is missing or fails to load
       audio.onerror = () => {
         if (currentTourAudio === audio && isTourActive && !isTourPaused) {
           scheduleNextTourStep(fallbackDwellMs);
@@ -9751,16 +9748,14 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
       };
 
       if (!isTourPaused) {
-        audio.play().catch(err => {
-          console.warn("Audio play blocked or delayed:", err);
+        audio.play().catch(() => {
           if (currentTourAudio === audio && isTourActive && !isTourPaused) {
             scheduleNextTourStep(fallbackDwellMs);
           }
         });
       }
-      */
     }
-
+    
     // Pre-warm the first 3 tour stops shortly after startup so first run has zero delay
     setTimeout(() => {
       try {
@@ -9823,7 +9818,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         if (typeof window.populateSpatialCallout === "function") {
           window.populateSpatialCallout(step.data, true);
         }
-        speakTourNarration(getStepNarrationText(step), step.dwellMs);
+        speakTourNarration(step, step.dwellMs);
         TWEEN.removeAll();
         isFlyingToTarget = true;
 
@@ -9852,7 +9847,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         if (typeof window.populateSpatialCallout === "function") {
           window.populateSpatialCallout(step.data, false);
         }
-        speakTourNarration(getStepNarrationText(step), step.dwellMs);
+        speakTourNarration(step, step.dwellMs);
         smoothFlyToTarget(2800);
 
         // Timer synced with audio completion in speakTourNarration
