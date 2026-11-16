@@ -9681,11 +9681,12 @@
     }
 
     function getStepNarrationText(step) {
-      if (!step || !step.data) return "";
-      const rawPrefix = step.kind === "tier-intro" ? step.data.title : step.data.name;
-      const spokenPrefix = step.kind === "tier-intro" ? rawPrefix : formatSpokenTitle(rawPrefix);
-      return cleanNarrationText(`${spokenPrefix}. ${step.data.summary}`);
-    }
+  if (!step || !step.data) return "";
+  const rawPrefix = step.kind === "tier-intro" ? step.data.title : step.data.name;
+  const spokenPrefix = step.kind === "tier-intro" ? rawPrefix : formatSpokenTitle(rawPrefix);
+  // Clean, dynamic narration without the repetitive distance boilerplate
+  return cleanNarrationText(`${spokenPrefix}. ${step.data.summary || ""}`);
+}
 
     function preloadTourStepAudio(stepIndex) {
       if (!tourPlaylist || tourPlaylist.length === 0) return;
