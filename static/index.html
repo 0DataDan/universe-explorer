@@ -9887,11 +9887,10 @@
         if (badgeEl) badgeEl.textContent = "NOVA";
         if (counterEl) counterEl.textContent = "INTRO";
 
-        // --- CINEMATIC INTRO SWEEP ---
         if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
           TWEEN.removeAll();
           isFlyingToTarget = true;
-          controls.autoRotate = false;
+          controls.enabled = false; 
 
           const sweepStart = new THREE.Vector3(0, 1000, 1500);
           const sweepEnd = new THREE.Vector3(400, 600, 800); 
@@ -9906,10 +9905,11 @@
             .easing(TWEEN.Easing.Sinusoidal.InOut)
             .onUpdate(() => {
               camera.position.lerpVectors(sweepStart, sweepEnd, tweenObj.t);
-              if (controls.update) controls.update();
+              camera.lookAt(targetStart);
             })
             .onComplete(() => {
               isFlyingToTarget = false;
+              controls.enabled = true;
               controls.autoRotate = true;
               controls.autoRotateSpeed = 0.2;
             })
@@ -9921,20 +9921,15 @@
         currentTourAudio = introAudio;
 
         introAudio.onended = () => {
-          if (isTourActive && !isTourPaused && typeof window.executeTourStep === 'function') {
-            window.executeTourStep();
-          }
+          if (isTourActive && !isTourPaused && typeof window.executeTourStep === 'function') window.executeTourStep();
         };
 
         introAudio.onerror = (err) => {
           console.error("Failed to load intro audio.", err);
-          if (isTourActive && !isTourPaused && typeof window.executeTourStep === 'function') {
-            window.executeTourStep();
-          }
+          if (isTourActive && !isTourPaused && typeof window.executeTourStep === 'function') window.executeTourStep();
         };
 
         introAudio.play().catch((err) => {
-          console.error("Autoplay blocked for intro.", err);
           if (typeof window.executeTourStep === 'function') window.executeTourStep();
         });
       } else {
@@ -9958,9 +9953,7 @@
 
       if (typeof window.dismissSpatialCallout === 'function') window.dismissSpatialCallout();
       if (typeof applyZenUI === 'function') applyZenUI(false);
-      if (document.fullscreenElement && document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
-      }
+      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
       if (typeof updateSidebarToggleStyle === 'function') updateSidebarToggleStyle();
     };
 
@@ -9994,9 +9987,7 @@
       
       if (isTourPaused) {
         if (typeof clearTourTimers === 'function') clearTourTimers();
-        if (currentTourAudio && !currentTourAudio.paused) {
-          currentTourAudio.pause();
-        }
+        if (currentTourAudio && !currentTourAudio.paused) currentTourAudio.pause();
       } else {
         if (currentTourAudio && currentTourAudio.paused && currentTourAudio.currentTime < (currentTourAudio.duration || Infinity)) {
           currentTourAudio.play().catch(() => {
@@ -10008,7 +9999,7 @@
       }
     };
 
-    // --- SYNCHRONIZED EXECUTE TOUR STEP WITH SUB-CUES & SURFACE ZOOMS ---
+    // --- SYNCHRONIZED EXECUTE TOUR STEP ---
     window.executeTourStep = function() {
       if (!isTourActive || isTourPaused) return;
       if (!tourPlaylist || tourPlaylist.length === 0) return;
@@ -10047,7 +10038,7 @@
         if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
           TWEEN.removeAll();
           isFlyingToTarget = true;
-          controls.enabled = false; // Disable OrbitControls during animation
+          controls.enabled = false; 
 
           let startCam = camera.position.clone();
           if (tourIndex === 0 && !isFirstTourRun) {
@@ -10070,12 +10061,12 @@
             .easing(TWEEN.Easing.Sinusoidal.Out)
             .onUpdate(() => {
               camera.position.lerpVectors(startCam, endCam, tweenObj.t);
-              controls.target.lerpVectors(startTarget, endTarget, tweenObj.t);
-              if (controls.update) controls.update(); // Update controls with new target
+              camera.lookAt(startTarget.clone().lerp(endTarget, tweenObj.t));
             })
             .onComplete(() => {
               isFlyingToTarget = false;
-              controls.enabled = true; // Re-enable OrbitControls
+              controls.target.copy(endTarget); 
+              controls.enabled = true; 
               controls.autoRotate = true;
               controls.autoRotateSpeed = 0.4;
             })
@@ -10084,18 +10075,73 @@
 
       } else if (step.kind === "object") {
         activeTarget = step.data;
-        activeTargetMesh = step.mesh || (typeof celestialObjects !== 'undefined' ? celestialObjects.find(o => o.data?.name?.toLowerCase() === step.data?.name?.toLowerCase())?.mesh : null) || null;
+        
+        const targetMesh = step.mesh || (typeof celestialObjects !== 'undefined' ? celestialObjects.find(o => o.data?.name?.toLowerCase() === step.data?.name?.toLowerCase())?.mesh : null);
+        activeTargetMesh = targetMesh;
         
         if (typeof window.populateSpatialCallout === "function") window.populateSpatialCallout(step.data, false);
         if (typeof speakTourNarration === "function") speakTourNarration(step, step.dwellMs);
         setupAutoAdvance();
         
-        // --- USE BUILT-IN FLY TO TARGET ---
-        if (activeTargetMesh && typeof window.flyToTarget === 'function') {
-            // Use the application's native function to handle the zoom safely
-            window.flyToTarget(activeTargetMesh, step.camPos, step.targetPos, () => {
-                // Secondary zoom can be added back here if needed after basic zoom is fixed
+        if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
+          TWEEN.removeAll();
+          isFlyingToTarget = true;
+          controls.enabled = false; 
+          
+          const startCam = camera.position.clone();
+          const startTarget = controls.target.clone();
+          
+          const endTarget = new THREE.Vector3(0,0,0);
+          if (step.targetPos) endTarget.set(step.targetPos.x, step.targetPos.y, step.targetPos.z);
+          else if (targetMesh) endTarget.copy(targetMesh.position);
+
+          const endCam = new THREE.Vector3();
+          if (step.camPos) {
+              endCam.set(step.camPos.x, step.camPos.y, step.camPos.z);
+          } else {
+              endCam.copy(endTarget).add(new THREE.Vector3(30, 20, 50));
+          }
+
+          const tweenObj = { t: 0 };
+          
+          const approachTween = new TWEEN.Tween(tweenObj)
+            .to({ t: 1 }, 3000)
+            .easing(TWEEN.Easing.Cubic.InOut)
+            .onUpdate(() => {
+              camera.position.lerpVectors(startCam, endCam, tweenObj.t);
+              camera.lookAt(startTarget.clone().lerp(endTarget, tweenObj.t));
+            })
+            .onComplete(() => {
+              isFlyingToTarget = false;
+              controls.target.copy(endTarget);
+              controls.enabled = true; 
+              controls.autoRotate = true;
+              controls.autoRotateSpeed = 0.8; 
+
+              setTimeout(() => {
+                if (!isTourActive || isTourPaused) return;
+                controls.enabled = false; 
+                const currentCamPos = camera.position.clone();
+                const surfaceCam = endCam.clone().lerp(endTarget, 0.35); 
+                
+                const surfaceTween = new TWEEN.Tween({ t: 0 })
+                  .to({ t: 1 }, 4000)
+                  .easing(TWEEN.Easing.Quadratic.InOut)
+                  .onUpdate((o) => {
+                    camera.position.lerpVectors(currentCamPos, surfaceCam, o.t);
+                    camera.lookAt(endTarget);
+                  })
+                  .onComplete(() => {
+                      controls.target.copy(endTarget);
+                      controls.enabled = true; 
+                  })
+                  .start();
+                if (typeof tourTimers !== 'undefined') tourTimers.push(surfaceTween);
+              }, 6000); 
             });
+
+          approachTween.start();
+          if (typeof tourTimers !== 'undefined') tourTimers.push(approachTween);
         }
       }
     };
