@@ -10013,19 +10013,30 @@
       if (typeof updateTourProgressUI === 'function') updateTourProgressUI();
       if (typeof clearTourTimers === 'function') clearTourTimers();
 
-      // --- FIX 3: BULLETPROOF AUTO-ADVANCE TIMER ---
-      if (window._tourAutoAdvance) clearTimeout(window._tourAutoAdvance);
-      window._tourAutoAdvance = setTimeout(() => {
-        if (isTourActive && !isTourPaused && typeof window.nextTourStep === 'function') {
-          window.nextTourStep();
-        }
-      }, step.dwellMs || 10000);
+      // --- FIX 3: FLAWLESS AUTO-ADVANCE VIA AUDIO SYNC ---
+      const setupAutoAdvance = () => {
+        setTimeout(() => {
+          if (typeof currentTourAudio !== 'undefined' && currentTourAudio) {
+            currentTourAudio.onended = () => {
+              if (isTourActive && !isTourPaused && typeof window.nextTourStep === 'function') {
+                window.nextTourStep();
+              }
+            };
+          } else {
+            // Fallback timer just in case audio gets blocked
+            window._tourAutoAdvance = setTimeout(() => {
+              if (isTourActive && !isTourPaused && typeof window.nextTourStep === 'function') window.nextTourStep();
+            }, step.dwellMs || 10000);
+          }
+        }, 300); // Brief delay ensures the audio file has loaded
+      };
 
       if (step.kind === "tier-intro") {
         activeTargetMesh = null;
         activeTarget = step.data;
         if (typeof window.populateSpatialCallout === "function") window.populateSpatialCallout(step.data, true);
         if (typeof speakTourNarration === "function") speakTourNarration(step, step.dwellMs);
+        setupAutoAdvance();
         
         if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
           TWEEN.removeAll();
@@ -10041,13 +10052,14 @@
           const endCam = new THREE.Vector3(step.camPos.x, step.camPos.y, step.camPos.z);
           const endTarget = new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z);
           
-          // --- FIX 1: FAST 3.5s CINEMATIC DIVE ---
-          const cinematicDuration = 3500; 
+          // --- FIX 1: RESTORED SLOW CINEMATIC SWEEP ---
+          // Ties the camera motion directly to the duration of the audio
+          const cinematicDuration = step.dwellMs || 25000; 
 
           const tweenObj = { t: 0 };
           new TWEEN.Tween(tweenObj)
             .to({ t: 1 }, cinematicDuration)
-            .easing(TWEEN.Easing.Cubic.InOut)
+            .easing(TWEEN.Easing.Sinusoidal.Out)
             .onUpdate(() => {
               camera.position.lerpVectors(startCam, endCam, tweenObj.t);
               controls.target.lerpVectors(startTarget, endTarget, tweenObj.t);
@@ -10056,18 +10068,19 @@
             .onComplete(() => {
               isFlyingToTarget = false;
               controls.autoRotate = true;
-              controls.autoRotateSpeed = 0.6;
+              controls.autoRotateSpeed = 0.4;
             })
             .start();
         }
 
-      } else if (step.kind === "object" && step.mesh) {
-        activeTargetMesh = step.mesh;
+      } else if (step.kind === "object") { // --- FIX 2: REMOVED STRICT MESH CHECK ---
+        activeTargetMesh = step.mesh || null;
         activeTarget = step.data;
         if (typeof window.populateSpatialCallout === "function") window.populateSpatialCallout(step.data, false);
         if (typeof speakTourNarration === "function") speakTourNarration(step, step.dwellMs);
+        setupAutoAdvance();
         
-        // --- FIX 2: GUARANTEED OBJECT ZOOM ---
+        // --- GUARANTEED INLINE OBJECT ZOOM ---
         if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
           TWEEN.removeAll();
           isFlyingToTarget = true;
@@ -10080,8 +10093,8 @@
 
           const tweenObj = { t: 0 };
           new TWEEN.Tween(tweenObj)
-            .to({ t: 1 }, 2500) // Crisp 2.5s zoom directly to the object
-            .easing(TWEEN.Easing.Quadratic.InOut)
+            .to({ t: 1 }, 2500) // Crisp 2.5s zoom
+            .easing(TWEEN.Easing.Cubic.InOut)
             .onUpdate(() => {
               camera.position.lerpVectors(startCam, endCam, tweenObj.t);
               controls.target.lerpVectors(startTarget, endTarget, tweenObj.t);
@@ -10096,7 +10109,7 @@
         }
       }
     };
-
+    
     const bindAllTourButtons = () => {
       const tourButton = document.getElementById("btn-cosmic-tour");
       if (tourButton && !tourButton.dataset.bound) {
