@@ -10047,7 +10047,6 @@
           }
           
           const startTarget = controls.target.clone();
-          // Provide strict fallback coordinates so it never reads 'undefined'
           const endCam = step.camPos ? new THREE.Vector3(step.camPos.x, step.camPos.y, step.camPos.z) : new THREE.Vector3(0, 1000, 1500);
           const endTarget = step.targetPos ? new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z) : new THREE.Vector3(0,0,0);
           const cinematicDuration = step.dwellMs || 25000; 
@@ -10070,41 +10069,51 @@
         }
 
       } else if (step.kind === "object") {
-        activeTargetMesh = step.mesh || null;
         activeTarget = step.data;
         if (typeof window.populateSpatialCallout === "function") window.populateSpatialCallout(step.data, false);
         if (typeof speakTourNarration === "function") speakTourNarration(step, step.dwellMs);
         setupAutoAdvance();
         
-        // --- FOOLPROOF INTERNAL ZOOM (NO EXTERNAL CALLS) ---
-        if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
-          TWEEN.removeAll();
-          isFlyingToTarget = true;
-          controls.autoRotate = false;
-          
-          const startCam = camera.position.clone();
-          const startTarget = controls.target.clone();
-          
-          // Provide strict fallback coordinates so it never crashes on 'undefined'
-          const endCam = step.camPos ? new THREE.Vector3(step.camPos.x, step.camPos.y, step.camPos.z) : new THREE.Vector3(0, 50, 100);
-          const endTarget = step.targetPos ? new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z) : new THREE.Vector3(0,0,0);
+        // --- ASYNC RETRY LOOP FOR PLANET ZOOM ---
+        const waitForMeshAndZoom = (attempts = 0) => {
+          // If the mesh is loaded, execute the zoom
+          if (step.mesh) {
+            activeTargetMesh = step.mesh;
+            
+            if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
+              TWEEN.removeAll();
+              isFlyingToTarget = true;
+              controls.autoRotate = false;
+              
+              const startCam = camera.position.clone();
+              const startTarget = controls.target.clone();
+              const endCam = step.camPos ? new THREE.Vector3(step.camPos.x, step.camPos.y, step.camPos.z) : new THREE.Vector3(0, 50, 100);
+              const endTarget = step.targetPos ? new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z) : new THREE.Vector3(0,0,0);
 
-          const tweenObj = { t: 0 };
-          new TWEEN.Tween(tweenObj)
-            .to({ t: 1 }, 2500) // Crisp 2.5s zoom directly to the object
-            .easing(TWEEN.Easing.Cubic.InOut)
-            .onUpdate(() => {
-              camera.position.lerpVectors(startCam, endCam, tweenObj.t);
-              controls.target.lerpVectors(startTarget, endTarget, tweenObj.t);
-              if (controls.update) controls.update();
-            })
-            .onComplete(() => {
-              isFlyingToTarget = false;
-              controls.autoRotate = true;
-              controls.autoRotateSpeed = 1.0; 
-            })
-            .start();
-        }
+              const tweenObj = { t: 0 };
+              new TWEEN.Tween(tweenObj)
+                .to({ t: 1 }, 2500) // Crisp 2.5s zoom directly to the object
+                .easing(TWEEN.Easing.Cubic.InOut)
+                .onUpdate(() => {
+                  camera.position.lerpVectors(startCam, endCam, tweenObj.t);
+                  controls.target.lerpVectors(startTarget, endTarget, tweenObj.t);
+                  if (controls.update) controls.update();
+                })
+                .onComplete(() => {
+                  isFlyingToTarget = false;
+                  controls.autoRotate = true;
+                  controls.autoRotateSpeed = 1.0; 
+                })
+                .start();
+            }
+          // If the mesh isn't ready, wait 500ms and try again (up to 10 times)
+          } else if (attempts < 10) {
+            setTimeout(() => waitForMeshAndZoom(attempts + 1), 500);
+          }
+        };
+
+        // Start the zoom attempt
+        waitForMeshAndZoom();
       }
     };
     
