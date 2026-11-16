@@ -10000,30 +10000,48 @@
       }
     };
 
-    const tourBtnEl = document.getElementById("btn-cosmic-tour");
-    if (tourBtnEl) {
-      tourBtnEl.onclick = null;
-      tourBtnEl.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        window.toggleCosmicTour(e);
-      });
-    }
+    // --- ROBUST TOUR BUTTON BINDINGS ---
+    const bindTourControls = () => {
+      // Find the main tour trigger by possible IDs or classes
+      const tourBtn = document.getElementById("btn-cosmic-tour") || document.querySelector(".cosmic-tour-btn") || document.querySelector("[onclick*='CosmicTour']");
+      if (tourBtn && !tourBtn.dataset.bound) {
+        tourBtn.dataset.bound = "true";
+        tourBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.toggleCosmicTour(e);
+        });
+      }
 
-    // PASTED NEXT/PREV BUTTONS HERE:
-    const nextBtn = document.getElementById("btn-tour-next");
-    if (nextBtn) {
-      nextBtn.addEventListener("click", (e) => {
-        window.nextTourStep(e);
-      });
-    }
+      const nextBtn = document.getElementById("btn-tour-next") || document.querySelector(".tour-next");
+      if (nextBtn && !nextBtn.dataset.bound) {
+        nextBtn.dataset.bound = "true";
+        nextBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.nextTourStep(e);
+        });
+      }
 
-    const prevBtn = document.getElementById("btn-tour-prev");
-    if (prevBtn) {
-      prevBtn.addEventListener("click", (e) => {
-        window.prevTourStep(e);
-      });
+      const prevBtn = document.getElementById("btn-tour-prev") || document.querySelector(".tour-prev");
+      if (prevBtn && !prevBtn.dataset.bound) {
+        prevBtn.dataset.bound = "true";
+        prevBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.prevTourStep(e);
+        });
+      }
+    };
+
+    // Run binder immediately and once DOM is ready
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", bindTourControls);
+    } else {
+      bindTourControls();
     }
+    // Fallback timer in case buttons load dynamically
+    setTimeout(bindTourControls, 1000);
     
     // === AUTONOMOUS OBSERVATORY STANDBY / SCREENSAVER SYSTEM ===
     let screensaverIdleTimer = null;
