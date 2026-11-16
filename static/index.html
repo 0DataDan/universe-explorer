@@ -9914,38 +9914,37 @@
         if (badgeEl) badgeEl.textContent = "NOVA";
         if (counterEl) counterEl.textContent = "INTRO";
 
-        // --- CINEMATIC INTRO CAMERA SWEEP ---
+       // --- CINEMATIC INTRO CAMERA SWEEP ---
         if (typeof TWEEN !== 'undefined') {
           TWEEN.removeAll();
-          isFlyingToTarget = true; // Locks manual orbit while sweeping
+          isFlyingToTarget = true; 
+          controls.autoRotate = false;
 
-          const startCam = camera.position.clone();
-          // Push the camera out wide for a majestic starting view
-          const sweepStart = new THREE.Vector3(startCam.x, Math.max(startCam.y, 250), Math.max(startCam.z, 500));
-          // End position sets up perfectly for the "Solar System" Tier 1 jump
-          const sweepEnd = new THREE.Vector3(-80, 120, 180); 
+          // Snap to an ultra-wide panoramic view of the cosmic web
+          const sweepStart = new THREE.Vector3(0, 1000, 1500);
+          // Slowly drift across the galaxy for the duration of her greeting
+          const sweepEnd = new THREE.Vector3(400, 600, 800); 
           
-          const startTarget = controls.target.clone();
-          const endTarget = new THREE.Vector3(0, 0, 0); // Focus on the Sun
+          camera.position.copy(sweepStart);
+          const targetStart = new THREE.Vector3(0, 0, 0);
+          controls.target.copy(targetStart);
 
           const tweenObj = { t: 0 };
           new TWEEN.Tween(tweenObj)
-            .to({ t: 1 }, 25000) // Extended to 25 seconds to encompass the full audio
+            .to({ t: 1 }, 21000) // 21-second majestic drift
             .easing(TWEEN.Easing.Sinusoidal.InOut)
             .onUpdate(() => {
               camera.position.lerpVectors(sweepStart, sweepEnd, tweenObj.t);
-              controls.target.lerpVectors(startTarget, endTarget, tweenObj.t);
               if (controls.update) controls.update();
             })
             .onComplete(() => {
               isFlyingToTarget = false;
-              // Seamlessly hand off to a slow cinematic orbit once the zoom finishes
               controls.autoRotate = true;
-              controls.autoRotateSpeed = 0.5;
+              controls.autoRotateSpeed = 0.2; // Keep drifting gently if there's an audio gap
             })
             .start();
         }
-
+        
         // IMPORTANT: Absolute path to static server root
         const introAudio = new Audio('/static/audio/tour/intro.mp3');
         introAudio.preload = "auto";
