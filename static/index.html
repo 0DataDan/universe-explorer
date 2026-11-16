@@ -9916,12 +9916,40 @@
       updateSidebarToggleStyle();
     };
 
+    // Flag to ensure NOVA only introduces herself once per session
+    let isFirstTourRun = true;
+
     window.toggleCosmicTour = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
+      
       if (isTourActive) {
         window.stopCosmicTour();
       } else {
+        // 1. Initialize the tour normally (sets up HUD, state, and camera)
         window.startCosmicTour();
+
+        // 2. Intercept the first run to play NOVA's introduction
+        if (isFirstTourRun) {
+            isFirstTourRun = false;
+            
+            // Pause the first planet's audio & timers that startCosmicTour just fired
+            if (typeof clearTourTimers === 'function') clearTourTimers();
+            if (currentTourAudio) {
+                currentTourAudio.pause();
+                currentTourAudio.currentTime = 0;
+            }
+
+            // Play NOVA's introduction
+            currentTourAudio = new Audio('audio/tour/intro.mp3');
+            currentTourAudio.play().catch(err => console.log("Intro audio error:", err));
+
+            // When she finishes speaking, officially trigger the first planet
+            currentTourAudio.onended = () => {
+                if (isTourActive && !isTourPaused) {
+                    executeTourStep();
+                }
+            };
+        }
       }
     };
 
@@ -9944,6 +9972,7 @@
       if (!isTourActive) return;
       isTourPaused = !isTourPaused;
       updatePauseButtonIcon(isTourPaused);
+      
       if (isTourPaused) {
         clearTourTimers();
         if (currentTourAudio && !currentTourAudio.paused) {
