@@ -9681,12 +9681,12 @@
     }
 
     function getStepNarrationText(step) {
-  if (!step || !step.data) return "";
-  const rawPrefix = step.kind === "tier-intro" ? step.data.title : step.data.name;
-  const spokenPrefix = step.kind === "tier-intro" ? rawPrefix : formatSpokenTitle(rawPrefix);
-  // Clean, dynamic narration without the repetitive distance boilerplate
-  return cleanNarrationText(`${spokenPrefix}. ${step.data.summary || ""}`);
-}
+      if (!step || !step.data) return "";
+      const rawPrefix = step.kind === "tier-intro" ? step.data.title : step.data.name;
+      const spokenPrefix = step.kind === "tier-intro" ? rawPrefix : formatSpokenTitle(rawPrefix);
+      // Clean, dynamic narration without repetitive distance boilerplate
+      return cleanNarrationText(`${spokenPrefix}. ${step.data.summary || ""}`);
+    }
 
     function preloadTourStepAudio(stepIndex) {
       if (!tourPlaylist || tourPlaylist.length === 0) return;
@@ -9853,7 +9853,7 @@
         await fetchCatalog();
       }
       if (typeof buildCosmicTourPlaylist === 'function') {
-        tourPlaylist = buildCosmicTourPlaylist();
+        window.tourPlaylist = tourPlaylist = buildCosmicTourPlaylist();
         if (!tourPlaylist || tourPlaylist.length === 0) return;
       }
 
@@ -10013,6 +10013,17 @@
       if (typeof updateTourProgressUI === 'function') updateTourProgressUI();
       if (typeof clearTourTimers === 'function') clearTourTimers();
 
+      // --- CRITICAL FIX 1: RESTORE UI PROGRESS TEXT ---
+      // This string format ("1/35") is required to pass the isGuidedTourCurrentlyActive() 
+      // regex check. Without it, the physical features panel and pointers shut down!
+      const spatialTourControls = document.getElementById("spatial-tour-controls");
+      if (spatialTourControls) spatialTourControls.classList.remove("hidden");
+      
+      const badgeEl = document.getElementById("tour-step-badge");
+      const counterEl = document.getElementById("tour-step-counter");
+      if (badgeEl) badgeEl.textContent = step.badge || "TOUR";
+      if (counterEl) counterEl.textContent = (tourIndex + 1) + "/" + tourPlaylist.length;
+
       const setupAutoAdvance = () => {
         setTimeout(() => {
           if (typeof currentTourAudio !== 'undefined' && currentTourAudio) {
@@ -10071,7 +10082,6 @@
 
       } else if (step.kind === "object") {
         activeTarget = step.data;
-        
         const targetMesh = step.mesh || (typeof celestialObjects !== 'undefined' ? celestialObjects.find(o => o.data?.name?.toLowerCase() === step.data?.name?.toLowerCase())?.mesh : null);
         activeTargetMesh = targetMesh;
         
@@ -10079,80 +10089,52 @@
         if (typeof speakTourNarration === "function") speakTourNarration(step, step.dwellMs);
         setupAutoAdvance();
         
-        // --- ACTIVE OBJECT ZOOM & TRACKING ---
-        if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
-          TWEEN.removeAll();
-          isFlyingToTarget = true;
-          controls.enabled = false; 
-          
-          const startCam = camera.position.clone();
-          const startTarget = controls.target.clone();
-          
-          // Determine target destination (mesh position or fallback)
-          const endTarget = new THREE.Vector3();
-          if (targetMesh) {
-            endTarget.copy(targetMesh.position);
-          } else if (step.targetPos) {
-            endTarget.set(step.targetPos.x, step.targetPos.y, step.targetPos.z);
-          }
-
-          const endCam = new THREE.Vector3();
-          if (step.camPos) {
-            endCam.set(step.camPos.x, step.camPos.y, step.camPos.z);
-          } else {
-            endCam.copy(endTarget).add(new THREE.Vector3(30, 20, 50));
-          }
-
-          const tweenObj = { t: 0 };
-          
-          const approachTween = new TWEEN.Tween(tweenObj)
-            .to({ t: 1 }, 3000)
-            .easing(TWEEN.Easing.Cubic.InOut)
-            .onUpdate(() => {
-              // If target mesh is moving, dynamically update endTarget
-              const currentDynamicTarget = targetMesh ? targetMesh.position : endTarget;
-              camera.position.lerpVectors(startCam, endCam, tweenObj.t);
-              camera.lookAt(currentDynamicTarget);
-            })
-            .onComplete(() => {
-              isFlyingToTarget = false;
-              if (targetMesh) controls.target.copy(targetMesh.position);
-              else controls.target.copy(endTarget);
-              
-              controls.enabled = true; 
-              controls.autoRotate = true;
-              controls.autoRotateSpeed = 0.8; 
-
-              // Secondary Surface Feature Zoom (pushes closer as physical specs are described)
-              setTimeout(() => {
-                if (!isTourActive || isTourPaused) return;
-                controls.enabled = false; 
-                const currentCamPos = camera.position.clone();
-                const liveTarget = targetMesh ? targetMesh.position : endTarget;
-                const surfaceCam = endCam.clone().lerp(liveTarget, 0.4); 
-                
-                const surfaceTween = new TWEEN.Tween({ t: 0 })
-                  .to({ t: 1 }, 4000)
-                  .easing(TWEEN.Easing.Quadratic.InOut)
-                  .onUpdate((o) => {
-                    camera.position.lerpVectors(currentCamPos, surfaceCam, o.t);
-                    camera.lookAt(liveTarget);
-                  })
-                  .onComplete(() => {
-                      controls.target.copy(liveTarget);
-                      controls.enabled = true; 
-                  })
-                  .start();
-                if (typeof tourTimers !== 'undefined') tourTimers.push(surfaceTween);
-              }, 6000); 
-            });
-
-          approachTween.start();
-          if (typeof tourTimers !== 'undefined') tourTimers.push(approachTween);
+        // --- CRITICAL FIX 2: USE NATIVE ZOOM FUNCTION ---
+        // smoothFlyToTarget natively handles getWorldPosition() and calculates dynamic offsets perfectly!
+        if (typeof window.smoothFlyToTarget === "function") {
+          window.smoothFlyToTarget(2800);
         }
       }
     };
-    
+
+    // --- BULLETPROOF BUTTON BINDINGS ---
+    const bindAllTourButtons = () => {
+      const tourButton = document.getElementById("btn-cosmic-tour");
+      if (tourButton && !tourButton.dataset.bound) {
+        tourButton.dataset.bound = "true";
+        tourButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          window.toggleCosmicTour(e);
+        });
+      }
+
+      const nxtBtn = document.getElementById("btn-tour-next");
+      if (nxtBtn && !nxtBtn.dataset.bound) {
+        nxtBtn.dataset.bound = "true";
+        nxtBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          window.nextTourStep(e);
+        });
+      }
+
+      const prvBtn = document.getElementById("btn-tour-prev");
+      if (prvBtn && !prvBtn.dataset.bound) {
+        prvBtn.dataset.bound = "true";
+        prvBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          window.prevTourStep(e);
+        });
+      }
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", bindAllTourButtons);
+    } else {
+      bindAllTourButtons();
+    }
+    setTimeout(bindAllTourButtons, 500);
+    setTimeout(bindAllTourButtons, 1500);
+
     // === AUTONOMOUS OBSERVATORY STANDBY / SCREENSAVER SYSTEM ===
     let screensaverIdleTimer = null;
     let screensaverLingerTimer = null;
