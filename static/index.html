@@ -9833,28 +9833,36 @@
       }
     }
 
-    // Flag to ensure NOVA only introduces herself once per session
+    // --- GLOBAL TOUR STATE & FUNCTIONS ---
     let isFirstTourRun = true;
 
+    window.toggleCosmicTour = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (typeof isTourActive !== 'undefined' && isTourActive) {
+        window.stopCosmicTour(e);
+      } else {
+        window.startCosmicTour();
+      }
+    };
+
     window.startCosmicTour = async function() {
-      // 1. STRICT WAIT: Ensure the universe is fully loaded before continuing
-      if (celestialObjects.length === 0) {
+      if (typeof celestialObjects !== 'undefined' && celestialObjects.length === 0) {
         await fetchCatalog();
       }
-      
-      tourPlaylist = buildCosmicTourPlaylist();
-      if (tourPlaylist.length === 0) return;
+      if (typeof buildCosmicTourPlaylist === 'function') {
+        tourPlaylist = buildCosmicTourPlaylist();
+        if (!tourPlaylist || tourPlaylist.length === 0) return;
+      }
 
       isTourActive = true;
       isTourPaused = false;
       isSidebarUserHidden = false;
       isPlanetOverviewEnabled = true;
       window._spatialCalloutDismissedForMesh = null;
-      updateSidebarToggleStyle();
+      if (typeof updateSidebarToggleStyle === 'function') updateSidebarToggleStyle();
       tourIndex = 0;
 
-      // Automatically enter Fullscreen mode when starting the tour
-      applyZenUI(true, true);
+      if (typeof applyZenUI === 'function') applyZenUI(true, true);
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
       }
@@ -9864,29 +9872,26 @@
       const sidebarTourCtrl = document.getElementById("sidebar-tour-controls");
       if (sidebarTourCtrl) sidebarTourCtrl.classList.remove("hidden");
 
-      updatePauseButtonIcon(false);
-      updateTourButtonStyle(true);
+      if (typeof updatePauseButtonIcon === 'function') updatePauseButtonIcon(false);
+      if (typeof updateTourButtonStyle === 'function') updateTourButtonStyle(true);
 
-      // First run: Play NOVA's introduction before starting step 0
       if (isFirstTourRun) {
         isFirstTourRun = false;
-        stopTourAudio();
-        clearTourTimers();
+        if (typeof stopTourAudio === 'function') stopTourAudio();
+        if (typeof clearTourTimers === 'function') clearTourTimers();
 
         const badgeEl = document.getElementById("tour-step-badge");
         const counterEl = document.getElementById("tour-step-counter");
         if (badgeEl) badgeEl.textContent = "NOVA";
         if (counterEl) counterEl.textContent = "INTRO";
 
-       // --- CINEMATIC INTRO CAMERA SWEEP ---
-        if (typeof TWEEN !== 'undefined') {
+        // --- CINEMATIC INTRO CAMERA SWEEP ---
+        if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
           TWEEN.removeAll();
-          isFlyingToTarget = true; 
+          isFlyingToTarget = true;
           controls.autoRotate = false;
 
-          // Snap to an ultra-wide panoramic view of the cosmic web
           const sweepStart = new THREE.Vector3(0, 1000, 1500);
-          // Slowly drift across the galaxy for the duration of her greeting
           const sweepEnd = new THREE.Vector3(400, 600, 800); 
           
           camera.position.copy(sweepStart);
@@ -9895,7 +9900,7 @@
 
           const tweenObj = { t: 0 };
           new TWEEN.Tween(tweenObj)
-            .to({ t: 1 }, 21000) // 21-second majestic drift
+            .to({ t: 1 }, 21000)
             .easing(TWEEN.Easing.Sinusoidal.InOut)
             .onUpdate(() => {
               camera.position.lerpVectors(sweepStart, sweepEnd, tweenObj.t);
@@ -9904,144 +9909,129 @@
             .onComplete(() => {
               isFlyingToTarget = false;
               controls.autoRotate = true;
-              controls.autoRotateSpeed = 0.2; // Keep drifting gently if there's an audio gap
+              controls.autoRotateSpeed = 0.2;
             })
             .start();
         }
-        
-        // IMPORTANT: Absolute path to static server root
+
         const introAudio = new Audio('/audio/tour/intro.mp3');
         introAudio.preload = "auto";
         currentTourAudio = introAudio;
 
         introAudio.onended = () => {
-          if (isTourActive && !isTourPaused) {
+          if (isTourActive && !isTourPaused && typeof executeTourStep === 'function') {
             executeTourStep();
           }
         };
 
         introAudio.onerror = (err) => {
           console.error("Failed to load intro audio, proceeding to tour.", err);
-          if (isTourActive && !isTourPaused) {
+          if (isTourActive && !isTourPaused && typeof executeTourStep === 'function') {
             executeTourStep();
           }
         };
 
         introAudio.play().catch((err) => {
           console.error("Autoplay blocked for intro, proceeding to tour.", err);
-          executeTourStep();
+          if (typeof executeTourStep === 'function') executeTourStep();
         });
       } else {
-        executeTourStep();
+        if (typeof executeTourStep === 'function') executeTourStep();
       }
     };
 
     window.stopCosmicTour = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
-      stopTourAudio();
+      if (typeof stopTourAudio === 'function') stopTourAudio();
       isTourActive = false;
       isTourPaused = false;
       isSidebarUserHidden = false;
-      clearTourTimers();
-      updateTourButtonStyle(false);
+      if (typeof clearTourTimers === 'function') clearTourTimers();
+      if (typeof updateTourButtonStyle === 'function') updateTourButtonStyle(false);
 
       const spatialTourControls = document.getElementById("spatial-tour-controls");
       if (spatialTourControls) spatialTourControls.classList.add("hidden");
       const sidebarTourCtrl = document.getElementById("sidebar-tour-controls");
       if (sidebarTourCtrl) sidebarTourCtrl.classList.add("hidden");
 
-      window.dismissSpatialCallout();
-      activeTarget = null;
-      activeTargetMesh = null;
-      if (typeof lastTrackedTargetPos !== "undefined") lastTrackedTargetPos.set(0, 0, 0);
-
-      applyZenUI(false);
+      if (typeof window.dismissSpatialCallout === 'function') window.dismissSpatialCallout();
+      if (typeof applyZenUI === 'function') applyZenUI(false);
       if (document.fullscreenElement && document.exitFullscreen) {
         document.exitFullscreen().catch(() => {});
       }
-      updateSidebarToggleStyle();
+      if (typeof updateSidebarToggleStyle === 'function') updateSidebarToggleStyle();
     };
 
     window.nextTourStep = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
       if (!isTourActive) return;
-      stopTourAudio();
-      clearTourTimers();
-      tourIndex = (tourIndex + 1) % tourPlaylist.length;
-      executeTourStep();
+      if (typeof stopTourAudio === 'function') stopTourAudio();
+      if (typeof clearTourTimers === 'function') clearTourTimers();
+      if (typeof tourPlaylist !== 'undefined' && tourPlaylist.length > 0) {
+        tourIndex = (tourIndex + 1) % tourPlaylist.length;
+      }
+      if (typeof executeTourStep === 'function') executeTourStep();
     };
 
     window.prevTourStep = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
       if (!isTourActive) return;
-      stopTourAudio();
-      clearTourTimers();
-      tourIndex = (tourIndex - 1 + tourPlaylist.length) % tourPlaylist.length;
-      executeTourStep();
+      if (typeof stopTourAudio === 'function') stopTourAudio();
+      if (typeof clearTourTimers === 'function') clearTourTimers();
+      if (typeof tourPlaylist !== 'undefined' && tourPlaylist.length > 0) {
+        tourIndex = (tourIndex - 1 + tourPlaylist.length) % tourPlaylist.length;
+      }
+      if (typeof executeTourStep === 'function') executeTourStep();
     };
 
     window.togglePauseCosmicTour = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
       if (!isTourActive) return;
       isTourPaused = !isTourPaused;
-      updatePauseButtonIcon(isTourPaused);
+      if (typeof updatePauseButtonIcon === 'function') updatePauseButtonIcon(isTourPaused);
       
       if (isTourPaused) {
-        clearTourTimers();
+        if (typeof clearTourTimers === 'function') clearTourTimers();
         if (currentTourAudio && !currentTourAudio.paused) {
           currentTourAudio.pause();
         }
       } else {
         if (currentTourAudio && currentTourAudio.paused && currentTourAudio.currentTime < (currentTourAudio.duration || Infinity)) {
-          currentTourAudio.play().catch(() => scheduleNextTourStep(5000));
+          currentTourAudio.play().catch(() => {
+            if (typeof scheduleNextTourStep === 'function') scheduleNextTourStep(5000);
+          });
         } else {
-          scheduleNextTourStep(2500);
+          if (typeof scheduleNextTourStep === 'function') scheduleNextTourStep(2500);
         }
       }
     };
 
-    // --- ROBUST TOUR BUTTON BINDINGS ---
-    const bindTourControls = () => {
-      // Find the main tour trigger by possible IDs or classes
-      const tourBtn = document.getElementById("btn-cosmic-tour") || document.querySelector(".cosmic-tour-btn") || document.querySelector("[onclick*='CosmicTour']");
-      if (tourBtn && !tourBtn.dataset.bound) {
-        tourBtn.dataset.bound = "true";
-        tourBtn.addEventListener("click", (e) => {
+    // --- BUTTON BINDINGS ---
+    document.addEventListener("DOMContentLoaded", () => {
+      const tourButton = document.getElementById("btn-cosmic-tour");
+      if (tourButton) {
+        tourButton.addEventListener("click", (e) => {
           e.preventDefault();
-          e.stopPropagation();
           window.toggleCosmicTour(e);
         });
       }
 
-      const nextBtn = document.getElementById("btn-tour-next") || document.querySelector(".tour-next");
-      if (nextBtn && !nextBtn.dataset.bound) {
-        nextBtn.dataset.bound = "true";
-        nextBtn.addEventListener("click", (e) => {
+      const nxtBtn = document.getElementById("btn-tour-next");
+      if (nxtBtn) {
+        nxtBtn.addEventListener("click", (e) => {
           e.preventDefault();
-          e.stopPropagation();
           window.nextTourStep(e);
         });
       }
 
-      const prevBtn = document.getElementById("btn-tour-prev") || document.querySelector(".tour-prev");
-      if (prevBtn && !prevBtn.dataset.bound) {
-        prevBtn.dataset.bound = "true";
-        prevBtn.addEventListener("click", (e) => {
+      const prvBtn = document.getElementById("btn-tour-prev");
+      if (prvBtn) {
+        prvBtn.addEventListener("click", (e) => {
           e.preventDefault();
-          e.stopPropagation();
           window.prevTourStep(e);
         });
       }
-    };
-
-    // Run binder immediately and once DOM is ready
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", bindTourControls);
-    } else {
-      bindTourControls();
-    }
-    // Fallback timer in case buttons load dynamically
-    setTimeout(bindTourControls, 1000);
+    });
     
     // === AUTONOMOUS OBSERVATORY STANDBY / SCREENSAVER SYSTEM ===
     let screensaverIdleTimer = null;
