@@ -339,7 +339,7 @@
       animation: eclipse-dock-ripple 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* --- NASA Eyes on the Solar System Minimalist Celestial Labels --- */
+    /* --- Minimalist Celestial Labels --- */
     #celestial-labels-layer {
       position: fixed;
       inset: 0;
@@ -775,7 +775,7 @@
     </div>
   </div>
 
-  <!-- 3D-Tracked NASA Eyes Minimalist Celestial Name Labels Layer -->
+  <!-- Minimalist Celestial Name Labels Layer -->
   <div id="celestial-labels-layer" aria-hidden="true"></div>
 
   <!-- Observatory Standby / Screensaver Status Beacon -->
@@ -1015,7 +1015,7 @@
     </div>
   </aside>
 
-<!-- Bottom-Docked Minimalist NASA Eyes Command Pill -->
+<!-- Bottom-Docked Minimalist Command Pill -->
   <footer id="bottom-hud" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-20 bg-slate-950/65 border border-white/15 px-4 py-1.5 rounded-full backdrop-blur-xl grid grid-cols-[1fr_auto_1fr] items-center gap-4 pointer-events-auto shadow-[0_12px_40px_rgba(0,0,0,0.78),inset_0_1px_0_rgba(255,255,255,0.12)] transition-all duration-300">
     <!-- Left Section: Guided Tour Start Button & Wider Laser-Tick Zoom Channel -->
     <div id="hud-left-controls" class="justify-self-start flex items-center space-x-3">
@@ -1358,7 +1358,7 @@
     let areLabelsVisible = true;
     let isScreensaverActive = false;
 
-    // === NASA EYES MINIMALIST PRIMARY NAME LABELS STATE ===
+    // === MINIMALIST PRIMARY NAME LABELS STATE ===
     const PRIMARY_CELESTIAL_NAMES = {
       "sun": "SUN",
       "mercury": "MERCURY",
@@ -4407,7 +4407,7 @@
       }
     }
 
-    // === NASA EYES MINIMALIST PRIMARY NAME LABELS & ORBITAL TRACKING ===
+    // === MINIMALIST PRIMARY NAME LABELS & ORBITAL TRACKING ===
     function getPrimaryCelestialName(data) {
       if (!data) return "";
       const id = (data.id || "").toLowerCase();
@@ -9914,7 +9914,7 @@
         if (badgeEl) badgeEl.textContent = "NOVA";
         if (counterEl) counterEl.textContent = "INTRO";
 
-        const introAudio = new Audio('./audio/tour/intro.mp3');
+        const introAudio = new Audio('audio/tour/intro.mp3');
         introAudio.preload = "auto";
         currentTourAudio = introAudio;
 
@@ -9925,6 +9925,7 @@
         };
 
         introAudio.onerror = () => {
+          // Safety fallback: if audio/tour/intro.mp3 is missing, skip directly to the tour
           if (isTourActive && !isTourPaused) {
             executeTourStep();
           }
@@ -9963,6 +9964,50 @@
       }
       updateSidebarToggleStyle();
     };
+
+    window.nextTourStep = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (!isTourActive) return;
+      tourIndex = (tourIndex + 1) % tourPlaylist.length;
+      executeTourStep();
+    };
+
+    window.prevTourStep = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (!isTourActive) return;
+      tourIndex = (tourIndex - 1 + tourPlaylist.length) % tourPlaylist.length;
+      executeTourStep();
+    };
+
+    window.togglePauseCosmicTour = function(e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (!isTourActive) return;
+      isTourPaused = !isTourPaused;
+      updatePauseButtonIcon(isTourPaused);
+      
+      if (isTourPaused) {
+        clearTourTimers();
+        if (currentTourAudio && !currentTourAudio.paused) {
+          currentTourAudio.pause();
+        }
+      } else {
+        if (currentTourAudio && currentTourAudio.paused && currentTourAudio.currentTime < (currentTourAudio.duration || Infinity)) {
+          currentTourAudio.play().catch(() => scheduleNextTourStep(5000));
+        } else {
+          scheduleNextTourStep(2500);
+        }
+      }
+    };
+
+    const tourBtnEl = document.getElementById("btn-cosmic-tour");
+    if (tourBtnEl) {
+      tourBtnEl.onclick = null;
+      tourBtnEl.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.toggleCosmicTour(e);
+      });
+    }
 
     // === AUTONOMOUS OBSERVATORY STANDBY / SCREENSAVER SYSTEM ===
     let screensaverIdleTimer = null;
