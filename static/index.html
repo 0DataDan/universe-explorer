@@ -9443,7 +9443,13 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         window._cosmicMaterials.core.opacity = 0.24 * webScale;
         window._cosmicMaterials.outer.opacity = 0.14 * webScale;
         window._cosmicMaterials.branch.opacity = 0.095 * webScale;
+      }
 
+      // === DEEP-SPACE DISCOVERABLE BEACON PULSE ===
+      if (typeof window.updateDeepSpaceDiscoveryPulse === "function") {
+        window.updateDeepSpaceDiscoveryPulse(performance.now() * 0.001, camera, celestialObjects, activeTargetMesh);
+      }
+      
         filamentFlowParticles.forEach(item => {
           item.progress = (item.progress + item.speed) % 1.0;
           const pt = item.curve.getPoint(item.progress);
@@ -11859,8 +11865,365 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
 
 
 
+<!-- <<< START REPLACEMENT CODE >>> -->
+  <!-- === NOVA SMOOTH MAP KEY, TOUR HUD DOCK & DEEP-SPACE DISCOVERY BEACONS === -->
+  <style>
+    /* 1. Slow, weighted 0.85s slide for the right-hand Map Key drawer */
+    #map-key-drawer,
+    #legend-drawer,
+    .map-key-panel,
+    [data-nova-map-key="true"] {
+      transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+                  right 0.85s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      will-change: transform, opacity;
+    }
+
+    /* Smooth transition for the right-edge cyan indicator line */
+    [data-nova-map-key-trigger="true"] {
+      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.65s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    /* 2. Bottom HUD Bar smooth slide & Tour-mode auto-hide state */
+    [data-nova-bottom-hud="true"] {
+      transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      will-change: transform, opacity;
+    }
+
+    [data-nova-bottom-hud="true"].nova-hud-tour-hidden {
+      transform: translate3d(-50%, calc(100% + 28px), 0) !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    /* If the bottom HUD wrapper doesn't use -50% X centering, preserve X alignment */
+    [data-nova-bottom-hud="true"][data-hud-centered="flex"].nova-hud-tour-hidden {
+      transform: translate3d(0, calc(100% + 28px), 0) !important;
+    }
+
+    /* Thin Cyan Horizon Line at bottom edge (Active ONLY during Guided Tour when HUD is docked) */
+    #nova-bottom-hud-dock-zone {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: min(560px, 78vw);
+      height: 26px;
+      z-index: 9998;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 5px;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #nova-bottom-hud-dock-zone.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #nova-bottom-hud-cyan-line {
+      width: 240px;
+      height: 2px;
+      border-radius: 9999px;
+      background: linear-gradient(90deg,
+        rgba(34, 211, 238, 0) 0%,
+        rgba(34, 211, 238, 0.72) 22%,
+        rgba(165, 243, 252, 0.98) 50%,
+        rgba(34, 211, 238, 0.72) 78%,
+        rgba(34, 211, 238, 0) 100%);
+      box-shadow: 0 0 12px rgba(34, 211, 238, 0.65), 0 0 24px rgba(34, 211, 238, 0.35);
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #nova-bottom-hud-dock-zone:hover #nova-bottom-hud-cyan-line {
+      width: 310px;
+      box-shadow: 0 0 16px rgba(103, 232, 249, 0.95), 0 0 30px rgba(34, 211, 238, 0.55);
+    }
+  </style>
+
+  <script>
+    (function initNovaMapAndHudUpgrades() {
+      // =========================================================================
+      // 1. SMOOTH MAP KEY SLIDE-OUT WITH ANTI-JITTER HOVER HYSTERESIS
+      // =========================================================================
+      function setupSmoothMapKeyDrawer() {
+        const allFixed = Array.from(document.querySelectorAll("div, aside, section, nav"));
+        const mapKeyPanel = allFixed.find((el) => {
+          const txt = (el.textContent || "").trim();
+          return (
+            txt.includes("Network Filaments") &&
+            txt.includes("Orbital Motion") &&
+            txt.includes("Viewport Labels") &&
+            el.children.length <= 15 &&
+            el.getBoundingClientRect().width < 360
+          );
+        });
+
+        if (mapKeyPanel) {
+          mapKeyPanel.setAttribute("data-nova-map-key", "true");
+          if (mapKeyPanel.parentElement && mapKeyPanel.parentElement !== document.body) {
+            const pRect = mapKeyPanel.parentElement.getBoundingClientRect();
+            if (pRect.width < 380) {
+              mapKeyPanel.parentElement.setAttribute("data-nova-map-key", "true");
+            }
+          }
+        }
+
+        let mapKeyHideTimer = null;
+        window.addEventListener("mousemove", (e) => {
+          const distFromRight = window.innerWidth - e.clientX;
+          const inBottomRightZone = distFromRight <= 235 && e.clientY >= window.innerHeight * 0.48;
+          if (inBottomRightZone && mapKeyHideTimer) {
+            clearTimeout(mapKeyHideTimer);
+            mapKeyHideTimer = null;
+          }
+        }, { passive: true });
+      }
+
+      // =========================================================================
+      // 2. BOTTOM HUD AUTO-HIDE TO CYAN LINE (ACTIVE ONLY DURING GUIDED TOUR)
+      // =========================================================================
+      function setupTourBottomHudAutoHide() {
+        let bottomHud = document.getElementById("bottom-hud") ||
+                        document.getElementById("hud-bar") ||
+                        document.getElementById("nova-bottom-hud");
+
+        if (!bottomHud) {
+          const candidates = Array.from(document.querySelectorAll("div, nav, footer"));
+          bottomHud = candidates.find((el) => {
+            const style = window.getComputedStyle(el);
+            if (style.position !== "fixed" && style.position !== "absolute") return false;
+            const rect = el.getBoundingClientRect();
+            return (
+              rect.bottom >= window.innerHeight - 60 &&
+              rect.height >= 36 &&
+              rect.height <= 120 &&
+              rect.width >= 260 &&
+              rect.width <= window.innerWidth * 0.95 &&
+              Math.abs((rect.left + rect.width / 2) - window.innerWidth / 2) < 120
+            );
+          });
+        }
+
+        if (!bottomHud) return;
+        bottomHud.setAttribute("data-nova-bottom-hud", "true");
+
+        const computedTransform = window.getComputedStyle(bottomHud).transform;
+        if (!computedTransform || computedTransform === "none") {
+          bottomHud.setAttribute("data-hud-centered", "flex");
+        }
+
+        const dockZone = document.createElement("div");
+        dockZone.id = "nova-bottom-hud-dock-zone";
+        dockZone.innerHTML = '<div id="nova-bottom-hud-cyan-line"></div>';
+        document.body.appendChild(dockZone);
+
+        let isPointerOverBottomHud = false;
+        let hideHudTimeout = null;
+
+        function isGuidedTourCurrentlyRunning() {
+          if (typeof isTourActive !== "undefined" && isTourActive) return true;
+          const tourBtn = document.getElementById("tour-btn") || document.getElementById("start-tour-btn");
+          if (tourBtn && /Stop Tour|Exit Tour|End Tour/i.test(tourBtn.textContent || "")) return true;
+          const tourHud = document.getElementById("tour-hud") || document.getElementById("guided-tour-hud");
+          if (tourHud && !tourHud.classList.contains("hidden") && window.getComputedStyle(tourHud).display !== "none" && window.getComputedStyle(tourHud).opacity !== "0") {
+            return true;
+          }
+          return false;
+        }
+
+        function revealBottomHud() {
+          if (hideHudTimeout) {
+            clearTimeout(hideHudTimeout);
+            hideHudTimeout = null;
+          }
+          bottomHud.classList.remove("nova-hud-tour-hidden");
+          dockZone.classList.remove("is-visible");
+        }
+
+        function scheduleBottomHudHide(delayMs = 950) {
+          if (hideHudTimeout) clearTimeout(hideHudTimeout);
+          hideHudTimeout = setTimeout(() => {
+            if (isGuidedTourCurrentlyRunning() && !isPointerOverBottomHud) {
+              bottomHud.classList.add("nova-hud-tour-hidden");
+              dockZone.classList.add("is-visible");
+            }
+          }, delayMs);
+        }
+
+        dockZone.addEventListener("mouseenter", () => {
+          isPointerOverBottomHud = true;
+          revealBottomHud();
+        });
+
+        bottomHud.addEventListener("mouseenter", () => {
+          isPointerOverBottomHud = true;
+          revealBottomHud();
+        });
+
+        bottomHud.addEventListener("mouseleave", (e) => {
+          if (e.clientY >= window.innerHeight - 28) return;
+          isPointerOverBottomHud = false;
+          if (isGuidedTourCurrentlyRunning()) {
+            scheduleBottomHudHide(650);
+          }
+        });
+
+        window.addEventListener("mousemove", (e) => {
+          if (!isGuidedTourCurrentlyRunning()) {
+            if (bottomHud.classList.contains("nova-hud-tour-hidden")) {
+              revealBottomHud();
+            }
+            return;
+          }
+
+          const nearBottomCenter =
+            e.clientY >= window.innerHeight - 28 &&
+            Math.abs(e.clientX - window.innerWidth * 0.5) <= 320;
+
+          const hudRect = bottomHud.getBoundingClientRect();
+          const insideHud =
+            !bottomHud.classList.contains("nova-hud-tour-hidden") &&
+            e.clientX >= hudRect.left - 16 &&
+            e.clientX <= hudRect.right + 16 &&
+            e.clientY >= hudRect.top - 16 &&
+            e.clientY <= window.innerHeight;
+
+          if (nearBottomCenter || insideHud) {
+            isPointerOverBottomHud = true;
+            revealBottomHud();
+          } else if (isPointerOverBottomHud) {
+            isPointerOverBottomHud = false;
+            scheduleBottomHudHide(650);
+          }
+        }, { passive: true });
+
+        let wasTourActive = false;
+        setInterval(() => {
+          const activeNow = isGuidedTourCurrentlyRunning();
+          if (activeNow && !wasTourActive) {
+            wasTourActive = true;
+            if (!isPointerOverBottomHud) {
+              scheduleBottomHudHide(1200);
+            }
+          } else if (!activeNow && wasTourActive) {
+            wasTourActive = false;
+            revealBottomHud();
+          }
+        }, 350);
+      }
+
+      // =========================================================================
+      // 3. DEEP-SPACE DISCOVERABLE PULSE (SLOW BREATHING HALO FOR DISTANT NODES)
+      // =========================================================================
+      let beaconGlowTex = null;
+      function getBeaconGlowTexture(THREE_REF) {
+        if (beaconGlowTex) return beaconGlowTex;
+        const c = document.createElement("canvas");
+        c.width = 128;
+        c.height = 128;
+        const ctx = c.getContext("2d");
+        const g = ctx.createRadialGradient(64, 64, 2, 64, 64, 62);
+        g.addColorStop(0.0, "rgba(255, 255, 255, 0.95)");
+        g.addColorStop(0.22, "rgba(205, 240, 255, 0.52)");
+        g.addColorStop(0.55, "rgba(110, 205, 255, 0.16)");
+        g.addColorStop(1.0, "rgba(0, 0, 0, 0.0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 128, 128);
+        beaconGlowTex = new THREE_REF.CanvasTexture(c);
+        return beaconGlowTex;
+      }
+
+      window.updateDeepSpaceDiscoveryPulse = function(tSec, camera, celestialObjects, activeTargetMesh) {
+        if (!camera || !celestialObjects || !celestialObjects.length || typeof THREE === "undefined") return;
+
+        const firstLabel = document.querySelector(".celestial-label, .node-label, [data-label-id]");
+        const labelsHidden = firstLabel ? (window.getComputedStyle(firstLabel).opacity === "0" || window.getComputedStyle(firstLabel).display === "none") : false;
+        const cinematicBoost = labelsHidden ? 1.42 : 1.0;
+
+        for (let i = 0; i < celestialObjects.length; i++) {
+          const mesh = celestialObjects[i];
+          if (!mesh || !mesh.userData) continue;
+
+          const tier = mesh.userData.tier || 1;
+          if (tier < 2) continue;
+
+          if (!mesh.userData._discoveryBeaconSprite) {
+            const baseR = mesh.userData.size || 2.5;
+            const idStr = String(mesh.userData.id || i);
+            let hash = 0;
+            for (let c = 0; c < idStr.length; c++) hash = (hash * 31 + idStr.charCodeAt(c)) % 1000;
+            mesh.userData._pulsePhase = (hash / 1000) * Math.PI * 2;
+            mesh.userData._baseScaleScalar = (mesh.scale && mesh.scale.x) ? mesh.scale.x : 1.0;
+
+            const spMat = new THREE.SpriteMaterial({
+              map: getBeaconGlowTexture(THREE),
+              color: 0xd8f3ff,
+              transparent: true,
+              opacity: 0.0,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false,
+              depthTest: true
+            });
+            const sp = new THREE.Sprite(spMat);
+            sp.name = "nova-discovery-beacon";
+            sp.raycast = () => {};
+            const haloSize = baseR * (tier >= 4 ? 5.2 : tier === 3 ? 4.6 : 4.0);
+            sp.scale.set(haloSize, haloSize, 1);
+            mesh.add(sp);
+            mesh.userData._discoveryBeaconSprite = sp;
+            mesh.userData._discoveryBaseHaloSize = haloSize;
+          }
+
+          const sp = mesh.userData._discoveryBeaconSprite;
+          if (!sp) continue;
+
+          const distToCam = camera.position.distanceTo(mesh.position);
+          const baseR = mesh.userData.size || 2.5;
+          const isCurrentlyFocused = (activeTargetMesh === mesh);
+          const farFactor = isCurrentlyFocused
+            ? 0.0
+            : Math.max(0.0, Math.min(1.0, (distToCam - baseR * 18.0) / (baseR * 45.0)));
+
+          if (farFactor <= 0.01) {
+            sp.material.opacity = 0.0;
+            continue;
+          }
+
+          const phase = mesh.userData._pulsePhase || 0;
+          const breath = 0.5 + 0.5 * Math.sin(tSec * 1.2 + phase);
+          const shimmer = 0.5 + 0.5 * Math.cos(tSec * 0.55 - phase * 0.7);
+          const pulseWave = breath * 0.78 + shimmer * 0.22;
+
+          const haloScale = mesh.userData._discoveryBaseHaloSize * (0.88 + 0.34 * pulseWave * cinematicBoost);
+          sp.scale.set(haloScale, haloScale, 1);
+
+          const baseOpacity = tier >= 4 ? 0.30 : tier === 3 ? 0.26 : 0.22;
+          sp.material.opacity = Math.min(0.65, (0.06 + baseOpacity * Math.pow(pulseWave, 1.35)) * farFactor * cinematicBoost);
+        }
+      };
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
+          setupSmoothMapKeyDrawer();
+          setupTourBottomHudAutoHide();
+        });
+      } else {
+        setupSmoothMapKeyDrawer();
+        setupTourBottomHudAutoHide();
+      }
+    })();
+  </script>
 </body>
 </html>
+
 
 
     
