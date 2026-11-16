@@ -10034,7 +10034,7 @@
               if (isTourActive && !isTourPaused && typeof window.nextTourStep === 'function') window.nextTourStep();
             }, step.dwellMs || 10000);
           }
-        }, 300); 
+        }, 300);
       };
 
       if (step.kind === "tier-intro") {
@@ -10047,7 +10047,7 @@
         if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
           TWEEN.removeAll();
           isFlyingToTarget = true;
-          controls.autoRotate = false;
+          controls.enabled = false; // Disable OrbitControls during animation
 
           let startCam = camera.position.clone();
           if (tourIndex === 0 && !isFirstTourRun) {
@@ -10062,7 +10062,7 @@
           const endCam = new THREE.Vector3(0, 1000, 1500);
           if (step.camPos) endCam.set(step.camPos.x, step.camPos.y, step.camPos.z);
 
-          const cinematicDuration = step.dwellMs || 25000; 
+          const cinematicDuration = step.dwellMs || 25000;
 
           const tweenObj = { t: 0 };
           new TWEEN.Tween(tweenObj)
@@ -10071,10 +10071,11 @@
             .onUpdate(() => {
               camera.position.lerpVectors(startCam, endCam, tweenObj.t);
               controls.target.lerpVectors(startTarget, endTarget, tweenObj.t);
-              if (controls.update) controls.update();
+              if (controls.update) controls.update(); // Update controls with new target
             })
             .onComplete(() => {
               isFlyingToTarget = false;
+              controls.enabled = true; // Re-enable OrbitControls
               controls.autoRotate = true;
               controls.autoRotateSpeed = 0.4;
             })
@@ -10083,74 +10084,18 @@
 
       } else if (step.kind === "object") {
         activeTarget = step.data;
-        // Attempt to assign mesh for UI targeting, but do not block the camera animation
         activeTargetMesh = step.mesh || (typeof celestialObjects !== 'undefined' ? celestialObjects.find(o => o.data?.name?.toLowerCase() === step.data?.name?.toLowerCase())?.mesh : null) || null;
         
         if (typeof window.populateSpatialCallout === "function") window.populateSpatialCallout(step.data, false);
         if (typeof speakTourNarration === "function") speakTourNarration(step, step.dwellMs);
         setupAutoAdvance();
         
-        // --- DIRECT ZOOM (GUARANTEED EXECUTION) ---
-        if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
-          TWEEN.removeAll();
-          isFlyingToTarget = true;
-          controls.autoRotate = false;
-          
-          const startCam = camera.position.clone();
-          const startTarget = controls.target.clone();
-          
-          // Safely resolve the destination target
-          const endTarget = new THREE.Vector3(0, 0, 0);
-          if (step.targetPos) {
-            endTarget.set(step.targetPos.x, step.targetPos.y, step.targetPos.z);
-          } else if (activeTargetMesh) {
-            endTarget.copy(activeTargetMesh.position);
-          }
-
-          // Safely resolve the destination camera position
-          const endCam = new THREE.Vector3(0, 50, 100);
-          if (step.camPos) {
-            endCam.set(step.camPos.x, step.camPos.y, step.camPos.z);
-          } else {
-            // Calculated fallback offset if coordinates are completely missing
-            endCam.copy(endTarget).add(new THREE.Vector3(30, 20, 50));
-          }
-
-          // 1. Main approach zoom (3 seconds)
-          const approachTween = new TWEEN.Tween({ t: 0 })
-            .to({ t: 1 }, 3000)
-            .easing(TWEEN.Easing.Cubic.InOut)
-            .onUpdate((obj) => {
-              camera.position.lerpVectors(startCam, endCam, obj.t);
-              controls.target.lerpVectors(startTarget, endTarget, obj.t);
-              if (controls.update) controls.update();
-            })
-            .onComplete(() => {
-              isFlyingToTarget = false;
-              controls.autoRotate = true;
-              controls.autoRotateSpeed = 0.8; 
-
-              // 2. Secondary Surface Feature Zoom
-              setTimeout(() => {
-                if (!isTourActive || isTourPaused) return;
-                // Move 35% closer to the target center for surface inspection
-                const surfaceCam = endCam.clone().lerp(endTarget, 0.35);
-                
-                const surfaceTween = new TWEEN.Tween({ t: 0 })
-                  .to({ t: 1 }, 4000)
-                  .easing(TWEEN.Easing.Quadratic.InOut)
-                  .onUpdate((o) => {
-                    camera.position.lerpVectors(endCam, surfaceCam, o.t);
-                    if (controls.update) controls.update();
-                  })
-                  .start();
-                
-                if (typeof tourTimers !== 'undefined') tourTimers.push(surfaceTween);
-              }, 6000); // Triggers exactly 6 seconds into the narration
+        // --- USE BUILT-IN FLY TO TARGET ---
+        if (activeTargetMesh && typeof window.flyToTarget === 'function') {
+            // Use the application's native function to handle the zoom safely
+            window.flyToTarget(activeTargetMesh, step.camPos, step.targetPos, () => {
+                // Secondary zoom can be added back here if needed after basic zoom is fixed
             });
-
-          approachTween.start();
-          if (typeof tourTimers !== 'undefined') tourTimers.push(approachTween);
         }
       }
     };
