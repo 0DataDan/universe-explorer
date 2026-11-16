@@ -9821,35 +9821,6 @@
       window._spatialCalloutDismissedForMesh = null;
 
       if (step.kind === "tier-intro") {
-        activeTargetMesh = null;
-        activeTarget = step.data;
-        if (typeof window.populateSpatialCallout === "function") {
-          window.populateSpatialCallout(step.data, true);
-        }
-        speakTourNarration(step, step.dwellMs);
-        TWEEN.removeAll();
-        isFlyingToTarget = true;
-
-        const startCam = camera.position.clone();
-        const startTarget = controls.target.clone();
-        const endCam = new THREE.Vector3(step.camPos.x, step.camPos.y, step.camPos.z);
-        const endTarget = new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z);
-
-        const tweenObj = { t: 0 };
-        new TWEEN.Tween(tweenObj)
-          .to({ t: 1 }, 3200)
-          .easing(TWEEN.Easing.Cubic.InOut)
-          .onUpdate(() => {
-            camera.position.lerpVectors(startCam, endCam, tweenObj.t);
-            controls.target.lerpVectors(startTarget, endTarget, tweenObj.t);
-          })
-          .onComplete(() => {
-            isFlyingToTarget = false;
-          })
-          .start();
-
-        // Timer synced with audio completion in speakTourNarration
-      } else if (step.kind === "object" && step.mesh) {
         activeTargetMesh = step.mesh;
         activeTarget = step.data;
         if (typeof window.populateSpatialCallout === "function") {
