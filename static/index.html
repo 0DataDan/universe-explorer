@@ -10046,13 +10046,8 @@
           }
           
           const startTarget = controls.target.clone();
-          
-          const endTarget = new THREE.Vector3(0, 0, 0);
-          if (step.targetPos) endTarget.set(step.targetPos.x, step.targetPos.y, step.targetPos.z);
-          
-          const endCam = new THREE.Vector3(0, 1000, 1500);
-          if (step.camPos) endCam.set(step.camPos.x, step.camPos.y, step.camPos.z);
-
+          const endTarget = step.targetPos ? new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z) : new THREE.Vector3(0, 0, 0);
+          const endCam = step.camPos ? new THREE.Vector3(step.camPos.x, step.camPos.y, step.camPos.z) : new THREE.Vector3(0, 1000, 1500);
           const cinematicDuration = step.dwellMs || 25000;
 
           const tweenObj = { t: 0 };
@@ -10083,6 +10078,7 @@
         if (typeof speakTourNarration === "function") speakTourNarration(step, step.dwellMs);
         setupAutoAdvance();
         
+        // --- ACTIVE OBJECT ZOOM & TRACKING ---
         if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
           TWEEN.removeAll();
           isFlyingToTarget = true;
@@ -10091,15 +10087,19 @@
           const startCam = camera.position.clone();
           const startTarget = controls.target.clone();
           
-          const endTarget = new THREE.Vector3(0,0,0);
-          if (step.targetPos) endTarget.set(step.targetPos.x, step.targetPos.y, step.targetPos.z);
-          else if (targetMesh) endTarget.copy(targetMesh.position);
+          // Determine target destination (mesh position or fallback)
+          const endTarget = new THREE.Vector3();
+          if (targetMesh) {
+            endTarget.copy(targetMesh.position);
+          } else if (step.targetPos) {
+            endTarget.set(step.targetPos.x, step.targetPos.y, step.targetPos.z);
+          }
 
           const endCam = new THREE.Vector3();
           if (step.camPos) {
-              endCam.set(step.camPos.x, step.camPos.y, step.camPos.z);
+            endCam.set(step.camPos.x, step.camPos.y, step.camPos.z);
           } else {
-              endCam.copy(endTarget).add(new THREE.Vector3(30, 20, 50));
+            endCam.copy(endTarget).add(new THREE.Vector3(30, 20, 50));
           }
 
           const tweenObj = { t: 0 };
@@ -10108,31 +10108,37 @@
             .to({ t: 1 }, 3000)
             .easing(TWEEN.Easing.Cubic.InOut)
             .onUpdate(() => {
+              // If target mesh is moving, dynamically update endTarget
+              const currentDynamicTarget = targetMesh ? targetMesh.position : endTarget;
               camera.position.lerpVectors(startCam, endCam, tweenObj.t);
-              camera.lookAt(startTarget.clone().lerp(endTarget, tweenObj.t));
+              camera.lookAt(currentDynamicTarget);
             })
             .onComplete(() => {
               isFlyingToTarget = false;
-              controls.target.copy(endTarget);
+              if (targetMesh) controls.target.copy(targetMesh.position);
+              else controls.target.copy(endTarget);
+              
               controls.enabled = true; 
               controls.autoRotate = true;
               controls.autoRotateSpeed = 0.8; 
 
+              // Secondary Surface Feature Zoom (pushes closer as physical specs are described)
               setTimeout(() => {
                 if (!isTourActive || isTourPaused) return;
                 controls.enabled = false; 
                 const currentCamPos = camera.position.clone();
-                const surfaceCam = endCam.clone().lerp(endTarget, 0.35); 
+                const liveTarget = targetMesh ? targetMesh.position : endTarget;
+                const surfaceCam = endCam.clone().lerp(liveTarget, 0.4); 
                 
                 const surfaceTween = new TWEEN.Tween({ t: 0 })
                   .to({ t: 1 }, 4000)
                   .easing(TWEEN.Easing.Quadratic.InOut)
                   .onUpdate((o) => {
                     camera.position.lerpVectors(currentCamPos, surfaceCam, o.t);
-                    camera.lookAt(endTarget);
+                    camera.lookAt(liveTarget);
                   })
                   .onComplete(() => {
-                      controls.target.copy(endTarget);
+                      controls.target.copy(liveTarget);
                       controls.enabled = true; 
                   })
                   .start();
@@ -10145,44 +10151,6 @@
         }
       }
     };
-
-    // --- BULLETPROOF BUTTON BINDINGS ---
-    const bindAllTourButtons = () => {
-      const tourButton = document.getElementById("btn-cosmic-tour");
-      if (tourButton && !tourButton.dataset.bound) {
-        tourButton.dataset.bound = "true";
-        tourButton.addEventListener("click", (e) => {
-          e.preventDefault();
-          window.toggleCosmicTour(e);
-        });
-      }
-
-      const nxtBtn = document.getElementById("btn-tour-next");
-      if (nxtBtn && !nxtBtn.dataset.bound) {
-        nxtBtn.dataset.bound = "true";
-        nxtBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          window.nextTourStep(e);
-        });
-      }
-
-      const prvBtn = document.getElementById("btn-tour-prev");
-      if (prvBtn && !prvBtn.dataset.bound) {
-        prvBtn.dataset.bound = "true";
-        prvBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          window.prevTourStep(e);
-        });
-      }
-    };
-
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", bindAllTourButtons);
-    } else {
-      bindAllTourButtons();
-    }
-    setTimeout(bindAllTourButtons, 500);
-    setTimeout(bindAllTourButtons, 1500);
     
     // === AUTONOMOUS OBSERVATORY STANDBY / SCREENSAVER SYSTEM ===
     let screensaverIdleTimer = null;
