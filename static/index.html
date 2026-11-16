@@ -9914,7 +9914,8 @@
         if (badgeEl) badgeEl.textContent = "NOVA";
         if (counterEl) counterEl.textContent = "INTRO";
 
-        const introAudio = new Audio('audio/tour/intro.mp3');
+        // IMPORTANT: The path is now absolute to the static server root
+        const introAudio = new Audio('/static/audio/tour/intro.mp3');
         introAudio.preload = "auto";
         currentTourAudio = introAudio;
 
@@ -9924,14 +9925,15 @@
           }
         };
 
-        introAudio.onerror = () => {
-          // Safety fallback: if audio/tour/intro.mp3 is missing, skip directly to the tour
+        introAudio.onerror = (err) => {
+          console.error("Failed to load intro audio, proceeding to tour.", err);
           if (isTourActive && !isTourPaused) {
             executeTourStep();
           }
         };
 
-        introAudio.play().catch(() => {
+        introAudio.play().catch((err) => {
+          console.error("Autoplay blocked for intro, proceeding to tour.", err);
           executeTourStep();
         });
       } else {
@@ -9968,6 +9970,8 @@
     window.nextTourStep = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
       if (!isTourActive) return;
+      stopTourAudio();
+      clearTourTimers();
       tourIndex = (tourIndex + 1) % tourPlaylist.length;
       executeTourStep();
     };
@@ -9975,6 +9979,8 @@
     window.prevTourStep = function(e) {
       if (e && e.stopPropagation) e.stopPropagation();
       if (!isTourActive) return;
+      stopTourAudio();
+      clearTourTimers();
       tourIndex = (tourIndex - 1 + tourPlaylist.length) % tourPlaylist.length;
       executeTourStep();
     };
