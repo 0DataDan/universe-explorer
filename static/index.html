@@ -10010,16 +10010,6 @@
       });
     }
 
-    const tourBtnEl = document.getElementById("btn-cosmic-tour");
-    if (tourBtnEl) {
-      tourBtnEl.onclick = null;
-      tourBtnEl.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        window.toggleCosmicTour(e);
-      });
-    }
-
     // PASTED NEXT/PREV BUTTONS HERE:
     const nextBtn = document.getElementById("btn-tour-next");
     if (nextBtn) {
