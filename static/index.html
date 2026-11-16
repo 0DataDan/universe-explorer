@@ -9903,7 +9903,7 @@
       updatePauseButtonIcon(false);
       updateTourButtonStyle(true);
 
-      // First run: Play NOVA's introduction before starting step 0
+     // First run: Play NOVA's introduction before starting step 0
       if (isFirstTourRun) {
         isFirstTourRun = false;
         stopTourAudio();
@@ -9914,7 +9914,36 @@
         if (badgeEl) badgeEl.textContent = "NOVA";
         if (counterEl) counterEl.textContent = "INTRO";
 
-        // IMPORTANT: The path is now absolute to the static server root
+        // --- CINEMATIC INTRO CAMERA SWEEP ---
+        if (typeof TWEEN !== 'undefined') {
+          TWEEN.removeAll();
+          isFlyingToTarget = true; // Locks manual orbit while sweeping
+
+          const startCam = camera.position.clone();
+          // Push the camera out wide for a majestic starting view
+          const sweepStart = new THREE.Vector3(startCam.x, Math.max(startCam.y, 250), Math.max(startCam.z, 500));
+          // End position sets up perfectly for the "Solar System" Tier 1 jump
+          const sweepEnd = new THREE.Vector3(-80, 120, 180); 
+          
+          const startTarget = controls.target.clone();
+          const endTarget = new THREE.Vector3(0, 0, 0); // Focus on the Sun
+
+          const tweenObj = { t: 0 };
+          new TWEEN.Tween(tweenObj)
+            .to({ t: 1 }, 21000) // 21-second sweep perfectly matches audio duration
+            .easing(TWEEN.Easing.Sinusoidal.InOut)
+            .onUpdate(() => {
+              camera.position.lerpVectors(sweepStart, sweepEnd, tweenObj.t);
+              controls.target.lerpVectors(startTarget, endTarget, tweenObj.t);
+              if (controls.update) controls.update();
+            })
+            .onComplete(() => {
+              isFlyingToTarget = false;
+            })
+            .start();
+        }
+
+        // IMPORTANT: Absolute path to static server root
         const introAudio = new Audio('/static/audio/tour/intro.mp3');
         introAudio.preload = "auto";
         currentTourAudio = introAudio;
@@ -9925,6 +9954,20 @@
           }
         };
 
+        introAudio.onerror = (err) => {
+          console.error("Failed to load intro audio, proceeding to tour.", err);
+          if (isTourActive && !isTourPaused) {
+            executeTourStep();
+          }
+        };
+
+        introAudio.play().catch((err) => {
+          console.error("Autoplay blocked for intro, proceeding to tour.", err);
+          executeTourStep();
+        });
+      } else {
+        executeTourStep();
+      }
         introAudio.onerror = (err) => {
           console.error("Failed to load intro audio, proceeding to tour.", err);
           if (isTourActive && !isTourPaused) {
