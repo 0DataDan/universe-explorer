@@ -9434,7 +9434,8 @@
         }
       }
 
-// === DEEP-SPACE DISCOVERABLE BEACON PULSE ===
+      // === DEEP-SPACE DISCOVERABLE BEACON PULSE & TOUR STATE SYNC ===
+      window._novaIsTourActive = (typeof isTourActive !== "undefined") ? Boolean(isTourActive) : false;
       if (typeof window.updateDeepSpaceDiscoveryPulse === "function") {
         try {
           window.updateDeepSpaceDiscoveryPulse(performance.now() * 0.001, camera, celestialObjects, activeTargetMesh, THREE);
@@ -11863,47 +11864,8 @@
 
 </script>
 
-
-
-
-<!-- <<< START REPLACEMENT CODE >>> -->
   <!-- === NOVA SMOOTH MAP KEY, TOUR HUD DOCK & DEEP-SPACE DISCOVERY BEACONS === -->
   <style>
-    /* 1. Slow, weighted 0.85s slide for the right-hand Map Key drawer */
-    #map-key-drawer,
-    #legend-drawer,
-    .map-key-panel,
-    [data-nova-map-key="true"] {
-      transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-                  opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-                  right 0.85s cubic-bezier(0.16, 1, 0.3, 1) !important;
-      will-change: transform, opacity;
-    }
-
-    /* Smooth transition for the right-edge cyan indicator line */
-    [data-nova-map-key-trigger="true"] {
-      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
-                  transform 0.65s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    }
-
-    /* 2. Bottom HUD Bar smooth slide & Tour-mode auto-hide state */
-    [data-nova-bottom-hud="true"] {
-      transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-                  opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1) !important;
-      will-change: transform, opacity;
-    }
-
-    [data-nova-bottom-hud="true"].nova-hud-tour-hidden {
-      transform: translate3d(-50%, calc(100% + 28px), 0) !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
-
-    /* If the bottom HUD wrapper doesn't use -50% X centering, preserve X alignment */
-    [data-nova-bottom-hud="true"][data-hud-centered="flex"].nova-hud-tour-hidden {
-      transform: translate3d(0, calc(100% + 28px), 0) !important;
-    }
-
     /* Thin Cyan Horizon Line at bottom edge (Active ONLY during Guided Tour when HUD is docked) */
     #nova-bottom-hud-dock-zone {
       position: fixed;
@@ -11911,12 +11873,12 @@
       bottom: 0;
       transform: translateX(-50%);
       width: min(560px, 78vw);
-      height: 26px;
-      z-index: 9998;
+      height: 30px;
+      z-index: 99999;
       display: flex;
       align-items: flex-end;
       justify-content: center;
-      padding-bottom: 5px;
+      padding-bottom: 6px;
       cursor: pointer;
       opacity: 0;
       pointer-events: none;
@@ -11934,56 +11896,121 @@
       border-radius: 9999px;
       background: linear-gradient(90deg,
         rgba(34, 211, 238, 0) 0%,
-        rgba(34, 211, 238, 0.72) 22%,
-        rgba(165, 243, 252, 0.98) 50%,
-        rgba(34, 211, 238, 0.72) 78%,
+        rgba(34, 211, 238, 0.78) 22%,
+        rgba(165, 243, 252, 1.0) 50%,
+        rgba(34, 211, 238, 0.78) 78%,
         rgba(34, 211, 238, 0) 100%);
-      box-shadow: 0 0 12px rgba(34, 211, 238, 0.65), 0 0 24px rgba(34, 211, 238, 0.35);
-      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-                  box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 0 12px rgba(34, 211, 238, 0.75), 0 0 24px rgba(34, 211, 238, 0.4);
+      transition: width 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.85s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     #nova-bottom-hud-dock-zone:hover #nova-bottom-hud-cyan-line {
-      width: 310px;
-      box-shadow: 0 0 16px rgba(103, 232, 249, 0.95), 0 0 30px rgba(34, 211, 238, 0.55);
+      width: 320px;
+      box-shadow: 0 0 16px rgba(103, 232, 249, 0.98), 0 0 30px rgba(34, 211, 238, 0.65);
     }
   </style>
 
   <script>
     (function initNovaMapAndHudUpgrades() {
+      const SMOOTH_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
+      const SMOOTH_DURATION = "0.85s";
+
       // =========================================================================
-      // 1. SMOOTH MAP KEY SLIDE-OUT WITH ANTI-JITTER HOVER HYSTERESIS
+      // 1. SMOOTH MAP KEY SLIDE-OUT (HYSTERESIS ZONE + 0.85s CUBIC-BEZIER GLIDE)
       // =========================================================================
       function setupSmoothMapKeyDrawer() {
-        const allFixed = Array.from(document.querySelectorAll("div, aside, section, nav"));
-        const mapKeyPanel = allFixed.find((el) => {
+        // Find the outermost fixed container in the bottom-right holding "Network Filaments"
+        let mapKeyBox = null;
+        const candidates = Array.from(document.querySelectorAll("div, aside, section, nav"));
+        for (let i = 0; i < candidates.length; i++) {
+          const el = candidates[i];
           const txt = (el.textContent || "").trim();
-          return (
+          if (
             txt.includes("Network Filaments") &&
             txt.includes("Orbital Motion") &&
-            txt.includes("Viewport Labels") &&
-            el.children.length <= 15 &&
-            el.getBoundingClientRect().width < 360
-          );
-        });
-
-        if (mapKeyPanel) {
-          mapKeyPanel.setAttribute("data-nova-map-key", "true");
-          if (mapKeyPanel.parentElement && mapKeyPanel.parentElement !== document.body) {
-            const pRect = mapKeyPanel.parentElement.getBoundingClientRect();
-            if (pRect.width < 380) {
-              mapKeyPanel.parentElement.setAttribute("data-nova-map-key", "true");
+            txt.includes("Viewport Labels")
+          ) {
+            const st = window.getComputedStyle(el);
+            if (st.position === "fixed" || st.position === "absolute") {
+              mapKeyBox = el;
             }
           }
         }
 
-        let mapKeyHideTimer = null;
+        if (!mapKeyBox) return;
+
+        // Also find any right-edge cyan trigger strip in the bottom-right corner
+        const rightEdgeTriggers = candidates.filter((el) => {
+          if (el === mapKeyBox || mapKeyBox.contains(el)) return false;
+          const st = window.getComputedStyle(el);
+          if (st.position !== "fixed" && st.position !== "absolute") return false;
+          const r = el.getBoundingClientRect();
+          return r.right >= window.innerWidth - 24 && r.width <= 32 && r.bottom >= window.innerHeight * 0.55;
+        });
+
+        // Clone-replace or neutralize any jittery inline transition by locking our own controller
+        let isMapKeyOpen = false;
+        let closeTimer = null;
+
+        function applyMapKeyState(open) {
+          isMapKeyOpen = open;
+          mapKeyBox.style.setProperty("transition", `transform ${SMOOTH_DURATION} ${SMOOTH_EASE}, opacity ${SMOOTH_DURATION} ${SMOOTH_EASE}, right ${SMOOTH_DURATION} ${SMOOTH_EASE}`, "important");
+          mapKeyBox.style.setProperty("will-change", "transform, opacity", "important");
+
+          if (open) {
+            mapKeyBox.style.setProperty("transform", "translate3d(0px, 0px, 0px)", "important");
+            mapKeyBox.style.setProperty("opacity", "1", "important");
+            mapKeyBox.style.setProperty("pointer-events", "auto", "important");
+          } else {
+            mapKeyBox.style.setProperty("transform", "translate3d(calc(100% + 28px), 0px, 0px)", "important");
+            mapKeyBox.style.setProperty("opacity", "0", "important");
+            mapKeyBox.style.setProperty("pointer-events", "none", "important");
+          }
+
+          rightEdgeTriggers.forEach((trig) => {
+            trig.style.setProperty("transition", `opacity ${SMOOTH_DURATION} ${SMOOTH_EASE}, transform ${SMOOTH_DURATION} ${SMOOTH_EASE}`, "important");
+            trig.style.setProperty("opacity", open ? "0" : "1", "important");
+          });
+        }
+
+        // Start cleanly closed
+        applyMapKeyState(false);
+
+        // If existing script mutates inline style or class on mapKeyBox, immediately re-assert our smooth state
+        const obs = new MutationObserver(() => {
+          const desiredTransform = isMapKeyOpen ? "translate3d(0px, 0px, 0px)" : "translate3d(calc(100% + 28px), 0px, 0px)";
+          if (mapKeyBox.style.getPropertyValue("transform") !== desiredTransform) {
+            applyMapKeyState(isMapKeyOpen);
+          }
+        });
+        obs.observe(mapKeyBox, { attributes: true, attributeFilter: ["style", "class"] });
+
+        // Hysteresis pointer tracking:
+        // - Opens when cursor enters bottom-right edge strip (rightmost 42px, bottom 45% of screen)
+        // - Stays open inside a generous 250px x 340px cushion around the panel + 240ms exit grace delay
         window.addEventListener("mousemove", (e) => {
           const distFromRight = window.innerWidth - e.clientX;
-          const inBottomRightZone = distFromRight <= 235 && e.clientY >= window.innerHeight * 0.48;
-          if (inBottomRightZone && mapKeyHideTimer) {
-            clearTimeout(mapKeyHideTimer);
-            mapKeyHideTimer = null;
+          const distFromBottom = window.innerHeight - e.clientY;
+
+          const inTriggerEdge = distFromRight <= 44 && distFromBottom <= 320;
+          const inStayOpenZone = distFromRight <= 255 && distFromBottom <= 350;
+
+          if (inTriggerEdge || (isMapKeyOpen && inStayOpenZone)) {
+            if (closeTimer) {
+              clearTimeout(closeTimer);
+              closeTimer = null;
+            }
+            if (!isMapKeyOpen) {
+              applyMapKeyState(true);
+            }
+          } else if (isMapKeyOpen && !inStayOpenZone) {
+            if (!closeTimer) {
+              closeTimer = setTimeout(() => {
+                closeTimer = null;
+                applyMapKeyState(false);
+              }, 240);
+            }
           }
         }, { passive: true });
       }
@@ -11992,182 +12019,207 @@
       // 2. BOTTOM HUD AUTO-HIDE TO CYAN LINE (ACTIVE ONLY DURING GUIDED TOUR)
       // =========================================================================
       function setupTourBottomHudAutoHide() {
-        let bottomHud = document.getElementById("bottom-hud") ||
-                        document.getElementById("hud-bar") ||
-                        document.getElementById("nova-bottom-hud");
-
-        if (!bottomHud) {
-          const candidates = Array.from(document.querySelectorAll("div, nav, footer"));
-          bottomHud = candidates.find((el) => {
-            const style = window.getComputedStyle(el);
-            if (style.position !== "fixed" && style.position !== "absolute") return false;
-            const rect = el.getBoundingClientRect();
-            return (
-              rect.bottom >= window.innerHeight - 60 &&
-              rect.height >= 36 &&
-              rect.height <= 120 &&
-              rect.width >= 260 &&
-              rect.width <= window.innerWidth * 0.95 &&
-              Math.abs((rect.left + rect.width / 2) - window.innerWidth / 2) < 120
-            );
-          });
-        }
+        // Find the bottom-center HUD pill container
+        const allEls = Array.from(document.querySelectorAll("div, nav, footer, section"));
+        let bottomHud = allEls.find((el) => {
+          const st = window.getComputedStyle(el);
+          if (st.position !== "fixed" && st.position !== "absolute") return false;
+          const r = el.getBoundingClientRect();
+          const centeredX = Math.abs((r.left + r.width * 0.5) - window.innerWidth * 0.5) < 90;
+          const nearBottom = r.bottom >= window.innerHeight - 65 && r.top >= window.innerHeight - 140;
+          const rightSize = r.width >= 240 && r.width <= 720 && r.height >= 34 && r.height <= 95;
+          return centeredX && nearBottom && rightSize;
+        });
 
         if (!bottomHud) return;
-        bottomHud.setAttribute("data-nova-bottom-hud", "true");
 
-        const computedTransform = window.getComputedStyle(bottomHud).transform;
-        if (!computedTransform || computedTransform === "none") {
-          bottomHud.setAttribute("data-hud-centered", "flex");
-        }
-
-        const dockZone = document.createElement("div");
-        dockZone.id = "nova-bottom-hud-dock-zone";
-        dockZone.innerHTML = '<div id="nova-bottom-hud-cyan-line"></div>';
-        document.body.appendChild(dockZone);
-
-        let isPointerOverBottomHud = false;
-        let hideHudTimeout = null;
-
-        function isGuidedTourCurrentlyRunning() {
-          if (typeof isTourActive !== "undefined" && isTourActive) return true;
-          const tourBtn = document.getElementById("tour-btn") || document.getElementById("start-tour-btn");
-          if (tourBtn && /Stop Tour|Exit Tour|End Tour/i.test(tourBtn.textContent || "")) return true;
-          const tourHud = document.getElementById("tour-hud") || document.getElementById("guided-tour-hud");
-          if (tourHud && !tourHud.classList.contains("hidden") && window.getComputedStyle(tourHud).display !== "none" && window.getComputedStyle(tourHud).opacity !== "0") {
-            return true;
+        // Walk up if wrapped in a fixed bottom positioning shell
+        if (
+          bottomHud.parentElement &&
+          bottomHud.parentElement !== document.body &&
+          window.getComputedStyle(bottomHud.parentElement).position === "fixed"
+        ) {
+          const pr = bottomHud.parentElement.getBoundingClientRect();
+          if (pr.height <= 120 && pr.width <= 780) {
+            bottomHud = bottomHud.parentElement;
           }
-          return false;
         }
 
-        function revealBottomHud() {
-          if (hideHudTimeout) {
-            clearTimeout(hideHudTimeout);
-            hideHudTimeout = null;
+        // Record original resting transform so we don't break horizontal centering (-50%)
+        const origStyle = window.getComputedStyle(bottomHud);
+        const usesTranslateX50 =
+          (bottomHud.className && String(bottomHud.className).includes("-translate-x-1/2")) ||
+          (origStyle.transform && origStyle.transform !== "none" && origStyle.transform.includes("-"));
+
+        // Create the bottom cyan horizon line dock
+        let dockZone = document.getElementById("nova-bottom-hud-dock-zone");
+        if (!dockZone) {
+          dockZone = document.createElement("div");
+          dockZone.id = "nova-bottom-hud-dock-zone";
+          dockZone.innerHTML = '<div id="nova-bottom-hud-cyan-line"></div>';
+          document.body.appendChild(dockZone);
+        }
+
+        let isHudHiddenForTour = false;
+        let isHoveringBottomArea = false;
+        let hideTimer = null;
+
+        function detectGuidedTourActive() {
+          // 1. Direct flag from animate()
+          if (window._novaIsTourActive === true) return true;
+
+          // 2. Fallback DOM check: look for the top-left Tour narration card ("1 / 4", "2 / 4", etc.)
+          const tourCard = allEls.find((el) => {
+            const t = (el.textContent || "");
+            if (!/\b[1-4]\s*\/\s*4\b/.test(t) && !/Stop Tour|Exit Tour/i.test(t)) return false;
+            const st = window.getComputedStyle(el);
+            return st.display !== "none" && st.visibility !== "hidden" && parseFloat(st.opacity) > 0.1;
+          });
+          return Boolean(tourCard);
+        }
+
+        function setBottomHudDocked(docked) {
+          isHudHiddenForTour = docked;
+          bottomHud.style.setProperty("transition", `transform ${SMOOTH_DURATION} ${SMOOTH_EASE}, opacity ${SMOOTH_DURATION} ${SMOOTH_EASE}`, "important");
+          bottomHud.style.setProperty("will-change", "transform, opacity", "important");
+
+          if (docked) {
+            const xPart = usesTranslateX50 ? "-50%" : "0px";
+            bottomHud.style.setProperty("transform", `translate3d(${xPart}, 95px, 0px)`, "important");
+            bottomHud.style.setProperty("opacity", "0", "important");
+            bottomHud.style.setProperty("pointer-events", "none", "important");
+            dockZone.classList.add("is-visible");
+          } else {
+            const xPart = usesTranslateX50 ? "-50%" : "0px";
+            bottomHud.style.setProperty("transform", `translate3d(${xPart}, 0px, 0px)`, "important");
+            bottomHud.style.setProperty("opacity", "1", "important");
+            bottomHud.style.setProperty("pointer-events", "auto", "important");
+            dockZone.classList.remove("is-visible");
           }
-          bottomHud.classList.remove("nova-hud-tour-hidden");
-          dockZone.classList.remove("is-visible");
         }
 
-        function scheduleBottomHudHide(delayMs = 950) {
-          if (hideHudTimeout) clearTimeout(hideHudTimeout);
-          hideHudTimeout = setTimeout(() => {
-            if (isGuidedTourCurrentlyRunning() && !isPointerOverBottomHud) {
-              bottomHud.classList.add("nova-hud-tour-hidden");
-              dockZone.classList.add("is-visible");
+        function scheduleDock(delayMs = 800) {
+          if (hideTimer) clearTimeout(hideTimer);
+          hideTimer = setTimeout(() => {
+            hideTimer = null;
+            if (detectGuidedTourActive() && !isHoveringBottomArea) {
+              setBottomHudDocked(true);
             }
           }, delayMs);
         }
 
-        dockZone.addEventListener("mouseenter", () => {
-          isPointerOverBottomHud = true;
-          revealBottomHud();
-        });
-
-        bottomHud.addEventListener("mouseenter", () => {
-          isPointerOverBottomHud = true;
-          revealBottomHud();
-        });
-
-        bottomHud.addEventListener("mouseleave", (e) => {
-          if (e.clientY >= window.innerHeight - 28) return;
-          isPointerOverBottomHud = false;
-          if (isGuidedTourCurrentlyRunning()) {
-            scheduleBottomHudHide(650);
-          }
-        });
-
+        // Track pointer proximity to the bottom HUD / cyan line
         window.addEventListener("mousemove", (e) => {
-          if (!isGuidedTourCurrentlyRunning()) {
-            if (bottomHud.classList.contains("nova-hud-tour-hidden")) {
-              revealBottomHud();
-            }
+          const tourRunning = detectGuidedTourActive();
+          if (!tourRunning) {
+            if (isHudHiddenForTour) setBottomHudDocked(false);
             return;
           }
 
-          const nearBottomCenter =
-            e.clientY >= window.innerHeight - 28 &&
-            Math.abs(e.clientX - window.innerWidth * 0.5) <= 320;
+          const distFromBottom = window.innerHeight - e.clientY;
+          const distFromCenterX = Math.abs(e.clientX - window.innerWidth * 0.5);
 
-          const hudRect = bottomHud.getBoundingClientRect();
-          const insideHud =
-            !bottomHud.classList.contains("nova-hud-tour-hidden") &&
-            e.clientX >= hudRect.left - 16 &&
-            e.clientX <= hudRect.right + 16 &&
-            e.clientY >= hudRect.top - 16 &&
-            e.clientY <= window.innerHeight;
+          // Trigger wake-up when hovering the bottom cyan line (within 34px of bottom edge)
+          // Keep awake while cursor stays within the HUD bar footprint (92px from bottom, 290px from center)
+          const inWakeTrigger = distFromBottom <= 34 && distFromCenterX <= 260;
+          const inStayAwakeZone = !isHudHiddenForTour && distFromBottom <= 96 && distFromCenterX <= 310;
 
-          if (nearBottomCenter || insideHud) {
-            isPointerOverBottomHud = true;
-            revealBottomHud();
-          } else if (isPointerOverBottomHud) {
-            isPointerOverBottomHud = false;
-            scheduleBottomHudHide(650);
+          if (inWakeTrigger || inStayAwakeZone) {
+            isHoveringBottomArea = true;
+            if (hideTimer) {
+              clearTimeout(hideTimer);
+              hideTimer = null;
+            }
+            if (isHudHiddenForTour) {
+              setBottomHudDocked(false);
+            }
+          } else {
+            if (isHoveringBottomArea) {
+              isHoveringBottomArea = false;
+              scheduleDock(600);
+            } else if (!isHudHiddenForTour && !hideTimer) {
+              scheduleDock(900);
+            }
           }
         }, { passive: true });
 
-        let wasTourActive = false;
+        // Poll tour start/stop transitions every 250ms so the HUD docks automatically when Tour starts
+        let lastTourState = false;
         setInterval(() => {
-          const activeNow = isGuidedTourCurrentlyRunning();
-          if (activeNow && !wasTourActive) {
-            wasTourActive = true;
-            if (!isPointerOverBottomHud) {
-              scheduleBottomHudHide(1200);
+          const activeNow = detectGuidedTourActive();
+          if (activeNow && !lastTourState) {
+            lastTourState = true;
+            if (!isHoveringBottomArea) {
+              scheduleDock(950);
             }
-          } else if (!activeNow && wasTourActive) {
-            wasTourActive = false;
-            revealBottomHud();
+          } else if (!activeNow && lastTourState) {
+            lastTourState = false;
+            if (hideTimer) {
+              clearTimeout(hideTimer);
+              hideTimer = null;
+            }
+            setBottomHudDocked(false);
           }
-        }, 350);
+        }, 250);
       }
 
       // =========================================================================
-      // 3. DEEP-SPACE DISCOVERABLE PULSE (SLOW BREATHING HALO FOR DISTANT NODES)
+      // 3. DEEP-SPACE DISCOVERABLE BEACON PULSE (VISIBLE AT ALL ZOOM LEVELS)
       // =========================================================================
-      let beaconGlowTex = null;
-      function getBeaconGlowTexture(THREE_REF) {
-        if (beaconGlowTex) return beaconGlowTex;
+      let beaconRingTex = null;
+      function getBeaconRingTexture(T) {
+        if (beaconRingTex) return beaconRingTex;
         const c = document.createElement("canvas");
         c.width = 128;
         c.height = 128;
         const ctx = c.getContext("2d");
-        const g = ctx.createRadialGradient(64, 64, 2, 64, 64, 62);
-        g.addColorStop(0.0, "rgba(255, 255, 255, 0.95)");
-        g.addColorStop(0.22, "rgba(205, 240, 255, 0.52)");
-        g.addColorStop(0.55, "rgba(110, 205, 255, 0.16)");
+
+        // Soft glowing core + subtle outer discovery ring so distant nodes stand out from background stars
+        const g = ctx.createRadialGradient(64, 64, 1, 64, 64, 62);
+        g.addColorStop(0.0, "rgba(255, 255, 255, 1.0)");
+        g.addColorStop(0.18, "rgba(185, 240, 255, 0.72)");
+        g.addColorStop(0.45, "rgba(56, 189, 248, 0.22)");
+        g.addColorStop(0.72, "rgba(125, 211, 252, 0.34)");
+        g.addColorStop(0.84, "rgba(56, 189, 248, 0.12)");
         g.addColorStop(1.0, "rgba(0, 0, 0, 0.0)");
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, 128, 128);
-        beaconGlowTex = new THREE_REF.CanvasTexture(c);
-        return beaconGlowTex;
+
+        beaconRingTex = new T.CanvasTexture(c);
+        return beaconRingTex;
       }
 
       window.updateDeepSpaceDiscoveryPulse = function(tSec, camera, celestialObjects, activeTargetMesh, THREE_LIB) {
         const T = THREE_LIB || window.THREE;
         if (!camera || !celestialObjects || !celestialObjects.length || !T) return;
 
-        const firstLabel = document.querySelector(".celestial-label, .node-label, [data-label-id]");
-        const labelsHidden = firstLabel ? (window.getComputedStyle(firstLabel).opacity === "0" || window.getComputedStyle(firstLabel).display === "none") : false;
-        const cinematicBoost = labelsHidden ? 1.42 : 1.0;
+        // Boost pulse visibility when viewport labels [L] are toggled off
+        let labelsHidden = false;
+        const sampleLabel = document.querySelector(".celestial-label, .node-label, [data-label-id]");
+        if (sampleLabel) {
+          const st = window.getComputedStyle(sampleLabel);
+          labelsHidden = st.display === "none" || parseFloat(st.opacity) < 0.1;
+        }
+        const cinematicBoost = labelsHidden ? 1.45 : 1.0;
 
         for (let i = 0; i < celestialObjects.length; i++) {
           const mesh = celestialObjects[i];
           if (!mesh || !mesh.userData) continue;
 
           const tier = mesh.userData.tier || 1;
-          if (tier < 2) continue;
+          const id = String(mesh.userData.id || "");
+          // Apply to outer Solar System detached objects (Sedna / Oumuamua) and all Tier 2-4 deep-space objects
+          const isOuterDiscoverable = tier >= 2 || id === "sedna" || id === "oumuamua" || id === "halley-comet";
+          if (!isOuterDiscoverable) continue;
 
           if (!mesh.userData._discoveryBeaconSprite) {
-            const baseR = mesh.userData.size || 2.5;
-            const idStr = String(mesh.userData.id || i);
             let hash = 0;
-            for (let c = 0; c < idStr.length; c++) hash = (hash * 31 + idStr.charCodeAt(c)) % 1000;
+            for (let c = 0; c < id.length; c++) hash = (hash * 31 + id.charCodeAt(c)) % 1000;
             mesh.userData._pulsePhase = (hash / 1000) * Math.PI * 2;
-            mesh.userData._baseScaleScalar = (mesh.scale && mesh.scale.x) ? mesh.scale.x : 1.0;
 
             const spMat = new T.SpriteMaterial({
-              map: getBeaconGlowTexture(T),
-              color: 0xd8f3ff,
+              map: getBeaconRingTexture(T),
+              color: 0xbae6fd,
               transparent: true,
               opacity: 0.0,
               blending: T.AdditiveBlending,
@@ -12177,50 +12229,48 @@
             const sp = new T.Sprite(spMat);
             sp.name = "nova-discovery-beacon";
             sp.raycast = () => {};
-            const haloSize = baseR * (tier >= 4 ? 5.2 : tier === 3 ? 4.6 : 4.0);
-            sp.scale.set(haloSize, haloSize, 1);
             mesh.add(sp);
             mesh.userData._discoveryBeaconSprite = sp;
-            mesh.userData._discoveryBaseHaloSize = haloSize;
           }
 
           const sp = mesh.userData._discoveryBeaconSprite;
           if (!sp) continue;
 
           const distToCam = camera.position.distanceTo(mesh.position);
-          const baseR = mesh.userData.size || 2.5;
-          const isCurrentlyFocused = (activeTargetMesh === mesh);
-          const farFactor = isCurrentlyFocused
+          const baseR = mesh.userData.size || 2.2;
+          const isFocused = (activeTargetMesh === mesh);
+
+          // Fade out smoothly when camera arrives close to the object
+          const farFactor = isFocused
             ? 0.0
-            : Math.max(0.0, Math.min(1.0, (distToCam - baseR * 18.0) / (baseR * 45.0)));
+            : Math.max(0.0, Math.min(1.0, (distToCam - baseR * 12.0) / (baseR * 30.0)));
 
           if (farFactor <= 0.01) {
             sp.material.opacity = 0.0;
             continue;
           }
 
+          // Slow 4.8-second asynchronous breathing wave per object
           const phase = mesh.userData._pulsePhase || 0;
-          const breath = 0.5 + 0.5 * Math.sin(tSec * 1.2 + phase);
-          const shimmer = 0.5 + 0.5 * Math.cos(tSec * 0.55 - phase * 0.7);
-          const pulseWave = breath * 0.78 + shimmer * 0.22;
+          const wave = 0.5 + 0.5 * Math.sin(tSec * 1.3 + phase);
 
-          const haloScale = mesh.userData._discoveryBaseHaloSize * (0.88 + 0.34 * pulseWave * cinematicBoost);
-          sp.scale.set(haloScale, haloScale, 1);
+          // Keep the beacon halo proportional to camera distance so distant deep-space stars remain visible as a subtle pulse
+          const minAngularWorldSize = distToCam * 0.018;
+          const worldHaloBase = Math.max(baseR * 4.2, minAngularWorldSize);
+          const parentScale = (mesh.scale && mesh.scale.x > 0.0001) ? mesh.scale.x : 1.0;
+          const localHaloScale = (worldHaloBase / parentScale) * (0.82 + 0.42 * wave * cinematicBoost);
 
-          const baseOpacity = tier >= 4 ? 0.30 : tier === 3 ? 0.26 : 0.22;
-          sp.material.opacity = Math.min(0.65, (0.06 + baseOpacity * Math.pow(pulseWave, 1.35)) * farFactor * cinematicBoost);
+          sp.scale.set(localHaloScale, localHaloScale, 1);
+
+          const peakAlpha = (tier >= 2 ? 0.48 : 0.34) * cinematicBoost;
+          sp.material.opacity = Math.min(0.78, (0.08 + peakAlpha * Math.pow(wave, 1.4)) * farFactor);
         }
       };
 
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", () => {
-          setupSmoothMapKeyDrawer();
-          setupTourBottomHudAutoHide();
-        });
-      } else {
+      setTimeout(() => {
         setupSmoothMapKeyDrawer();
         setupTourBottomHudAutoHide();
-      }
+      }, 120);
     })();
   </script>
 </body>
