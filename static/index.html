@@ -9903,7 +9903,7 @@
       updatePauseButtonIcon(false);
       updateTourButtonStyle(true);
 
-     // First run: Play NOVA's introduction before starting step 0
+      // First run: Play NOVA's introduction before starting step 0
       if (isFirstTourRun) {
         isFirstTourRun = false;
         stopTourAudio();
@@ -9954,20 +9954,6 @@
           }
         };
 
-        introAudio.onerror = (err) => {
-          console.error("Failed to load intro audio, proceeding to tour.", err);
-          if (isTourActive && !isTourPaused) {
-            executeTourStep();
-          }
-        };
-
-        introAudio.play().catch((err) => {
-          console.error("Autoplay blocked for intro, proceeding to tour.", err);
-          executeTourStep();
-        });
-      } else {
-        executeTourStep();
-      }
         introAudio.onerror = (err) => {
           console.error("Failed to load intro audio, proceeding to tour.", err);
           if (isTourActive && !isTourPaused) {
