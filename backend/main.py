@@ -6,6 +6,11 @@ from fastapi.responses import FileResponse
 
 app = FastAPI(title="NOVA")
 
+# Mount the local audio folder so Uvicorn can serve the MP3s to the frontend
+import os
+if os.path.exists("audio"):
+    app.mount("/audio", StaticFiles(directory="audio"), name="audio")
+
 @app.middleware("http")
 async def disable_cache(request, call_next):
     response = await call_next(request)
