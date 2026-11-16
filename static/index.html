@@ -9434,7 +9434,14 @@
         }
       }
 
-if (isCosmicWebVisible && window._cosmicMaterials) {
+// === DEEP-SPACE DISCOVERABLE BEACON PULSE ===
+      if (typeof window.updateDeepSpaceDiscoveryPulse === "function") {
+        try {
+          window.updateDeepSpaceDiscoveryPulse(performance.now() * 0.001, camera, celestialObjects, activeTargetMesh, THREE);
+        } catch (err) {}
+      }
+
+      if (isCosmicWebVisible && window._cosmicMaterials) {
         if (cosmicWebGroup) cosmicWebGroup.visible = true;
         const t = performance.now() * 0.001;
         // Gentle breathing factor across all zoom levels without distance dimming
@@ -9443,13 +9450,7 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         window._cosmicMaterials.core.opacity = 0.24 * webScale;
         window._cosmicMaterials.outer.opacity = 0.14 * webScale;
         window._cosmicMaterials.branch.opacity = 0.095 * webScale;
-      }
 
-      // === DEEP-SPACE DISCOVERABLE BEACON PULSE ===
-      if (typeof window.updateDeepSpaceDiscoveryPulse === "function") {
-        window.updateDeepSpaceDiscoveryPulse(performance.now() * 0.001, camera, celestialObjects, activeTargetMesh);
-      }
-      
         filamentFlowParticles.forEach(item => {
           item.progress = (item.progress + item.speed) % 1.0;
           const pt = item.curve.getPoint(item.progress);
@@ -12141,8 +12142,9 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
         return beaconGlowTex;
       }
 
-      window.updateDeepSpaceDiscoveryPulse = function(tSec, camera, celestialObjects, activeTargetMesh) {
-        if (!camera || !celestialObjects || !celestialObjects.length || typeof THREE === "undefined") return;
+      window.updateDeepSpaceDiscoveryPulse = function(tSec, camera, celestialObjects, activeTargetMesh, THREE_LIB) {
+        const T = THREE_LIB || window.THREE;
+        if (!camera || !celestialObjects || !celestialObjects.length || !T) return;
 
         const firstLabel = document.querySelector(".celestial-label, .node-label, [data-label-id]");
         const labelsHidden = firstLabel ? (window.getComputedStyle(firstLabel).opacity === "0" || window.getComputedStyle(firstLabel).display === "none") : false;
@@ -12163,16 +12165,16 @@ if (isCosmicWebVisible && window._cosmicMaterials) {
             mesh.userData._pulsePhase = (hash / 1000) * Math.PI * 2;
             mesh.userData._baseScaleScalar = (mesh.scale && mesh.scale.x) ? mesh.scale.x : 1.0;
 
-            const spMat = new THREE.SpriteMaterial({
-              map: getBeaconGlowTexture(THREE),
+            const spMat = new T.SpriteMaterial({
+              map: getBeaconGlowTexture(T),
               color: 0xd8f3ff,
               transparent: true,
               opacity: 0.0,
-              blending: THREE.AdditiveBlending,
+              blending: T.AdditiveBlending,
               depthWrite: false,
               depthTest: true
             });
-            const sp = new THREE.Sprite(spMat);
+            const sp = new T.Sprite(spMat);
             sp.name = "nova-discovery-beacon";
             sp.raycast = () => {};
             const haloSize = baseR * (tier >= 4 ? 5.2 : tier === 3 ? 4.6 : 4.0);
