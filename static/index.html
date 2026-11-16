@@ -9833,7 +9833,9 @@
       }
     }
 
-    // --- GLOBAL TOUR STATE & FUNCTIONS ---
+    // ==========================================
+    // --- MASTER COSMIC TOUR CONTROLLER (FULL FEATURE SET) ---
+    // ==========================================
     let isFirstTourRun = true;
 
     window.toggleCosmicTour = function(e) {
@@ -9885,6 +9887,7 @@
         if (badgeEl) badgeEl.textContent = "NOVA";
         if (counterEl) counterEl.textContent = "INTRO";
 
+        // --- CINEMATIC INTRO SWEEP ---
         if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
           TWEEN.removeAll();
           isFlyingToTarget = true;
@@ -9918,16 +9921,20 @@
         currentTourAudio = introAudio;
 
         introAudio.onended = () => {
-          if (isTourActive && !isTourPaused && typeof window.executeTourStep === 'function') window.executeTourStep();
+          if (isTourActive && !isTourPaused && typeof window.executeTourStep === 'function') {
+            window.executeTourStep();
+          }
         };
 
         introAudio.onerror = (err) => {
           console.error("Failed to load intro audio.", err);
-          if (isTourActive && !isTourPaused && typeof window.executeTourStep === 'function') window.executeTourStep();
+          if (isTourActive && !isTourPaused && typeof window.executeTourStep === 'function') {
+            window.executeTourStep();
+          }
         };
 
         introAudio.play().catch((err) => {
-          console.error("Autoplay blocked.", err);
+          console.error("Autoplay blocked for intro.", err);
           if (typeof window.executeTourStep === 'function') window.executeTourStep();
         });
       } else {
@@ -10001,6 +10008,7 @@
       }
     };
 
+    // --- SYNCHRONIZED EXECUTE TOUR STEP WITH SUB-CUES & SURFACE ZOOMS ---
     window.executeTourStep = function() {
       if (!isTourActive || isTourPaused) return;
       if (!tourPlaylist || tourPlaylist.length === 0) return;
@@ -10013,6 +10021,7 @@
       if (typeof updateTourProgressUI === 'function') updateTourProgressUI();
       if (typeof clearTourTimers === 'function') clearTourTimers();
 
+      // Setup audio completion trigger for auto-advancing
       const setupAutoAdvance = () => {
         setTimeout(() => {
           if (typeof currentTourAudio !== 'undefined' && currentTourAudio) {
@@ -10047,8 +10056,8 @@
           }
           
           const startTarget = controls.target.clone();
-          const endCam = step.camPos ? new THREE.Vector3(step.camPos.x, step.camPos.y, step.camPos.z) : new THREE.Vector3(0, 1000, 1500);
-          const endTarget = step.targetPos ? new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z) : new THREE.Vector3(0,0,0);
+          const endCam = new THREE.Vector3(step.camPos.x, step.camPos.y, step.camPos.z);
+          const endTarget = new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z);
           const cinematicDuration = step.dwellMs || 25000; 
 
           const tweenObj = { t: 0 };
@@ -10074,12 +10083,15 @@
         if (typeof speakTourNarration === "function") speakTourNarration(step, step.dwellMs);
         setupAutoAdvance();
         
-        // --- ASYNC RETRY LOOP FOR PLANET ZOOM ---
+        // --- ROBUST MESH FINDER & SURFACE ZOOM TRIGGER ---
         const waitForMeshAndZoom = (attempts = 0) => {
-          // If the mesh is loaded, execute the zoom
-          if (step.mesh) {
-            activeTargetMesh = step.mesh;
+          // Check if mesh is loaded in the scene/playlist
+          const targetMesh = step.mesh || (typeof celestialObjects !== 'undefined' ? celestialObjects.find(o => o.data?.name?.toLowerCase() === step.data?.name?.toLowerCase())?.mesh : null);
+
+          if (targetMesh) {
+            activeTargetMesh = targetMesh;
             
+            // Execute smooth arrival zoom to the object
             if (typeof TWEEN !== 'undefined' && typeof camera !== 'undefined' && typeof controls !== 'undefined') {
               TWEEN.removeAll();
               isFlyingToTarget = true;
@@ -10088,35 +10100,54 @@
               const startCam = camera.position.clone();
               const startTarget = controls.target.clone();
               const endCam = step.camPos ? new THREE.Vector3(step.camPos.x, step.camPos.y, step.camPos.z) : new THREE.Vector3(0, 50, 100);
-              const endTarget = step.targetPos ? new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z) : new THREE.Vector3(0,0,0);
+              const endTarget = step.targetPos ? new THREE.Vector3(step.targetPos.x, step.targetPos.y, step.targetPos.z) : targetMesh.position;
 
-              const tweenObj = { t: 0 };
-              new TWEEN.Tween(tweenObj)
-                .to({ t: 1 }, 2500) // Crisp 2.5s zoom directly to the object
+              // Main approach zoom (3 seconds)
+              const approachTween = new TWEEN.Tween({ t: 0 })
+                .to({ t: 1 }, 3000)
                 .easing(TWEEN.Easing.Cubic.InOut)
-                .onUpdate(() => {
-                  camera.position.lerpVectors(startCam, endCam, tweenObj.t);
-                  controls.target.lerpVectors(startTarget, endTarget, tweenObj.t);
+                .onUpdate((obj) => {
+                  camera.position.lerpVectors(startCam, endCam, obj.t);
+                  controls.target.lerpVectors(startTarget, endTarget, obj.t);
                   if (controls.update) controls.update();
                 })
                 .onComplete(() => {
                   isFlyingToTarget = false;
                   controls.autoRotate = true;
-                  controls.autoRotateSpeed = 1.0; 
-                })
-                .start();
+                  controls.autoRotateSpeed = 0.8; 
+
+                  // --- SECONDARY SUB-CUE: SURFACE FEATURE ZOOM ---
+                  // Triggers a closer push towards the surface halfway through the narration
+                  setTimeout(() => {
+                    if (!isTourActive || isTourPaused || tourIndex !== tourIndex) return;
+                    const surfaceCam = endCam.clone().multiplyScalar(0.75); // Closer push to surface
+                    
+                    const surfaceTween = new TWEEN.Tween({ t: 0 })
+                      .to({ t: 1 }, 4000)
+                      .easing(TWEEN.Easing.Quadratic.InOut)
+                      .onUpdate((o) => {
+                        camera.position.lerpVectors(endCam, surfaceCam, o.t);
+                        if (controls.update) controls.update();
+                      })
+                      .start();
+                    tourTimers.push(surfaceTween);
+                  }, 6000); // 6 seconds in, when physical descriptors peak
+                });
+
+              approachTween.start();
+              tourTimers.push(approachTween);
             }
-          // If the mesh isn't ready, wait 500ms and try again (up to 10 times)
-          } else if (attempts < 10) {
-            setTimeout(() => waitForMeshAndZoom(attempts + 1), 500);
+          } else if (attempts < 12) {
+            // Retry every 400ms if mesh is still streaming in
+            setTimeout(() => waitForMeshAndZoom(attempts + 1), 400);
           }
         };
 
-        // Start the zoom attempt
         waitForMeshAndZoom();
       }
     };
-    
+
+    // --- BULLETPROOF BUTTON BINDINGS ---
     const bindAllTourButtons = () => {
       const tourButton = document.getElementById("btn-cosmic-tour");
       if (tourButton && !tourButton.dataset.bound) {
