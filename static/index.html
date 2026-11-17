@@ -10052,8 +10052,7 @@
       if (counterEl) counterEl.textContent = (tourIndex + 1) + "/" + tourPlaylist.length;
 
       const setupAutoAdvance = () => {
-        // Audio onended and post-narration dwell (6s) are now managed by speakTourNarration()
-        // and scheduleNextTourStep(), keeping the progress bar and interaction hold in sync.
+        // Handled cleanly by speakTourNarration() -> scheduleNextTourStep(TOUR_POST_DWELL_MS)
       };
 
       if (step.kind === "tier-intro") {
