@@ -9700,7 +9700,21 @@
       fetch(url).catch(() => {});
     }
 
+    // --- PACING CONFIGURATION ---
+    const TOUR_ARRIVAL_DELAY_MS = 1800; // Wait 1.8s for camera fly-in before Sonia speaks
+    const TOUR_POST_DWELL_MS    = 6000; // Wait 6.0s after Sonia finishes so user can inspect
+    const TOUR_INTERACT_HOLD_MS = 10000; // Reset timer to 10s whenever user clicks inside the HUD card
+    let tourArrivalDelayTimer = null;
+
     function stopTourAudio() {
+      if (tourArrivalDelayTimer) {
+        clearTimeout(tourArrivalDelayTimer);
+        tourArrivalDelayTimer = null;
+      }
+      if (window._tourAutoAdvance) {
+        clearTimeout(window._tourAutoAdvance);
+        window._tourAutoAdvance = null;
+      }
       if (currentTourAudio) {
         currentTourAudio.onended = null;
         currentTourAudio.onerror = null;
@@ -9735,10 +9749,10 @@
       audio.preload = "auto";
       currentTourAudio = audio;
 
-      // Advance smoothly 1.5s after narration finishes
+      // Advance smoothly 6.0s AFTER narration finishes (giving breathing room to inspect)
       audio.onended = () => {
         if (currentTourAudio === audio && isTourActive && !isTourPaused) {
-          scheduleNextTourStep(1500);
+          scheduleNextTourStep(TOUR_POST_DWELL_MS);
         }
       };
 
@@ -9756,14 +9770,27 @@
         }
       };
 
-      if (!isTourPaused) {
+      // Wait 1.8s for camera fly-in before Sonia starts speaking (0.6s for tier intros)
+      const arrivalWait = stepData.kind === "tier-intro" ? 600 : TOUR_ARRIVAL_DELAY_MS;
+      tourArrivalDelayTimer = setTimeout(() => {
+        if (!isTourActive || isTourPaused || currentTourAudio !== audio) return;
         audio.play().catch(() => {
           if (currentTourAudio === audio && isTourActive && !isTourPaused) {
             scheduleNextTourStep(fallbackDwellMs);
           }
         });
-      }
+      }, arrivalWait);
     }
+
+    // Extend dwell timer whenever the user interacts with the HUD surface/feature inspector
+    document.addEventListener("pointerdown", (e) => {
+      if (!isTourActive || isTourPaused) return;
+      if (e.target.closest("#spatial-tour-controls")) return; // Ignore Next/Prev/Pause buttons
+      const inHudPanel = e.target.closest("#spatial-callout, #info-panel, .spatial-callout, [id*='callout'], [id*='feature'], [class*='inspect'], button");
+      if (inHudPanel && currentTourAudio && currentTourAudio.ended) {
+        scheduleNextTourStep(TOUR_INTERACT_HOLD_MS);
+      }
+    });
     
     // Pre-warm the first 3 tour stops shortly after startup so first run has zero delay
     setTimeout(() => {
@@ -10025,19 +10052,8 @@
       if (counterEl) counterEl.textContent = (tourIndex + 1) + "/" + tourPlaylist.length;
 
       const setupAutoAdvance = () => {
-        setTimeout(() => {
-          if (typeof currentTourAudio !== 'undefined' && currentTourAudio) {
-            currentTourAudio.onended = () => {
-              if (isTourActive && !isTourPaused && typeof window.nextTourStep === 'function') {
-                window.nextTourStep();
-              }
-            };
-          } else {
-            window._tourAutoAdvance = setTimeout(() => {
-              if (isTourActive && !isTourPaused && typeof window.nextTourStep === 'function') window.nextTourStep();
-            }, step.dwellMs || 10000);
-          }
-        }, 300);
+        // Audio onended and post-narration dwell (6s) are now managed by speakTourNarration()
+        // and scheduleNextTourStep(), keeping the progress bar and interaction hold in sync.
       };
 
       if (step.kind === "tier-intro") {
