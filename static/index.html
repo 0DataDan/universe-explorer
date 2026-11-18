@@ -9651,12 +9651,16 @@
 
       tourTimer = setTimeout(() => {
         if (!isTourActive || isTourPaused) return;
-        tourIndex++;
-        if (tourIndex >= tourPlaylist.length) {
-          window.stopCosmicTour();
-          resetToSolCore();
+        if (typeof window.nextTourStep === "function") {
+          window.nextTourStep();
         } else {
-          executeTourStep();
+          tourIndex++;
+          if (tourIndex >= tourPlaylist.length) {
+            window.stopCosmicTour();
+            resetToSolCore();
+          } else if (typeof window.executeTourStep === "function") {
+            window.executeTourStep();
+          }
         }
       }, dwellMs);
     }
