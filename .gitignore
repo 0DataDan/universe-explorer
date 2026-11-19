@@ -3,3 +3,9 @@ __pycache__/
 *.pyc
 __pycache__/
 *.bak
+
+.DS_Store
+*.bak
+*.backup.*
+*_backup.*
+*.zip
