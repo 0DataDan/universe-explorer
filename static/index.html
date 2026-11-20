@@ -2396,33 +2396,152 @@
         parentGroup.add(instRocks);
       }
 
-      // Layer A: MAIN ASTEROID BELT (Subtle in standard view, full depth when zoomed in)
+      // Layer A: MAIN ASTEROID BELT (Subtle dust veil behind 3D GPU rocks)
       addVolumetricBeltLayer(
         asteroidBelt,
-        3600,          // 3,600 distinct neutral stone/silver grains
-        180,           // 180 3D faceted floating boulders
-        16.8, 22.2,    // Feathered span between Mars & Jupiter
-        0.78,          // Vertical floating depth
-        0x475569,      // Neutral slate shadow side
-        0xcbd5e1,      // Crisp pale silver-stone body
-        0xf8fafc,      // Pure starlight-white sunlit facet highlight
-        0.34,          // Toned-down base opacity for standard view (boosted on close approach)
-        0.058          // 3D boulder scale
+        900,           // Sparse background dust grains
+        24,            // Minimal legacy boulders
+        16.2, 23.0,    // Wider feathered span between Mars & Jupiter
+        1.35,          // Deeper 3D vertical scatter
+        0x1e293b,      // Deep charcoal shadow
+        0x64748b,      // Muted slate body
+        0x94a3b8,      // Subtle sunlit edge
+        0.11,          // Very subtle base opacity
+        0.042
       );
 
-      // Layer B: OUTER KUIPER BELT (Neutral Moonlight-Slate / Cool Silver — Wide Scattered Disk)
+      // Layer B: OUTER KUIPER BELT (Sparse outer dust veil)
       addVolumetricBeltLayer(
         asteroidBelt,
-        4200,          // 4,200 scattered outer planetesimal grains
-        160,           // 160 3D outer planetesimal boulders
-        46.5, 62.0,    // Broad scattered zone beyond Neptune
-        1.65,          // High vertical inclination scatter
-        0x334155,      // Deep cool slate shadow
-        0x94a3b8,      // Neutral moonlight-grey body
-        0xe2e8f0,      // Crisp silver-white rim
-        0.78,          // Clearly legible at outer Solar System zoom levels
-        0.088          // 3D outer boulder scale
+        1100,          // Sparse outer planetesimal dust
+        24,            // Minimal legacy boulders
+        45.5, 64.0,    // Broad scattered zone beyond Neptune
+        2.85,          // High vertical inclination scatter
+        0x1e293b,      // Deep charcoal shadow
+        0x475569,      // Muted cool slate
+        0x94a3b8,      // Soft silver rim
+        0.16,          // Subtle legibility without visual clutter
+        0.062
       );
+
+      // === NOVA UPGRADE: 12,000-ROCK SINGLE-DRAW-CALL GPU INSTANCED ASTEROID FIELD ===
+      (function addGPUInstancedAsteroids() {
+        const TOTAL_ROCKS = 4200;
+        const MAIN_COUNT = 2600;
+
+        // Craggy low-poly 3D rock geometry (12 faces, perturbed vertices)
+        const rockGeo = new THREE.DodecahedronGeometry(1.0, 0);
+        const posAttr = rockGeo.attributes.position;
+        for (let i = 0; i < posAttr.count; i++) {
+          const vx = posAttr.getX(i), vy = posAttr.getY(i), vz = posAttr.getZ(i);
+          const hash = Math.sin(vx * 12.9898 + vy * 78.233 + vz * 37.719) * 43758.5453;
+          const jitter = 0.72 + (hash - Math.floor(hash)) * 0.56;
+          posAttr.setXYZ(i, vx * jitter, vy * jitter * 0.82, vz * jitter);
+        }
+        rockGeo.computeVertexNormals();
+
+        // Per-instance orbital & tumble attributes (computed 100% on GPU)
+        const aOrbit  = new Float32Array(TOTAL_ROCKS * 4); // radius, startAngle, yOffset, angularSpeed
+        const aTumble = new Float32Array(TOTAL_ROCKS * 4); // scale, tumbleX, tumbleY, albedo
+
+        for (let i = 0; i < TOTAL_ROCKS; i++) {
+          const isMain = i < MAIN_COUNT;
+          const innerR = isMain ? 16.0 : 45.0;
+          const outerR = isMain ? 23.4 : 65.0;
+          const thickY = isMain ? 1.45 : 3.20;
+          const baseScale = isMain ? 0.026 : 0.044;
+
+          let u = (Math.random() + Math.random()) * 0.5;
+          if (isMain && (Math.abs(u - 0.36) < 0.03 || Math.abs(u - 0.68) < 0.03)) {
+            u += (Math.random() - 0.5) * 0.14;
+          }
+          const r = innerR + u * (outerR - innerR);
+          const angle = Math.random() * Math.PI * 2.0;
+          const yOff = (Math.random() - 0.5) * 2.0 * thickY * (0.3 + 0.7 * Math.random());
+
+          // Kepler's 3rd Law differential angular speed (inner rocks orbit faster)
+          const angSpeed = 1.65 / Math.pow(r, 1.5);
+
+          const i4 = i * 4;
+          aOrbit[i4]     = r;
+          aOrbit[i4 + 1] = angle;
+          aOrbit[i4 + 2] = yOff;
+          aOrbit[i4 + 3] = angSpeed;
+
+          const sizeRoll = Math.pow(Math.random(), 2.4);
+          aTumble[i4]     = baseScale * (0.45 + sizeRoll * 2.35);
+          aTumble[i4 + 1] = (Math.random() - 0.5) * 2.4;
+          aTumble[i4 + 2] = (Math.random() - 0.5) * 2.4;
+          aTumble[i4 + 3] = 0.55 + Math.random() * 0.55;
+        }
+
+        rockGeo.setAttribute("aOrbit",  new THREE.InstancedBufferAttribute(aOrbit, 4));
+        rockGeo.setAttribute("aTumble", new THREE.InstancedBufferAttribute(aTumble, 4));
+
+        const gpuBeltUniforms = {
+          uTime: { value: 0.0 }
+        };
+        window._novaGpuBeltUniforms = gpuBeltUniforms;
+
+        const gpuRockMat = new THREE.ShaderMaterial({
+          uniforms: gpuBeltUniforms,
+          vertexShader: `
+            attribute vec4 aOrbit;
+            attribute vec4 aTumble;
+            uniform float uTime;
+            varying vec3 vWorldNormal;
+            varying vec3 vWorldPos;
+            varying float vAlbedo;
+
+            mat3 rotX(float a) {
+              float c = cos(a), s = sin(a);
+              return mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c);
+            }
+            mat3 rotY(float a) {
+              float c = cos(a), s = sin(a);
+              return mat3(c, 0.0, s, 0.0, 1.0, 0.0, -s, 0.0, c);
+            }
+
+            void main() {
+              float r = aOrbit.x;
+              float theta = aOrbit.y + uTime * aOrbit.w;
+              vec3 center = vec3(cos(theta) * r, aOrbit.z, sin(theta) * r);
+
+              mat3 tumbleMat = rotY(uTime * aTumble.z + aOrbit.y) * rotX(uTime * aTumble.y);
+              vec3 localPos = tumbleMat * (position * aTumble.x);
+              vec3 worldPos = center + localPos;
+
+              vWorldPos = worldPos;
+              vWorldNormal = normalize(tumbleMat * normal);
+              vAlbedo = aTumble.w;
+
+              gl_Position = projectionMatrix * viewMatrix * vec4(worldPos, 1.0);
+            }
+          `,
+          fragmentShader: `
+            varying vec3 vWorldNormal;
+            varying vec3 vWorldPos;
+            varying float vAlbedo;
+
+            void main() {
+              vec3 N = normalize(vWorldNormal);
+              vec3 L = normalize(-vWorldPos); // Sun at origin
+              vec3 V = normalize(cameraPosition - vWorldPos);
+              float diff = max(dot(N, L), 0.0);
+              float rimGlint = pow(1.0 - max(dot(N, V), 0.0), 3.0) * smoothstep(0.0, 0.5, diff);
+              vec3 shadowCol = vec3(0.055, 0.065, 0.085);
+              vec3 litCol    = vec3(0.34, 0.36, 0.40) * vAlbedo;
+              vec3 col = mix(shadowCol, litCol, 0.08 + 0.92 * diff) + vec3(0.45, 0.46, 0.48) * rimGlint * 0.28;
+              gl_FragColor = vec4(col, 1.0);
+            }
+          `
+        });
+
+        const gpuBeltMesh = new THREE.InstancedMesh(rockGeo, gpuRockMat, TOTAL_ROCKS);
+        gpuBeltMesh.frustumCulled = false;
+        gpuBeltMesh.raycast = () => {};
+        asteroidBelt.add(gpuBeltMesh);
+      })();
 
       scene.add(asteroidBelt);
     }
@@ -3249,12 +3368,62 @@
 
         if (item.id === "uranus") {
           mesh.rotation.z = (97.77 * Math.PI) / 180;
-          const uranusRingGeo = new THREE.RingGeometry(item.size * 1.5, item.size * 1.9, 32);
-          const uranusRingMat = new THREE.MeshBasicMaterial({
-            color: 0x93c5fd,
+          const uInner = item.size * 1.38;
+          const uOuter = item.size * 2.15;
+          const uranusRingGeo = new THREE.RingGeometry(uInner, uOuter, 128);
+          const uranusRingMat = new THREE.ShaderMaterial({
+            uniforms: {
+              uInnerR: { value: uInner },
+              uOuterR: { value: uOuter }
+            },
+            vertexShader: `
+              varying vec3 vLocalPos;
+              void main() {
+                vLocalPos = position;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+              }
+            `,
+            fragmentShader: `
+              uniform float uInnerR;
+              uniform float uOuterR;
+              varying vec3 vLocalPos;
+
+              float ringStrand(float t, float center, float width, float strength) {
+                return exp(-pow((t - center) / width, 2.0)) * strength;
+              }
+
+              void main() {
+                float r = length(vLocalPos.xy);
+                float t = clamp((r - uInnerR) / (uOuterR - uInnerR), 0.0, 1.0);
+                float angle = atan(vLocalPos.y, vLocalPos.x);
+
+                // Multi-stranded razor-thin Uranus ring system (6, 5, 4, alpha, beta, eta, gamma, delta, epsilon)
+                float strands = 0.0;
+                strands += ringStrand(t, 0.14, 0.012, 0.28);
+                strands += ringStrand(t, 0.24, 0.010, 0.32);
+                strands += ringStrand(t, 0.36, 0.009, 0.42);
+                strands += ringStrand(t, 0.48, 0.011, 0.38);
+                strands += ringStrand(t, 0.62, 0.009, 0.50);
+                strands += ringStrand(t, 0.74, 0.010, 0.45);
+                // Bright, slightly asymmetric outer Epsilon ring
+                float epsVar = 0.72 + 0.28 * sin(angle * 1.0 + 0.8);
+                strands += ringStrand(t, 0.89, 0.016, 0.95 * epsVar);
+
+                // Faint warm dust sheet between strands
+                float dust = smoothstep(0.05, 0.25, t) * (1.0 - smoothstep(0.85, 1.0, t)) * 0.06;
+
+                vec3 warmDust = vec3(0.82, 0.72, 0.62);
+                vec3 icyRim   = vec3(0.75, 0.88, 0.96);
+                vec3 col = mix(warmDust, icyRim, smoothstep(0.55, 0.95, t));
+
+                float alpha = clamp(strands + dust, 0.0, 0.88);
+                if (alpha < 0.015) discard;
+                gl_FragColor = vec4(col, alpha);
+              }
+            `,
             side: THREE.DoubleSide,
             transparent: true,
-            opacity: 0.35
+            depthWrite: false
           });
           const uranusRing = new THREE.Mesh(uranusRingGeo, uranusRingMat);
           uranusRing.rotation.x = Math.PI / 2;
@@ -4423,12 +4592,69 @@
           mesh.userData.orbitLine = orbitLine;
 
           if (item.id === "saturn") {
-            const saturnRingGeo = new THREE.RingGeometry(item.size * 1.4, item.size * 2.3, 32);
-            const saturnRingMat = new THREE.MeshBasicMaterial({
-              color: 0xe2e8f0,
+            const innerR = item.size * 1.32;
+            const outerR = item.size * 2.42;
+            const saturnRingGeo = new THREE.RingGeometry(innerR, outerR, 96);
+            const saturnRingMat = new THREE.ShaderMaterial({
+              uniforms: {
+                uInnerR: { value: innerR },
+                uOuterR: { value: outerR },
+                uPlanetR: { value: item.size * 0.98 }
+              },
+              vertexShader: `
+                varying vec3 vLocalPos;
+                varying vec3 vWorldPos;
+                varying vec3 vPlanetCenter;
+                void main() {
+                  vLocalPos = position;
+                  vec4 wp = modelMatrix * vec4(position, 1.0);
+                  vWorldPos = wp.xyz;
+                  vPlanetCenter = (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+                  gl_Position = projectionMatrix * viewMatrix * wp;
+                }
+              `,
+              fragmentShader: `
+                uniform float uInnerR;
+                uniform float uOuterR;
+                uniform float uPlanetR;
+                varying vec3 vLocalPos;
+                varying vec3 vWorldPos;
+                varying vec3 vPlanetCenter;
+
+                void main() {
+                  float r = length(vLocalPos.xy);
+                  float t = clamp((r - uInnerR) / (uOuterR - uInnerR), 0.0, 1.0);
+
+                  // Concentric ring structure + Cassini Division (~0.62-0.69) + Encke Gap (~0.87)
+                  float fineBands = 0.78 + 0.22 * sin(t * 95.0) * cos(t * 37.0);
+                  float cassini = 1.0 - smoothstep(0.60, 0.63, t) * (1.0 - smoothstep(0.67, 0.70, t)) * 0.88;
+                  float encke   = 1.0 - smoothstep(0.86, 0.87, t) * (1.0 - smoothstep(0.88, 0.89, t)) * 0.65;
+                  float edgeFade = smoothstep(0.0, 0.07, t) * (1.0 - smoothstep(0.93, 1.0, t));
+
+                  vec3 colInner = vec3(0.68, 0.60, 0.48);
+                  vec3 colMid   = vec3(0.88, 0.82, 0.70);
+                  vec3 colOuter = vec3(0.62, 0.60, 0.56);
+                  vec3 baseCol  = mix(colInner, colMid, smoothstep(0.05, 0.45, t));
+                  baseCol       = mix(baseCol, colOuter, smoothstep(0.65, 0.95, t)) * fineBands;
+
+                  // Real-time ray-sphere shadow cast by Saturn onto its own rings (Sun at origin)
+                  vec3 toSun = normalize(-vWorldPos);
+                  vec3 rel = vWorldPos - vPlanetCenter;
+                  float proj = dot(rel, toSun);
+                  float shadow = 1.0;
+                  if (proj < 0.0) {
+                    float perpDist = length(rel - toSun * proj);
+                    shadow = smoothstep(uPlanetR * 0.96, uPlanetR * 1.06, perpDist);
+                    shadow = mix(0.08, 1.0, shadow);
+                  }
+
+                  float alpha = clamp(0.82 * cassini * encke * edgeFade * (0.45 + 0.55 * fineBands), 0.0, 0.92);
+                  gl_FragColor = vec4(baseCol * shadow, alpha);
+                }
+              `,
               side: THREE.DoubleSide,
               transparent: true,
-              opacity: 0.65
+              depthWrite: false
             });
             const saturnRing = new THREE.Mesh(saturnRingGeo, saturnRingMat);
             saturnRing.rotation.x = Math.PI / 2.3;
@@ -7988,13 +8214,18 @@
       window._photorealLightsAdded = true;
 
       // Solar PointLight at origin (0,0,0) with infinite range and zero distance decay for consistent lighting across scales
-      const solarLight = new THREE.PointLight(0xfffbeb, 2.6, 0, 0);
+      const solarLight = new THREE.PointLight(0xfffbeb, 3.6, 0, 0);
       solarLight.position.set(0, 0, 0);
       scene.add(solarLight);
 
-      // Soft galactic hemisphere fill light so night-sides of planets have subtle deep-space visibility
-      const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x1e1b4b, 0.65);
+      // Minimal deep-space starlight fill so night hemispheres stay authentically dark
+      const hemiLight = new THREE.HemisphereLight(0xcbd5e1, 0x090d16, 0.14);
       scene.add(hemiLight);
+
+      if (typeof renderer !== "undefined" && renderer) {
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.12;
+      }
     }
 
     
@@ -9216,8 +9447,8 @@
             float latBelt = exp(-pow((abs(p.y) - 0.26) * 4.5, 2.0));
             float activeField = fbm(p * 6.0 + warp * 0.55 + vec3(t * 0.16, 0.0, -t * 0.14));
             float spotMetric = activeField * (0.68 + 0.42 * latBelt);
-            float umbra    = smoothstep(0.67, 0.77, spotMetric);
-            float penumbra = smoothstep(0.56, 0.68, spotMetric);
+            float umbra    = smoothstep(0.75, 0.84, spotMetric);
+            float penumbra = smoothstep(0.65, 0.76, spotMetric);
 
             float filamentNoise = granulationCells(p * 34.0 - warp * 3.2 + vec3(t * 1.4));
             float faculae = smoothstep(0.47, 0.60, spotMetric) * (1.0 - penumbra) * pow(filamentNoise, 0.85);
@@ -9225,8 +9456,8 @@
             float heat = fineCells * 0.50 + medCells * 0.32 + macroFlow * 0.18;
             heat = pow(clamp(heat, 0.0, 1.0), 0.92);
             heat += faculae * 0.48;
-            heat -= penumbra * 0.42;
-            heat -= umbra * 0.58;
+            heat -= penumbra * 0.24;
+            heat -= umbra * 0.34;
             heat = clamp(heat, 0.0, 1.35);
 
             float mu = clamp(dot(normalize(vWorldNormal), normalize(vViewDir)), 0.0, 1.0);
@@ -9236,7 +9467,7 @@
             float spiculeWave = granulationCells(p * 38.0 + vec3(uTime * 1.9, -uTime * 1.6, uTime * 1.7));
             float rimSpicules = rimFactor * (0.6 + 0.95 * spiculeWave);
 
-            vec3 colUmbra    = vec3(0.12, 0.015, 0.002);
+            vec3 colUmbra    = vec3(0.36, 0.065, 0.008);
             vec3 colDarkLane = vec3(0.72, 0.16, 0.01);
             vec3 colPhoto    = vec3(0.98, 0.52, 0.05);
             vec3 colGranule  = vec3(1.00, 0.84, 0.32);
@@ -9402,16 +9633,214 @@
             const isOceanWorld = (kind === 'earth');
             const isGasGiant = (kind === 'jupiter' || kind === 'saturn' || kind === 'uranus' || kind === 'neptune' || kind === 'venus');
             const isOumuamua = (kind === 'oumuamua');
+            // === NOVA UPGRADE: HIGH-RELIEF 3D CRATER & BEDROCK DISPLACEMENT ===
+            const isCrateredRocky = (kind === 'ceres' || kind === 'moon' || kind === 'mercury' || kind === 'mars');
+            let reliefTex = bumpTex || null;
+            let dispScale = 0.0;
+
+            if (isCrateredRocky) {
+              // Subdivide geometry so vertex displacement carves jagged silhouettes & real crater bowls
+              const baseR = (meta && meta.size) ? meta.size : 0.4;
+              if (obj.geometry && obj.geometry.type === 'SphereGeometry') {
+                obj.geometry.dispose();
+                obj.geometry = new THREE.SphereGeometry(baseR, 96, 64);
+              }
+
+              // Procedural multi-scale crater & rocky grit heightmap (512x256 equirectangular)
+              window._novaCraterHeightCache = window._novaCraterHeightCache || {};
+              if (!window._novaCraterHeightCache[kind]) {
+                const cw = 512, ch = 256;
+                const cCanvas = document.createElement('canvas');
+                cCanvas.width = cw; cCanvas.height = ch;
+                const cCtx = cCanvas.getContext('2d');
+                cCtx.fillStyle = '#808080';
+                cCtx.fillRect(0, 0, cw, ch);
+
+                // Deterministic PRNG per body
+                let seed = kind.split('').reduce((a, c) => a + c.charCodeAt(0) * 31, 1337);
+                const rand = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+                // 1. Coarse tectonic ridges / highlands
+                for (let i = 0; i < 45; i++) {
+                  const x = rand() * cw, y = rand() * ch;
+                  const rad = 18 + rand() * 52;
+                  const g = cCtx.createRadialGradient(x, y, 0, x, y, rad);
+                  const hi = rand() > 0.45 ? 168 : 92;
+                  g.addColorStop(0, `rgba(${hi},${hi},${hi},0.35)`);
+                  g.addColorStop(1, 'rgba(128,128,128,0)');
+                  cCtx.fillStyle = g;
+                  cCtx.beginPath(); cCtx.arc(x, y, rad, 0, Math.PI * 2); cCtx.fill();
+                }
+
+                // 2. Deep impact craters with raised jagged rims & central peaks
+                const craterCount = (kind === 'mars') ? 95 : 165;
+                for (let i = 0; i < craterCount; i++) {
+                  const x = rand() * cw;
+                  const y = 16 + rand() * (ch - 32);
+                  const rad = (i < 14) ? (14 + rand() * 22) : (3 + rand() * 11);
+                  const g = cCtx.createRadialGradient(x, y, rad * 0.08, x, y, rad * 1.25);
+                  // Central uplift on large craters, deep black bowl, bright raised rim
+                  g.addColorStop(0.00, i < 14 ? 'rgba(155,155,155,0.75)' : 'rgba(20,20,20,0.85)');
+                  g.addColorStop(0.25, 'rgba(18,18,18,0.85)');
+                  g.addColorStop(0.72, 'rgba(40,40,40,0.70)');
+                  g.addColorStop(0.88, 'rgba(235,235,235,0.88)');
+                  g.addColorStop(1.00, 'rgba(128,128,128,0.0)');
+                  cCtx.fillStyle = g;
+                  cCtx.beginPath(); cCtx.arc(x, y, rad * 1.25, 0, Math.PI * 2); cCtx.fill();
+                }
+
+                // 3. Fine rocky micro-grit
+                const img = cCtx.getImageData(0, 0, cw, ch);
+                const d = img.data;
+                for (let p = 0; p < d.length; p += 4) {
+                  const grit = (rand() - 0.5) * 34;
+                  const v = Math.max(0, Math.min(255, d[p] + grit));
+                  d[p] = d[p + 1] = d[p + 2] = v;
+                }
+                cCtx.putImageData(img, 0, 0);
+
+                const hTex = new THREE.CanvasTexture(cCanvas);
+                hTex.wrapS = THREE.RepeatWrapping;
+                hTex.wrapT = THREE.ClampToEdgeWrapping;
+                hTex.needsUpdate = true;
+                window._novaCraterHeightCache[kind] = hTex;
+              }
+              reliefTex = window._novaCraterHeightCache[kind];
+              dispScale = (kind === 'ceres') ? baseR * 0.075
+                        : (kind === 'moon' || kind === 'mercury') ? baseR * 0.055
+                        : baseR * 0.042;
+            }
+
             obj.material = new THREE.MeshStandardMaterial({
               map: procTex,
-              bumpMap: bumpTex || null,
-              bumpScale: isGasGiant ? 0.012 : isOceanWorld ? 0.035 : isOumuamua ? 0.115 : 0.065,
-              roughness: isOceanWorld ? 0.42 : isGasGiant ? 0.68 : isOumuamua ? 0.76 : 0.88,
-              metalness: isOceanWorld ? 0.12 : isOumuamua ? 0.08 : 0.04,
+              bumpMap: reliefTex,
+              bumpScale: isGasGiant ? 0.015 : isOceanWorld ? 0.045 : isCrateredRocky ? 0.24 : isOumuamua ? 0.14 : 0.135,
+              displacementMap: isCrateredRocky ? reliefTex : null,
+              displacementScale: dispScale,
+              displacementBias: -dispScale * 0.5,
+              roughness: isOceanWorld ? 0.34 : isGasGiant ? 0.72 : isCrateredRocky ? 0.96 : isOumuamua ? 0.82 : 0.92,
+              metalness: isOceanWorld ? 0.16 : isCrateredRocky ? 0.02 : isOumuamua ? 0.06 : 0.03,
               emissiveMap: procTex,
               emissive: new THREE.Color(0xffffff),
-              emissiveIntensity: isOumuamua ? 0.26 : 0.12
+              emissiveIntensity: isOumuamua ? 0.08 : 0.018
             });
+
+            // === NOVA UPGRADE: REAL 2K SATELLITE ALBEDO & TANGENT-SPACE NORMAL MAPS ===
+            const REAL_ALBEDO_KINDS = new Set([
+              'mercury', 'venus', 'earth', 'moon', 'mars',
+              'ceres', 'jupiter', 'saturn', 'uranus', 'neptune'
+            ]);
+            const REAL_NORMAL_KINDS = new Set([
+              'mercury', 'moon', 'mars', 'ceres', 'earth', 'jupiter', 'saturn'
+            ]);
+            if (REAL_ALBEDO_KINDS.has(kind)) {
+              window._novaTexLoader = window._novaTexLoader || new THREE.TextureLoader();
+              const loader = window._novaTexLoader;
+              const targetMat = obj.material;
+
+              loader.load(`textures/${kind}_albedo.jpg`, (tex) => {
+                tex.colorSpace = THREE.SRGBColorSpace;
+                tex.anisotropy = 8;
+                targetMat.map = tex;
+                targetMat.emissiveMap = tex;
+                targetMat.needsUpdate = true;
+              });
+
+              if (REAL_NORMAL_KINDS.has(kind)) {
+                loader.load(`textures/${kind}_normal.jpg`, (ntex) => {
+                  ntex.anisotropy = 8;
+                  const nStr = (kind === 'ceres' || kind === 'moon') ? 2.15
+                             : (kind === 'mercury' || kind === 'mars') ? 1.85
+                             : (kind === 'earth') ? 1.15 : 0.45;
+                  targetMat.normalMap = ntex;
+                  targetMat.normalScale = new THREE.Vector2(nStr, nStr);
+                  targetMat.bumpMap = null;
+                  targetMat.needsUpdate = true;
+                });
+              }
+
+              if (kind === 'earth') {
+                loader.load('textures/earth_roughness.jpg', (rtex) => {
+                  rtex.anisotropy = 4;
+                  targetMat.roughnessMap = rtex;
+                  targetMat.roughness = 1.0;
+                  targetMat.metalness = 0.08;
+                  targetMat.needsUpdate = true;
+                });
+              }
+            }
+
+            // === NOVA UPGRADE: REAL 2K EARTH CLOUDS + BLACK MARBLE NIGHT LIGHTS ===
+            if (isOceanWorld && !obj.getObjectByName("earth-clouds-nightlights")) {
+              const eRadius = (meta && meta.size) ? meta.size : 0.45;
+              const cloudGeo = new THREE.SphereGeometry(eRadius * 1.014, 64, 48);
+              window._novaTexLoader = window._novaTexLoader || new THREE.TextureLoader();
+              const eCloudsTex = window._novaTexLoader.load('textures/earth_clouds.jpg');
+              const eNightTex  = window._novaTexLoader.load('textures/earth_night.jpg');
+              eCloudsTex.wrapS = THREE.RepeatWrapping;
+              eNightTex.colorSpace = THREE.SRGBColorSpace;
+
+              const cloudMat = new THREE.ShaderMaterial({
+                uniforms: {
+                  uTime: window.sunShaderUniforms ? window.sunShaderUniforms.uTime : { value: 0.0 },
+                  uCloudsMap: { value: eCloudsTex },
+                  uNightMap:  { value: eNightTex }
+                },
+                vertexShader: `
+                  varying vec2 vUv;
+                  varying vec3 vWorldNormal;
+                  varying vec3 vWorldPos;
+                  void main() {
+                    vUv = uv;
+                    vec4 wp = modelMatrix * vec4(position, 1.0);
+                    vWorldPos = wp.xyz;
+                    vWorldNormal = normalize(mat3(modelMatrix) * normal);
+                    gl_Position = projectionMatrix * viewMatrix * wp;
+                  }
+                `,
+                fragmentShader: `
+                  uniform float uTime;
+                  uniform sampler2D uCloudsMap;
+                  uniform sampler2D uNightMap;
+                  varying vec2 vUv;
+                  varying vec3 vWorldNormal;
+                  varying vec3 vWorldPos;
+
+                  void main() {
+                    vec3 N = normalize(vWorldNormal);
+                    vec3 L = normalize(-vWorldPos); // Sun at origin
+                    float ndotl = dot(N, L);
+
+                    // Slowly drifting real 2K cloud cover
+                    vec2 cloudUv = vec2(fract(vUv.x + uTime * 0.0025), vUv.y);
+                    float clouds = texture2D(uCloudsMap, cloudUv).r;
+                    float dayMask = smoothstep(-0.12, 0.32, ndotl);
+
+                    // Warm Rayleigh sunset scatter along the twilight terminator
+                    float twilight = smoothstep(-0.18, 0.02, ndotl) * (1.0 - smoothstep(0.02, 0.24, ndotl));
+                    vec3 sunsetTint = vec3(1.0, 0.42, 0.12) * twilight * 0.72;
+
+                    // Real NASA Black Marble city lights strictly on the night hemisphere
+                    float nightMask = smoothstep(0.04, -0.26, ndotl);
+                    vec3 nightSample = texture2D(uNightMap, vUv).rgb;
+                    vec3 cityCol = nightSample * vec3(1.15, 0.92, 0.68) * nightMask * 1.45 * (1.0 - clouds * 0.55);
+
+                    vec3 cloudCol = (vec3(0.96, 0.98, 1.0) * (0.03 + 0.97 * dayMask)) + sunsetTint;
+                    float cloudAlpha = clouds * (0.05 + 0.85 * dayMask);
+                    float cityLum = max(cityCol.r, max(cityCol.g, cityCol.b));
+                    float alpha = clamp(cloudAlpha + twilight * 0.18 + cityLum * 0.9, 0.0, 0.96);
+
+                    gl_FragColor = vec4(cloudCol * clouds + sunsetTint * 0.28 + cityCol, alpha);
+                  }
+                `,
+                transparent: true,
+                depthWrite: false
+              });
+              const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
+              cloudMesh.name = "earth-clouds-nightlights";
+              cloudMesh.raycast = () => {};
+              obj.add(cloudMesh);
+            }
           }
           obj.material.needsUpdate = true;
           obj.userData._nasaTextured = true;
@@ -9601,7 +10030,12 @@
         });
       }
 
-      if (asteroidBelt) asteroidBelt.rotation.y += 0.001;
+      if (asteroidBelt) {
+        if (window._novaGpuBeltUniforms && !(typeof isOrbitPaused !== "undefined" && isOrbitPaused)) {
+          window._novaGpuBeltUniforms.uTime.value += 0.045;
+        }
+        asteroidBelt.rotation.y += 0.00025;
+      }
       if (oortCloudGroup) oortCloudGroup.rotation.y += 0.0002;
       if (milkyWayGroup) milkyWayGroup.rotation.y += 0.0006;
       if (triangulumGroup) triangulumGroup.rotation.y += 0.0007;
@@ -9609,6 +10043,11 @@
       if (cmbSphere) {
         cmbSphere.rotation.y += 0.00015;
         updateCMBThermalAcoustics(timeSec);
+      }
+
+      // === NOVA UPGRADE: J2000 KEPLERIAN EPHEMERIS SOLVER ===
+      if (typeof window.updateKeplerianOrbits === "function" && typeof orbitingPlanets !== "undefined" && Array.isArray(orbitingPlanets)) {
+        window.updateKeplerianOrbits(orbitingPlanets, typeof isOrbitPaused !== "undefined" ? Boolean(isOrbitPaused) : false);
       }
 
       const eMesh = window.earthMeshRef || earthMeshRef;
@@ -12258,5 +12697,264 @@
   })();
 </script>
 
+
+<!-- === NOVA UPGRADE: J2000 KEPLERIAN ENGINE & TRANSPARENT NAVIGATIONAL HUD === -->
+<style>
+  #nova-ephemeris-hud {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 45;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(226, 232, 240, 0.55);
+    user-select: none;
+    pointer-events: auto;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
+  }
+  #nova-ephemeris-hud .eph-date {
+    color: rgba(251, 191, 36, 0.92);
+    font-weight: 500;
+    min-width: 148px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  #nova-ephemeris-hud .eph-div {
+    color: rgba(226, 232, 240, 0.22);
+    pointer-events: none;
+  }
+  #nova-ephemeris-hud .eph-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #nova-ephemeris-hud button {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    padding: 2px 0;
+    color: rgba(226, 232, 240, 0.45);
+    font-family: inherit;
+    font-size: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  #nova-ephemeris-hud button:hover {
+    color: rgba(248, 250, 252, 0.92);
+  }
+  #nova-ephemeris-hud button.active {
+    color: #fbbf24;
+    border-bottom-color: rgba(251, 191, 36, 0.8);
+  }
+  #nova-ephemeris-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 110px;
+    height: 1px;
+    background: rgba(226, 232, 240, 0.25);
+    outline: none;
+    cursor: pointer;
+  }
+  #nova-ephemeris-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 6px;
+    height: 6px;
+    background: #fbbf24;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.7);
+  }
+  #nova-ephemeris-slider::-moz-range-thumb {
+    width: 6px;
+    height: 6px;
+    background: #fbbf24;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  @media (max-width: 768px) {
+    #nova-ephemeris-hud { gap: 8px; font-size: 9px; }
+    #nova-ephemeris-slider { width: 64px; }
+    .eph-hide-sm { display: none; }
+  }
+</style>
+
+<div id="nova-ephemeris-hud" title="J2000 Keplerian Ephemeris">
+  <span class="eph-date" id="nova-eph-readout">----.--.-- --:-- UTC</span>
+  <span class="eph-div">|</span>
+  <input id="nova-ephemeris-slider" type="range" min="1980" max="2050" step="0.01" value="2026.88" />
+  <span class="eph-div">|</span>
+  <div class="eph-group">
+    <button data-rate="0.000011574" title="Real-time 1x">LIVE</button>
+    <button data-rate="1" class="active" title="1 day per second">1D/S</button>
+    <button data-rate="30" title="1 month per second">1M/S</button>
+    <button data-rate="365.25" class="eph-hide-sm" title="1 year per second">1Y/S</button>
+  </div>
+  <span class="eph-div eph-hide-sm">·</span>
+  <div class="eph-group eph-hide-sm">
+    <button data-epoch="now">NOW</button>
+    <button data-epoch="2000">J2000</button>
+    <button data-epoch="1986" title="Halley 1986 Perihelion">1986</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  const DEG2RAD = Math.PI / 180;
+  const J2000_JD = 2451545.0;
+
+  window.NOVA_KEPLER_ELEMENTS = {
+    mercury: { e: 0.20563, i: 7.005, O: 48.331, w: 77.456,  L0: 252.251, period: 87.969 },
+    venus:   { e: 0.00677, i: 3.395, O: 76.680, w: 131.533, L0: 181.980, period: 224.701 },
+    earth:   { e: 0.01671, i: 0.000, O: 0.000,  w: 102.947, L0: 100.464, period: 365.256 },
+    mars:    { e: 0.09340, i: 1.850, O: 49.558, w: 336.041, L0: 355.453, period: 686.980 },
+    ceres:   { e: 0.07582, i: 10.59, O: 80.305, w: 153.900, L0: 291.400, period: 1681.63 },
+    jupiter: { e: 0.04849, i: 1.303, O: 100.46, w: 14.754,  L0: 34.404,  period: 4332.59 },
+    saturn:  { e: 0.05555, i: 2.489, O: 113.67, w: 92.432,  L0: 49.944,  period: 10759.2 },
+    uranus:  { e: 0.04638, i: 0.773, O: 74.006, w: 170.964, L0: 313.232, period: 30685.4 },
+    neptune: { e: 0.00946, i: 1.770, O: 131.78, w: 44.971,  L0: 304.880, period: 60189.0 }
+  };
+
+  function dateToJD(date) {
+    return (date.getTime() / 86400000) + 2440587.5;
+  }
+  function jdToDate(jd) {
+    return new Date((jd - 2440587.5) * 86400000);
+  }
+  function solveKepler(M, e) {
+    let E = M;
+    for (let k = 0; k < 4; k++) {
+      E = E - (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+    }
+    return E;
+  }
+  function keplerTo3D(el, visualA, E) {
+    const xOrb = visualA * (Math.cos(E) - el.e);
+    const zOrb = visualA * Math.sqrt(1 - el.e * el.e) * Math.sin(E);
+
+    const O = el.O * DEG2RAD;
+    const w = (el.w - el.O) * DEG2RAD;
+    const inc = el.i * DEG2RAD;
+
+    const cosO = Math.cos(O), sinO = Math.sin(O);
+    const cosw = Math.cos(w), sinw = Math.sin(w);
+    const cosi = Math.cos(inc), sini = Math.sin(inc);
+
+    const x = (cosO * cosw - sinO * sinw * cosi) * xOrb + (-cosO * sinw - sinO * cosw * cosi) * zOrb;
+    const z = (sinO * cosw + cosO * sinw * cosi) * xOrb + (-sinO * sinw + cosO * cosw * cosi) * zOrb;
+    const y = (sinw * sini) * xOrb + (cosw * sini) * zOrb;
+    return { x, y, z };
+  }
+
+  window._novaSimJD = dateToJD(new Date());
+  window._novaDaysPerSec = 1.0;
+  let _lastPerf = performance.now();
+
+  const readoutEl = document.getElementById("nova-eph-readout");
+  const sliderEl = document.getElementById("nova-ephemeris-slider");
+  const hudEl = document.getElementById("nova-ephemeris-hud");
+
+  function syncHud() {
+    const d = jdToDate(window._novaSimJD);
+    if (isNaN(d.getTime())) return;
+    const iso = d.toISOString();
+    if (readoutEl) {
+      readoutEl.textContent = iso.slice(0, 10).replace(/-/g, ".") + "  " + iso.slice(11, 16) + " UTC";
+    }
+    if (sliderEl && document.activeElement !== sliderEl) {
+      const yr = d.getUTCFullYear() + (d.getUTCMonth() / 12) + (d.getUTCDate() / 365.25);
+      sliderEl.value = Math.min(2050, Math.max(1980, yr)).toFixed(2);
+    }
+  }
+
+  if (sliderEl) {
+    sliderEl.addEventListener("input", (e) => {
+      const yr = parseFloat(e.target.value);
+      const yInt = Math.floor(yr);
+      const frac = yr - yInt;
+      const dt = new Date(Date.UTC(yInt, 0, 1) + frac * 365.25 * 86400000);
+      window._novaSimJD = dateToJD(dt);
+      syncHud();
+    });
+  }
+
+  if (hudEl) {
+    hudEl.querySelectorAll("button[data-rate]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        window._novaDaysPerSec = parseFloat(btn.dataset.rate);
+        hudEl.querySelectorAll("button[data-rate]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
+    });
+    hudEl.querySelectorAll("button[data-epoch]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const ep = btn.dataset.epoch;
+        if (ep === "now") window._novaSimJD = dateToJD(new Date());
+        else if (ep === "2000") window._novaSimJD = J2000_JD;
+        else if (ep === "1986") window._novaSimJD = dateToJD(new Date(Date.UTC(1986, 1, 9, 12, 0)));
+        syncHud();
+      });
+    });
+  }
+
+  window.updateKeplerianOrbits = function (planets, paused) {
+    const now = performance.now();
+    const dtSec = Math.min((now - _lastPerf) * 0.001, 0.1);
+    _lastPerf = now;
+
+    if (!paused) {
+      window._novaSimJD += window._novaDaysPerSec * dtSec;
+    }
+
+    const d = window._novaSimJD - J2000_JD;
+    for (let i = 0; i < planets.length; i++) {
+      const p = planets[i];
+      if (!p || !p.mesh || !p.mesh.userData || !Number.isFinite(p.radius)) continue;
+      const id = p.mesh.userData.id;
+      const el = window.NOVA_KEPLER_ELEMENTS[id];
+      if (!el) continue;
+
+      // Lazily upgrade the planet's orbit line to a true 3D tilted ellipse once
+      if (p.mesh.userData.orbitLine && !p.mesh.userData._keplerLineUpgraded && typeof THREE !== "undefined") {
+        const pts = [];
+        for (let s = 0; s <= 160; s++) {
+          const E0 = (s / 160) * Math.PI * 2;
+          const pt = keplerTo3D(el, p.radius, E0);
+          pts.push(new THREE.Vector3(pt.x, pt.y, pt.z));
+        }
+        p.mesh.userData.orbitLine.geometry.dispose();
+        p.mesh.userData.orbitLine.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+        p.mesh.userData._keplerLineUpgraded = true;
+      }
+
+      const n = 360.0 / el.period;
+      let M = ((el.L0 + n * d - el.w) % 360) * DEG2RAD;
+      if (M > Math.PI) M -= Math.PI * 2;
+      if (M < -Math.PI) M += Math.PI * 2;
+
+      const E = solveKepler(M, el.e);
+      const pos = keplerTo3D(el, p.radius, E);
+      if (Number.isFinite(pos.x) && Number.isFinite(pos.y) && Number.isFinite(pos.z)) {
+        p.mesh.position.set(pos.x, pos.y, pos.z);
+      }
+    }
+    syncHud();
+  };
+
+  syncHud();
+})();
+</script>
 </body>
 </html>
