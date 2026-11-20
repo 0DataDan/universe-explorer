@@ -1591,7 +1591,20 @@
 
       window.addEventListener('resize', onWindowResize);
       window.addEventListener('pointermove', onPointerMove);
-      window.addEventListener('pointerdown', onPointerDown);
+      let _novaDownX = 0, _novaDownY = 0, _novaDownTime = 0;
+      window.addEventListener('pointerdown', (e) => {
+        _novaDownX = e.clientX;
+        _novaDownY = e.clientY;
+        _novaDownTime = performance.now();
+      });
+      window.addEventListener('pointerup', (e) => {
+        const dist = Math.hypot(e.clientX - _novaDownX, e.clientY - _novaDownY);
+        const dt = performance.now() - _novaDownTime;
+        // Only trigger object select / fly-to on a genuine click, never on a drag-to-orbit
+        if (dist < 6 && dt < 450) {
+          onPointerDown(e);
+        }
+      });
 
       animate(0);
     }
@@ -4810,7 +4823,7 @@
         }
 
         const distToCam = camera.position.distanceTo(_labelWorldPos);
-        const isFocusedOrHovered = (activeTargetMesh === mesh || hoveredCelestialMesh === mesh);
+        const isFocusedOrHovered = (mesh !== sunMeshRef) && (activeTargetMesh === mesh || hoveredCelestialMesh === mesh);
 
         // Compute scale-aware opacity so labels remain clean and uncluttered across zoom regimes
         let alpha = 0.9;
@@ -9395,26 +9408,26 @@
             float filamentNoise = granulationCells(p * 34.0 - warp * 3.2 + vec3(t * 1.4));
             float faculae = smoothstep(0.47, 0.60, spotMetric) * (1.0 - penumbra) * pow(filamentNoise, 0.85);
 
-            float heat = fineCells * 0.50 + medCells * 0.32 + macroFlow * 0.18;
-            heat = pow(clamp(heat, 0.0, 1.0), 0.92);
+            float heat = fineCells * 0.52 + medCells * 0.33 + macroFlow * 0.15;
+            heat = pow(clamp(heat, 0.0, 1.0), 1.02);
             heat += faculae * 0.48;
             heat -= penumbra * 0.24;
             heat -= umbra * 0.34;
             heat = clamp(heat, 0.0, 1.35);
 
             float mu = clamp(dot(normalize(vWorldNormal), normalize(vViewDir)), 0.0, 1.0);
-            float limbDarkening = pow(mu, 0.48);
+            float limbDarkening = pow(mu, 0.55);
             float rimFactor = pow(1.0 - mu, 2.35);
 
             float spiculeWave = granulationCells(p * 38.0 + vec3(uTime * 1.9, -uTime * 1.6, uTime * 1.7));
             float rimSpicules = rimFactor * (0.6 + 0.95 * spiculeWave);
 
-            vec3 colUmbra    = vec3(0.36, 0.065, 0.008);
-            vec3 colDarkLane = vec3(0.72, 0.16, 0.01);
-            vec3 colPhoto    = vec3(0.98, 0.52, 0.05);
-            vec3 colGranule  = vec3(1.00, 0.84, 0.32);
-            vec3 colFaculae  = vec3(1.00, 0.98, 0.88);
-            vec3 colChromo   = vec3(1.00, 0.26, 0.02);
+            vec3 colUmbra    = vec3(0.22, 0.055, 0.01);
+            vec3 colDarkLane = vec3(0.72, 0.28, 0.03);
+            vec3 colPhoto    = vec3(0.98, 0.68, 0.14);
+            vec3 colGranule  = vec3(1.00, 0.90, 0.48);
+            vec3 colFaculae  = vec3(1.00, 0.99, 0.90);
+            vec3 colChromo   = vec3(0.96, 0.45, 0.06);
 
             vec3 baseColor;
             if (heat < 0.25) {
@@ -9439,7 +9452,7 @@
     }
     
     function createAnimatedCoronaLayer(sunRadius) {
-      const coronaGeo = new THREE.SphereGeometry(sunRadius * 1.055, 64, 64);
+      const coronaGeo = new THREE.SphereGeometry(sunRadius * 1.045, 72, 72);
       const coronaMat = new THREE.ShaderMaterial({
         uniforms: window.sunShaderUniforms,
         transparent: true,
@@ -9471,9 +9484,11 @@
 
           void main() {
             vPos = normalize(position);
-            // Animated spicule/prominence tongues dancing along the outer limb
-            float tongue = vNoise(vPos * 20.0 + vec3(uTime * 1.2, -uTime * 0.9, uTime * 1.0));
-            vec3 displaced = position + normal * (tongue * 0.045);
+            // Turbulent solar flare eruptions & prominence loops along the limb
+            float tongue1 = vNoise(vPos * 14.0 + vec3(uTime * 1.1, -uTime * 0.85, uTime * 0.95));
+            float tongue2 = vNoise(vPos * 28.0 - vec3(uTime * 1.8, uTime * 1.4, -uTime * 1.5));
+            float flareLift = pow(tongue1 * 0.65 + tongue2 * 0.35, 1.6);
+            vec3 displaced = position + normal * (flareLift * 0.045);
             vec4 worldPos = modelMatrix * vec4(displaced, 1.0);
             vWorldNormal = normalize(mat3(modelMatrix) * normal);
             vViewDir = normalize(cameraPosition - worldPos.xyz);
@@ -9505,13 +9520,19 @@
 
           void main() {
             float ndotv = abs(dot(normalize(vWorldNormal), normalize(vViewDir)));
-            float rim = pow(clamp(1.0 - ndotv, 0.0, 1.0), 1.95);
-            float spicule1 = 1.0 - abs(noise3D(vPos * 24.0 + vec3(uTime * 1.35, -uTime * 1.05, uTime * 0.95)) * 2.0 - 1.0);
-            float spicule2 = 1.0 - abs(noise3D(vPos * 46.0 - vec3(uTime * 2.1, uTime * 1.7, -uTime * 1.5)) * 2.0 - 1.0);
-            float prominence = pow(spicule1 * 0.6 + spicule2 * 0.4, 1.4);
-            float alpha = rim * (0.32 + 0.65 * prominence);
-            vec3 col = mix(vec3(1.0, 0.24, 0.02), vec3(1.0, 0.85, 0.35), prominence);
-            gl_FragColor = vec4(col, clamp(alpha, 0.0, 0.92));
+            // Feather completely to 0 at the outer silhouette so no bubble ring ever appears
+            float outerFade = smoothstep(0.12, 0.48, ndotv);
+            float innerFade = pow(clamp(1.0 - ndotv, 0.0, 1.0), 2.2);
+            float rim = outerFade * innerFade;
+            float spicule1 = 1.0 - abs(noise3D(vPos * 18.0 + vec3(uTime * 1.25, -uTime * 0.95, uTime * 0.85)) * 2.0 - 1.0);
+            float spicule2 = 1.0 - abs(noise3D(vPos * 38.0 - vec3(uTime * 2.2, uTime * 1.65, -uTime * 1.4)) * 2.0 - 1.0);
+            float flareArc = smoothstep(0.50, 0.92, noise3D(vPos * 8.0 + vec3(0.0, uTime * 0.45, -uTime * 0.35)));
+            float prominence = pow(spicule1 * 0.55 + spicule2 * 0.45, 1.7) * flareArc;
+            float alpha = rim * prominence * 1.35;
+            vec3 midFlare = vec3(1.00, 0.62, 0.12);
+            vec3 hotCore  = vec3(1.00, 0.94, 0.62);
+            vec3 col = mix(midFlare, hotCore, smoothstep(0.35, 0.95, prominence));
+            gl_FragColor = vec4(col, clamp(alpha, 0.0, 0.65));
           }
         `
       });
