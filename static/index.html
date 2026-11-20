@@ -1663,7 +1663,7 @@
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x000000);
 
-      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.05, 95000);
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.005, 95000);
       camera.position.set(0, 22.5, 32);
 
       renderer = new THREE.WebGLRenderer({
@@ -1680,7 +1680,8 @@
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
       controls.maxDistance = 26000;
-      controls.minDistance = 5.0;
+      controls.minDistance = 0.08;
+      controls.zoomSpeed = -1.15;
       window.camera = camera;
       window.controls = controls;
 
