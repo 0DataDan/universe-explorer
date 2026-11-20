@@ -3143,6 +3143,108 @@
 
         if (item.id === "sun") {
           sunMeshRef = mesh;
+
+          // === NOVA UPGRADE: JPL ECLIPTIC COORDINATE GRID ===
+          if (!window._novaEclipticGrid) {
+            const gridGroup = new THREE.Group();
+            gridGroup.position.y = -0.04;
+            const ringRadii = [12, 24, 42, 68, 105, 160, 240];
+            ringRadii.forEach((r, idx) => {
+              const pts = [];
+              const segs = 128;
+              for (let s = 0; s <= segs; s++) {
+                const theta = (s / segs) * Math.PI * 2;
+                pts.push(new THREE.Vector3(Math.cos(theta) * r, 0, Math.sin(theta) * r));
+              }
+              const rGeo = new THREE.BufferGeometry().setFromPoints(pts);
+              const rMat = new THREE.LineBasicMaterial({
+                color: idx % 2 === 0 ? 0xe2e8f0 : 0xfbbf24,
+                transparent: true,
+                opacity: idx % 2 === 0 ? 0.055 : 0.04,
+                depthWrite: false
+              });
+              const rLine = new THREE.Line(rGeo, rMat);
+              rLine.raycast = () => {};
+              gridGroup.add(rLine);
+            });
+
+            // 15-degree radial azimuth ticks (optical instrument reticle)
+            const tickPts = [];
+            for (let deg = 0; deg < 360; deg += 15) {
+              const rad = (deg * Math.PI) / 180;
+              const isCardinal = deg % 90 === 0;
+              const innerR = isCardinal ? 12 : 152;
+              const outerR = 240;
+              tickPts.push(
+                new THREE.Vector3(Math.cos(rad) * innerR, 0, Math.sin(rad) * innerR),
+                new THREE.Vector3(Math.cos(rad) * outerR, 0, Math.sin(rad) * outerR)
+              );
+            }
+            const tickGeo = new THREE.BufferGeometry().setFromPoints(tickPts);
+            const tickMat = new THREE.LineBasicMaterial({
+              color: 0xcbd5e1,
+              transparent: true,
+              opacity: 0.045,
+              depthWrite: false
+            });
+            const tickLines = new THREE.LineSegments(tickGeo, tickMat);
+            tickLines.raycast = () => {};
+            gridGroup.add(tickLines);
+
+            window._novaEclipticGrid = gridGroup;
+            scene.add(gridGroup);
+          }
+        }
+
+        // === NOVA UPGRADE: SUN-REACTIVE FRESNEL ATMOSPHERES (GLSL) ===
+        const _fresnelAtmos = {
+          earth:   { color: 0x38bdf8, intensity: 1.15, scale: 1.09 },
+          venus:   { color: 0xfde68a, intensity: 0.85, scale: 1.07 },
+          mars:    { color: 0xfb923c, intensity: 0.55, scale: 1.05 },
+          neptune: { color: 0x60a5fa, intensity: 0.95, scale: 1.08 },
+          uranus:  { color: 0x67e8f9, intensity: 0.75, scale: 1.07 }
+        };
+        if (_fresnelAtmos[item.id]) {
+          const cfg = _fresnelAtmos[item.id];
+          const atmoGeo = new THREE.SphereGeometry(item.size * cfg.scale, 48, 32);
+          const atmoMat = new THREE.ShaderMaterial({
+            uniforms: {
+              uColor: { value: new THREE.Color(cfg.color) },
+              uIntensity: { value: cfg.intensity }
+            },
+            vertexShader: `
+              varying vec3 vWorldNormal;
+              varying vec3 vWorldPos;
+              void main() {
+                vec4 wp = modelMatrix * vec4(position, 1.0);
+                vWorldPos = wp.xyz;
+                vWorldNormal = normalize(mat3(modelMatrix) * normal);
+                gl_Position = projectionMatrix * viewMatrix * wp;
+              }
+            `,
+            fragmentShader: `
+              uniform vec3 uColor;
+              uniform float uIntensity;
+              varying vec3 vWorldNormal;
+              varying vec3 vWorldPos;
+              void main() {
+                vec3 N = normalize(vWorldNormal);
+                vec3 V = normalize(cameraPosition - vWorldPos);
+                vec3 L = normalize(-vWorldPos); // Sun sits at origin (0,0,0)
+                float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+                float sunSide = smoothstep(-0.25, 0.65, dot(N, L));
+                float alpha = fresnel * (0.22 + 0.78 * sunSide) * uIntensity;
+                gl_FragColor = vec4(uColor, clamp(alpha, 0.0, 0.92));
+              }
+            `,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            side: THREE.FrontSide
+          });
+          const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
+          atmoMesh.raycast = () => {};
+          mesh.add(atmoMesh);
         }
 
         if (item.id === "uranus") {
@@ -4484,6 +4586,38 @@
       const halfW = window.innerWidth * 0.5;
       const halfH = window.innerHeight * 0.5;
       const fovTan = Math.tan(THREE.MathUtils.degToRad(camera.fov) * 0.5);
+
+      // === NOVA UPGRADE: SCREEN-SPACE LABEL COLLISION AVOIDANCE ===
+      const _visLabels = [];
+      for (let i = 0; i < celestialLabelEntries.length; i++) {
+        const e = celestialLabelEntries[i];
+        if (e.visible) _visLabels.push(e);
+      }
+      for (let pass = 0; pass < 2; pass++) {
+        for (let i = 0; i < _visLabels.length; i++) {
+          const a = _visLabels[i];
+          const ax = a.sx + a.offsetX;
+          const aw = (a.el && a.el.offsetWidth) ? a.el.offsetWidth + 8 : 78;
+          for (let j = i + 1; j < _visLabels.length; j++) {
+            const b = _visLabels[j];
+            const bx = b.sx + b.offsetX;
+            const bw = (b.el && b.el.offsetWidth) ? b.el.offsetWidth + 8 : 78;
+            const dx = Math.abs(ax - bx);
+            const dy = b.sy - a.sy;
+            const minH = 16;
+            if (dx < (aw + bw) * 0.45 && Math.abs(dy) < minH) {
+              const push = (minH - Math.abs(dy)) * 0.52;
+              if (dy >= 0) {
+                a.sy -= push;
+                b.sy += push;
+              } else {
+                a.sy += push;
+                b.sy -= push;
+              }
+            }
+          }
+        }
+      }
 
       for (let i = 0; i < celestialLabelEntries.length; i++) {
         const entry = celestialLabelEntries[i];
