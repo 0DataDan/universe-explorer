@@ -5032,37 +5032,47 @@
         window.updateSpatialCalloutPosition();
       }
 
-      // Live Starlight Orbital Path Highlighting (Zero Cyan - Pure Optical Contrast)
+      // Live Starlight Orbital Path Highlighting (Zero Cyan - Pure Optical Contrast + Smooth Proximity Fade)
       for (let i = 0; i < celestialObjects.length; i++) {
         const mesh = celestialObjects[i];
         if (!mesh || !mesh.userData || !mesh.userData.orbitLine) continue;
-        const mat = mesh.userData.orbitLine.material;
+        const line = mesh.userData.orbitLine;
+        line.frustumCulled = false;
+        const mat = line.material;
         if (!mat) continue;
 
+        mat.transparent = true;
         if (mat.userData === undefined) mat.userData = {};
         if (mat.userData.baseOpacity === undefined) mat.userData.baseOpacity = mat.opacity || 0.35;
         if (mat.userData.baseColorHex === undefined && mat.color) mat.userData.baseColorHex = mat.color.getHex();
 
+        // Gently dissolve a body's orbit arc only when camera flies right down to its surface
+        const bodySize = mesh.userData.size || 0.5;
+        const distToBody = camera.position.distanceTo(mesh.position);
+        const proxFade = THREE.MathUtils.clamp((distToBody - bodySize * 1.6) / (bodySize * 3.8), 0.0, 1.0);
+
         const isMeshFocused = (mesh === _focusTargetMesh);
+        let targetOpacity = mat.userData.baseOpacity;
         if (_hasPlanetFocus) {
           if (isMeshFocused) {
             mat.blending = THREE.AdditiveBlending;
-            mat.opacity += (0.95 - mat.opacity) * 0.22;
-            if (mat.color) mat.color.lerp(new THREE.Color(0xffffff), 0.25);
+            targetOpacity = 0.95 * proxFade;
+            if (mat.color) mat.color.lerp(new THREE.Color(0xffffff), 0.15);
           } else {
             mat.blending = THREE.NormalBlending;
-            mat.opacity += (0.11 - mat.opacity) * 0.18;
+            targetOpacity = 0.12 * proxFade;
             if (mat.color && mat.userData.baseColorHex !== undefined) {
-              mat.color.lerp(new THREE.Color(mat.userData.baseColorHex), 0.18);
+              mat.color.lerp(new THREE.Color(mat.userData.baseColorHex), 0.12);
             }
           }
         } else {
           mat.blending = THREE.NormalBlending;
-          mat.opacity += (mat.userData.baseOpacity - mat.opacity) * 0.16;
+          targetOpacity = mat.userData.baseOpacity * proxFade;
           if (mat.color && mat.userData.baseColorHex !== undefined) {
-            mat.color.lerp(new THREE.Color(mat.userData.baseColorHex), 0.16);
+            mat.color.lerp(new THREE.Color(mat.userData.baseColorHex), 0.12);
           }
         }
+        mat.opacity += (targetOpacity - mat.opacity) * 0.10;
       }
     }
 
@@ -6190,8 +6200,10 @@
               "    }",
               "  }",
               "  float macroFade = 1.0 - smoothstep(145.0, 270.0, distToCam);",
+              "  float sunCloseFade = smoothstep(4.5, 13.5, sunToCam);",
+              "  float lensCloseFade = smoothstep(0.6, 2.8, distToCam);",
               "  vec3 finalCol = mix(vec3(0.75, 0.82, 0.92), uLineColor, 0.45 + trailBoost * 0.55);",
-              "  float finalAlpha = (baseAlpha + trailBoost) * macroFade;",
+              "  float finalAlpha = (baseAlpha + trailBoost) * macroFade * sunCloseFade * lensCloseFade;",
               "  if (finalAlpha <= 0.01) discard;",
               "  gl_FragColor = vec4(finalCol, finalAlpha);",
               "}"
@@ -6353,10 +6365,7 @@
          }
        }
 
-       if ((obj.isLine || obj.isLineLoop || obj.isLineSegments) && isSunFocusedOrZoomed) {
-         hideObjectAndAssociatedVisuals(obj);
-         return;
-       }
+       // Smooth GPU shader fade handles Sun/surface proximity without abrupt line popping
 
           if (obj.isMesh && !celObjs.includes(obj)) {
             if (obj.name === "nova-belt-dust-glow") return;
@@ -10066,28 +10075,6 @@
           if (item.progress < 0.99) {
             const lookPt = item.curve.getPoint(item.progress + 0.01);
             item.mesh.lookAt(lookPt);
-          }
-        });
-      }
-
-      // === NOVA UPGRADE: GRACEFUL ORBITAL LINE FADE (NO ABRUPT POPPING) ===
-      if (typeof camera !== "undefined" && typeof scene !== "undefined") {
-        scene.traverse((obj) => {
-          if (obj.userData && obj.userData.orbitLine) {
-            const line = obj.userData.orbitLine;
-            line.frustumCulled = false;
-            if (line.material && typeof line.material.opacity === "number") {
-              if (line.userData._baseOpacity === undefined) {
-                line.userData._baseOpacity = line.material.opacity || 0.28;
-              }
-              const distToBody = camera.position.distanceTo(obj.position);
-              const bodySize = (obj.userData.size || 0.5);
-              // Smoothly fade out as camera approaches the surface, fade back in as it pulls away
-              const proxFade = THREE.MathUtils.clamp((distToBody - bodySize * 1.8) / (bodySize * 4.5), 0.0, 1.0);
-              const targetOp = line.visible ? line.userData._baseOpacity * proxFade : 0.0;
-              line.material.transparent = true;
-              line.material.opacity += (targetOp - line.material.opacity) * 0.12;
-            }
           }
         });
       }
