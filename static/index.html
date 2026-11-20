@@ -2363,7 +2363,7 @@
         parentGroup.add(pts);
 
         // 2. Floating 3D Faceted Chondrite Boulders (InstancedMesh with neutral mineral sheen)
-        const rockGeo = new THREE.DodecahedronGeometry(1.0, 0);
+        const rockGeo = new THREE.IcosahedronGeometry(1.0, 1);
         const rockMat = new THREE.MeshStandardMaterial({
           color: highlightHex,
           emissive: litHex,
@@ -2492,6 +2492,7 @@
             uniform float uTime;
             varying vec3 vWorldNormal;
             varying vec3 vWorldPos;
+            varying vec3 vLocalPos;
             varying float vAlbedo;
 
             mat3 rotX(float a) {
@@ -2514,6 +2515,7 @@
 
               vWorldPos = worldPos;
               vWorldNormal = normalize(tumbleMat * normal);
+              vLocalPos = position + vec3(aOrbit.y * 3.7, aTumble.y * 5.1, aOrbit.x * 0.43);
               vAlbedo = aTumble.w;
 
               gl_Position = projectionMatrix * viewMatrix * vec4(worldPos, 1.0);
@@ -2522,17 +2524,53 @@
           fragmentShader: `
             varying vec3 vWorldNormal;
             varying vec3 vWorldPos;
+            varying vec3 vLocalPos;
             varying float vAlbedo;
 
+            float hash31(vec3 p) {
+              p = fract(p * 0.1031);
+              p += dot(p, p.yzx + 33.33);
+              return fract((p.x + p.y) * p.z);
+            }
+            float vNoise(vec3 x) {
+              vec3 i = floor(x), f = fract(x);
+              f = f * f * (3.0 - 2.0 * f);
+              return mix(
+                mix(mix(hash31(i), hash31(i + vec3(1,0,0)), f.x),
+                    mix(hash31(i + vec3(0,1,0)), hash31(i + vec3(1,1,0)), f.x), f.y),
+                mix(mix(hash31(i + vec3(0,0,1)), hash31(i + vec3(1,0,1)), f.x),
+                    mix(hash31(i + vec3(0,1,1)), hash31(i + vec3(1,1,1)), f.x), f.y), f.z
+              );
+            }
+
             void main() {
-              vec3 N = normalize(vWorldNormal);
+              // 3D procedural rocky grit + micro-crater pitting
+              vec3 p = vLocalPos * 4.5;
+              float n1 = vNoise(p);
+              float n2 = vNoise(p * 2.7 + vec3(4.2, -1.9, 7.1));
+              float n3 = vNoise(p * 6.5 - vec3(2.3, 5.4, -3.1));
+              float craters = smoothstep(0.22, 0.48, n1 * 0.65 + n2 * 0.35);
+              float grit = n2 * 0.55 + n3 * 0.45;
+
+              // Perturb surface normal with rocky relief
+              vec3 grad = vec3(
+                vNoise(p + vec3(0.08, 0.0, 0.0)) - n1,
+                vNoise(p + vec3(0.0, 0.08, 0.0)) - n1,
+                vNoise(p + vec3(0.0, 0.0, 0.08)) - n1
+              );
+              vec3 N = normalize(vWorldNormal + grad * 2.8);
               vec3 L = normalize(-vWorldPos); // Sun at origin
               vec3 V = normalize(cameraPosition - vWorldPos);
+
               float diff = max(dot(N, L), 0.0);
-              float rimGlint = pow(1.0 - max(dot(N, V), 0.0), 3.0) * smoothstep(0.0, 0.5, diff);
-              vec3 shadowCol = vec3(0.055, 0.065, 0.085);
-              vec3 litCol    = vec3(0.34, 0.36, 0.40) * vAlbedo;
-              vec3 col = mix(shadowCol, litCol, 0.08 + 0.92 * diff) + vec3(0.45, 0.46, 0.48) * rimGlint * 0.28;
+              float ao = 0.55 + 0.45 * craters;
+              float rimGlint = pow(1.0 - max(dot(N, V), 0.0), 3.2) * smoothstep(0.0, 0.5, diff);
+
+              // Retain unobtrusive dark C-type charcoal albedo with mineral/regolith variation
+              vec3 shadowCol = vec3(0.045, 0.052, 0.068) * ao;
+              vec3 litCol    = mix(vec3(0.26, 0.25, 0.24), vec3(0.42, 0.40, 0.38), grit) * vAlbedo * ao;
+              vec3 col = mix(shadowCol, litCol, 0.07 + 0.93 * diff) + vec3(0.42, 0.43, 0.45) * rimGlint * 0.22;
+
               gl_FragColor = vec4(col, 1.0);
             }
           `
@@ -4589,6 +4627,7 @@
           });
           const orbitLine = new THREE.Line(orbitGeo, orbitMat);
           orbitLine.raycast = () => {};
+          orbitLine.frustumCulled = false;
           scene.add(orbitLine);
           mesh.userData.orbitLine = orbitLine;
 
@@ -10031,6 +10070,28 @@
         });
       }
 
+      // === NOVA UPGRADE: GRACEFUL ORBITAL LINE FADE (NO ABRUPT POPPING) ===
+      if (typeof camera !== "undefined" && typeof scene !== "undefined") {
+        scene.traverse((obj) => {
+          if (obj.userData && obj.userData.orbitLine) {
+            const line = obj.userData.orbitLine;
+            line.frustumCulled = false;
+            if (line.material && typeof line.material.opacity === "number") {
+              if (line.userData._baseOpacity === undefined) {
+                line.userData._baseOpacity = line.material.opacity || 0.28;
+              }
+              const distToBody = camera.position.distanceTo(obj.position);
+              const bodySize = (obj.userData.size || 0.5);
+              // Smoothly fade out as camera approaches the surface, fade back in as it pulls away
+              const proxFade = THREE.MathUtils.clamp((distToBody - bodySize * 1.8) / (bodySize * 4.5), 0.0, 1.0);
+              const targetOp = line.visible ? line.userData._baseOpacity * proxFade : 0.0;
+              line.material.transparent = true;
+              line.material.opacity += (targetOp - line.material.opacity) * 0.12;
+            }
+          }
+        });
+      }
+
       if (asteroidBelt) {
         if (window._novaGpuBeltUniforms && !(typeof isOrbitPaused !== "undefined" && isOrbitPaused)) {
           window._novaGpuBeltUniforms.uTime.value += 0.045;
@@ -12937,6 +12998,7 @@
         }
         p.mesh.userData.orbitLine.geometry.dispose();
         p.mesh.userData.orbitLine.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+        p.mesh.userData.orbitLine.frustumCulled = false;
         p.mesh.userData._keplerLineUpgraded = true;
       }
 
