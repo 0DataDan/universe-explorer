@@ -4786,8 +4786,15 @@
     }
 
     function updateCelestialLabels(camDist) {
-      if (isScreensaverActive || !areLabelsVisible || !celestialLabelEntries.length) return;
+      if (isScreensaverActive) return;
       scene.updateMatrixWorld();
+
+      // === 60FPS 3D-TO-2D SPATIAL HUD CALLOUT PROJECTION (Independent of LABELS toggle) ===
+      if (typeof window.updateSpatialCalloutPosition === "function") {
+        window.updateSpatialCalloutPosition();
+      }
+
+      if (!areLabelsVisible || !celestialLabelEntries.length) return;
 
       const halfW = window.innerWidth * 0.5;
       const halfH = window.innerHeight * 0.5;
@@ -4965,11 +4972,6 @@
         entry.el.style.transform = `translate3d(${finalX.toFixed(1)}px, ${finalY.toFixed(1)}px, 0) translateY(-50%)`;
         entry.el.style.opacity = effectiveAlpha.toFixed(3);
         entry.el.style.pointerEvents = (isCalloutActiveOnMesh || effectiveAlpha < 0.15) ? "none" : "auto";
-      }
-
-      // === 60FPS 3D-TO-2D SPATIAL HUD CALLOUT PROJECTION ===
-      if (typeof window.updateSpatialCalloutPosition === "function") {
-        window.updateSpatialCalloutPosition();
       }
 
       // Live Starlight Orbital Path Highlighting (Zero Cyan - Pure Optical Contrast + Smooth Proximity Fade)
@@ -7010,14 +7012,41 @@
           }
         }
 
-        const sideSign = -1; // Always keep Satellite HUD calmly anchored on the left side during Tour stops
         const nodeW = 232;
         const nodeH = nodeEl.offsetHeight || 112;
+        const mainCenterX = rect.left + rect.width * 0.5;
+        const mainIsOnLeft = mainCenterX < rawSx;
+        // Anchor satellite HUD on the opposite side of the planet from the main INFO card
+        const sideSign = mainIsOnLeft ? 1 : -1;
 
-        let desiredX = rawSx - 68 - nodeW - 56;
+        let desiredX = sideSign < 0
+          ? (rawSx - 68 - nodeW - 56)
+          : (rawSx + 68 + 56);
         let desiredY = rect.top + 4;
         desiredX = Math.max(24, Math.min(vw - nodeW - 24, desiredX));
         desiredY = Math.max(68, Math.min(vh - nodeH - 96, desiredY));
+
+        // Collision guard against main #spatial-callout-card (24px buffer)
+        const pad = 24;
+        const overlapsMain = !(
+          desiredX + nodeW + pad <= rect.left ||
+          desiredX >= rect.right + pad ||
+          desiredY + nodeH + pad <= rect.top ||
+          desiredY >= rect.bottom + pad
+        );
+        if (overlapsMain) {
+          const belowY = rect.bottom + pad;
+          const aboveY = rect.top - nodeH - pad;
+          if (belowY + nodeH <= vh - 96) {
+            desiredY = belowY;
+          } else if (aboveY >= 68) {
+            desiredY = aboveY;
+          } else {
+            desiredX = mainIsOnLeft
+              ? Math.min(vw - nodeW - 24, rect.right + pad)
+              : Math.max(24, rect.left - nodeW - pad);
+          }
+        }
 
         // Issue 1 Fix: Deadzone hysteresis + GPU translate3d eliminates all micro-shaking in place!
         if (state.lastCardX === null || Math.hypot(desiredX - state.lastCardX, desiredY - state.lastCardY) > 1.2) {
@@ -7043,7 +7072,7 @@
           state.lastDotY = state.lastDotY === null ? targetDotY : (state.lastDotY + (targetDotY - state.lastDotY) * 0.22);
         }
 
-        const attachX = finalX + nodeW;
+        const attachX = (finalX + nodeW * 0.5 > rawSx) ? finalX : (finalX + nodeW);
         const attachY = finalY + nodeH * 0.5;
 
         if (satSvg) {
@@ -7255,27 +7284,6 @@
         const cardH = card.offsetHeight || 182;
         const cardX = Math.max(24, Math.min(window.innerWidth - cardW - 24, 36));
         const cardY = Math.max(70, Math.min(window.innerHeight - cardH - 88, 110));
-        const inTransit = Boolean(
-        (window._novaTravelState && window._novaTravelState.active) ||
-        window.isFlyingToTarget ||
-        (typeof TWEEN !== 'undefined' && typeof TWEEN.getAll === 'function' && TWEEN.getAll().length > 0)
-      );
-      const telemetryLayerEl = document.getElementById('spatial-telemetry-layer');
-      const satelliteLayerEl = document.getElementById('spatial-satellite-layer');
-      [telemetryLayerEl, satelliteLayerEl].forEach((el) => {
-        if (!el) return;
-        el.classList.toggle('nova-in-transit', inTransit);
-        if (inTransit) {
-          el.style.setProperty('opacity', '0', 'important');
-          el.style.setProperty('visibility', 'hidden', 'important');
-          el.style.setProperty('pointer-events', 'none', 'important');
-        } else {
-          el.style.removeProperty('opacity');
-          el.style.removeProperty('visibility');
-          el.style.removeProperty('pointer-events');
-        }
-      });
-
       card.style.transform = `translate3d(${cardX.toFixed(1)}px, ${cardY.toFixed(1)}px, 0)`;
         return;
       }
@@ -10647,9 +10655,19 @@
 
       isTourActive = true;
       isTourPaused = false;
+      window._preTourLabelsVisible = (typeof areLabelsVisible !== "undefined") ? Boolean(areLabelsVisible) : true;
+      if (typeof areLabelsVisible !== "undefined" && areLabelsVisible) {
+        if (typeof window.toggleLabels === "function") window.toggleLabels();
+        if (typeof window.syncNovaVVisual === "function") window.syncNovaVVisual(false);
+      }
       isSidebarUserHidden = false;
       isPlanetOverviewEnabled = true;
       window._spatialCalloutDismissedForMesh = null;
+      if (window.novaState) window.novaState.setTravelPhase("traveling");
+      const _staleSatLayer = document.getElementById("spatial-satellite-layer");
+      const _staleSatSvg = document.getElementById("spatial-satellite-svg");
+      if (_staleSatLayer) _staleSatLayer.classList.add("hidden");
+      if (_staleSatSvg) _staleSatSvg.innerHTML = "";
       if (typeof updateSidebarToggleStyle === 'function') updateSidebarToggleStyle();
       tourIndex = 0;
 
@@ -10740,6 +10758,13 @@
       const sidebarTourCtrl = document.getElementById("sidebar-tour-controls");
       if (sidebarTourCtrl) sidebarTourCtrl.classList.add("hidden");
 
+      if (typeof window._preTourLabelsVisible === "boolean" && typeof areLabelsVisible !== "undefined") {
+        if (areLabelsVisible !== window._preTourLabelsVisible) {
+          if (typeof window.toggleLabels === "function") window.toggleLabels();
+          if (typeof window.syncNovaVVisual === "function") window.syncNovaVVisual(areLabelsVisible);
+        }
+        window._preTourLabelsVisible = null;
+      }
       if (typeof window.dismissSpatialCallout === 'function') window.dismissSpatialCallout();
       if (typeof applyZenUI === 'function') applyZenUI(false);
       if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
@@ -11971,20 +11996,12 @@
       left: 0;
       width: 312px;
       pointer-events: auto;
-      background: rgba(2, 6, 18, 0.44);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.11);
-      border-left: 2px solid rgba(248, 250, 252, 0.88);
-      border-radius: 10px;
-      padding: 11px 13px;
-      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      will-change: transform, opacity;
-      transition: opacity 200ms ease, border-color 200ms ease;
-    }
-    #spatial-callout-card.callout-flipped-left {
-      border-left: 1px solid rgba(255, 255, 255, 0.11);
-      border-right: 2px solid rgba(248, 250, 252, 0.88);
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 4px 8px;
+      color: #f8fafc;
     }
     .spatial-hairline-grid {
       display: grid;
@@ -13806,13 +13823,9 @@
   }
 
   #spatial-callout-card {
-    background: transparent !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    padding: 4px 8px !important;
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
     width: 280px !important;
     max-width: 300px !important;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.96), 0 0 14px rgba(0, 0, 0, 0.88) !important;
@@ -13835,21 +13848,20 @@
   /* === ZERO-BOX GUIDED TOUR SATELLITE & SURFACE PIN CALLOUTS === */
   #spatial-satellite-nodes > *,
   #spatial-surface-pin-container > * {
-    background: transparent !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.96), 0 0 14px rgba(0, 0, 0, 0.88) !important;
+    background: transparent;
+    backdrop-filter: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.96), 0 0 14px rgba(0, 0, 0, 0.88);
   }
   #spatial-satellite-nodes > *::before,
   #spatial-surface-pin-container > *::before {
-    display: none !important;
+    display: none;
   }
   #spatial-satellite-nodes *,
   #spatial-surface-pin-container * {
-    border-color: rgba(255, 255, 255, 0.16) !important;
+    border-color: rgba(255, 255, 255, 0.16);
   }
 
   /* Strip out jargon grids, scale badges, and legacy footers */
