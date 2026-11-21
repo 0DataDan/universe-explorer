@@ -4800,38 +4800,6 @@
       const halfH = window.innerHeight * 0.5;
       const fovTan = Math.tan(THREE.MathUtils.degToRad(camera.fov) * 0.5);
 
-      // === NOVA UPGRADE: SCREEN-SPACE LABEL COLLISION AVOIDANCE ===
-      const _visLabels = [];
-      for (let i = 0; i < celestialLabelEntries.length; i++) {
-        const e = celestialLabelEntries[i];
-        if (e.visible) _visLabels.push(e);
-      }
-      for (let pass = 0; pass < 2; pass++) {
-        for (let i = 0; i < _visLabels.length; i++) {
-          const a = _visLabels[i];
-          const ax = a.sx + a.offsetX;
-          const aw = (a.el && a.el.offsetWidth) ? a.el.offsetWidth + 8 : 78;
-          for (let j = i + 1; j < _visLabels.length; j++) {
-            const b = _visLabels[j];
-            const bx = b.sx + b.offsetX;
-            const bw = (b.el && b.el.offsetWidth) ? b.el.offsetWidth + 8 : 78;
-            const dx = Math.abs(ax - bx);
-            const dy = b.sy - a.sy;
-            const minH = 16;
-            if (dx < (aw + bw) * 0.45 && Math.abs(dy) < minH) {
-              const push = (minH - Math.abs(dy)) * 0.52;
-              if (dy >= 0) {
-                a.sy -= push;
-                b.sy += push;
-              } else {
-                a.sy += push;
-                b.sy -= push;
-              }
-            }
-          }
-        }
-      }
-
       for (let i = 0; i < celestialLabelEntries.length; i++) {
         const entry = celestialLabelEntries[i];
         const mesh = entry.mesh;
@@ -4872,7 +4840,7 @@
           alpha = 0.92;
         } else if (entry.tier === 1) {
           if (entry.id === "sun") {
-            alpha = camDist > 420 ? Math.max(0.45, 1.0 - (camDist - 420) / 900) : 0.95;
+            alpha = camDist > 550 ? Math.max(0.0, 0.95 * (1.0 - (camDist - 550) / 550)) : 0.95;
           } else if (camDist <= 145) {
             alpha = 0.9;
           } else if (camDist < 235) {
@@ -4889,13 +4857,18 @@
             alpha = 0.0;
           }
         } else {
-          // Tier 2, 3, 4 primary objects: completely hidden when camera is inside inner Solar System, softly fading in when zooming out to stellar/galactic tiers
-          if (camDist < 130) {
-            alpha = 0.0;
-          } else if (camDist < 360) {
-            alpha = entry.tier === 2 ? 0.85 : 0.0;
+          // Tier 2, 3, 4 primary objects: band-pass depth fading so inner tiers clear as you pull out
+          if (entry.tier === 2) {
+            const fadeIn = THREE.MathUtils.clamp((camDist - 115) / 95, 0.0, 1.0);
+            const fadeOut = THREE.MathUtils.clamp(1.0 - (camDist - 950) / 700, 0.0, 1.0);
+            alpha = fadeIn * fadeOut * 0.85;
+          } else if (entry.tier === 3) {
+            const fadeIn = THREE.MathUtils.clamp((camDist - 310) / 190, 0.0, 1.0);
+            const fadeOut = THREE.MathUtils.clamp(1.0 - (camDist - 2600) / 1600, 0.0, 1.0);
+            alpha = fadeIn * fadeOut * 0.88;
           } else {
-            alpha = 0.88;
+            const fadeIn = THREE.MathUtils.clamp((camDist - 900) / 700, 0.0, 1.0);
+            alpha = fadeIn * 0.90;
           }
         }
 
@@ -4912,8 +4885,10 @@
         }
 
         const pxPerUnit = halfH / Math.max(0.1, fovTan * distToCam);
-        const apparentRadiusPx = (entry.data.size || 0.5) * pxPerUnit;
-        entry.offsetX = Math.max(8, Math.min(34, apparentRadiusPx + 7));
+        const haloMult = (entry.data && typeof entry.data.haloMultiplier === "number") ? entry.data.haloMultiplier : 1.0;
+        const apparentRadiusPx = (entry.data.size || 0.5) * haloMult * pxPerUnit;
+        const maxLabelOffset = entry.id === "sun" ? 130 : (haloMult > 1.5 ? 84 : 42);
+        entry.offsetX = Math.max(8, Math.min(maxLabelOffset, apparentRadiusPx + 10));
         entry.sx = (_labelProjVec.x * 0.5 + 0.5) * window.innerWidth;
         entry.sy = (-_labelProjVec.y * 0.5 + 0.5) * window.innerHeight;
         entry.alpha = alpha;
@@ -4945,7 +4920,45 @@
         }
       }
 
+      // === POST-PROJECTION PRIORITY SCREEN-SPACE DECLUTTER ===
       const _focusTargetMesh = hoveredCelestialMesh || activeTargetMesh;
+      const _activeVis = [];
+      for (let i = 0; i < celestialLabelEntries.length; i++) {
+        const e = celestialLabelEntries[i];
+        if (e.visible && e.alpha > 0.02) _activeVis.push(e);
+      }
+      _activeVis.sort((a, b) => {
+        const aFoc = (a.mesh === _focusTargetMesh) ? 1 : 0;
+        const bFoc = (b.mesh === _focusTargetMesh) ? 1 : 0;
+        if (aFoc !== bFoc) return bFoc - aFoc;
+        if (Math.abs(b.alpha - a.alpha) > 0.15) return b.alpha - a.alpha;
+        if (a.tier !== b.tier) return b.tier - a.tier;
+        return ((b.data && b.data.size) || 0) - ((a.data && a.data.size) || 0);
+      });
+      const _placedBoxes = [];
+      for (let i = 0; i < _activeVis.length; i++) {
+        const e = _activeVis[i];
+        const x1 = e.sx + e.offsetX - 4;
+        const w = (e.el && e.el.offsetWidth) ? e.el.offsetWidth + 12 : 96;
+        const x2 = x1 + w;
+        const y1 = e.sy - 9;
+        const y2 = e.sy + 9;
+        let collides = false;
+        if (e.mesh !== _focusTargetMesh) {
+          for (let k = 0; k < _placedBoxes.length; k++) {
+            const box = _placedBoxes[k];
+            if (x1 < box.x2 && x2 > box.x1 && y1 < box.y2 && y2 > box.y1) {
+              collides = true;
+              break;
+            }
+          }
+        }
+        if (collides) {
+          e.alpha = 0;
+        } else {
+          _placedBoxes.push({ x1, x2, y1, y2 });
+        }
+      }
       const _focusTargetId = (_focusTargetMesh && _focusTargetMesh.userData && _focusTargetMesh.userData.id)
         ? String(_focusTargetMesh.userData.id).toLowerCase()
         : "";
@@ -8405,7 +8418,10 @@
       scene.add(solarLight);
 
       // Minimal deep-space starlight fill so night hemispheres stay authentically dark
-      const hemiLight = new THREE.HemisphereLight(0xcbd5e1, 0x090d16, 0.14);
+      const hemiLight = new THREE.HemisphereLight(0xcbd5e1, 0x1e293b, 0.24);
+    const starlightRim = new THREE.DirectionalLight(0x93c5fd, 0.32);
+    starlightRim.position.set(-120, 80, -140);
+    scene.add(starlightRim);
       scene.add(hemiLight);
 
       if (typeof renderer !== "undefined" && renderer) {
