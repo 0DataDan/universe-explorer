@@ -224,22 +224,6 @@
     "summary": "An extremely distant minor planet coated in crimson methane/nitrogen tholin ices whose eccentric 11,400-year orbit hints at an unobserved outer perturber. Average Distance from Earth - 85 AU (Perihelion)."
   },
   {
-    "id": "voyager-1",
-    "name": "Voyager 1",
-    "tier": 1,
-    "size": 0.24,
-    "position": [
-      68.0,
-      18.0,
-      -42.0
-    ],
-    "color": 1096065,
-    "type": "Interstellar Spacecraft",
-    "distance": "165 AU (~22.8 Light Hours)",
-    "scale_order": "10^13 m",
-    "summary": "Humanity's most distant emissary, continuously traversing pristine interstellar space beyond the heliopause since 2012. Average Distance from Earth - 165 AU (~22.8 Light Hours)."
-  },
-  {
     "id": "alpha-centauri",
     "name": "Alpha Centauri",
     "tier": 2,
