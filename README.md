@@ -22,7 +22,7 @@ Since the frontend loads local JSON and audio files, you'll need a simple local 
 
 1. Clone the repo:
    ```bash
-   git clone [https://github.com/0DataDan/universe-explorer.git](https://github.com/0DataDan/universe-explorer.git)
+   git clone https://github.com/0DataDan/universe-explorer.git
    cd universe-explorer
    ```
 
