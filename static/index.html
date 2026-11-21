@@ -735,7 +735,8 @@
   </style>
   
     <link rel="icon" type="image/x-icon" href="/favicon.ico?v=6">
-  </head>
+    <script type="module" src="./js/state.js"></script>
+</head>
 <body class="relative w-screen h-screen overflow-hidden select-none">
 
   <!-- Cinematic Boot Sequence & Wormhole Transition Overlay -->
@@ -833,7 +834,7 @@
             <span id="spatial-target-name" class="text-[12.5px] font-semibold tracking-[0.15em] uppercase text-white leading-tight">EARTH</span>
             <span id="spatial-target-scale" class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.08] text-slate-200 shrink-0">10^7 m</span>
           </div>
-          <p id="spatial-target-meta" class="text-[10px] font-mono text-cyan-300/90 truncate mt-0.5">Terrestrial Planet • 1.00 AU</p>
+          <p id="spatial-target-meta" class="text-[11px] font-mono text-cyan-300/90 mt-0.5">Terrestrial Planet • 1.00 AU</p>
         </div>
         <button type="button" onclick="window.dismissSpatialCallout(event)" aria-label="Dismiss Telemetry Callout" class="text-slate-400 hover:text-white transition-colors p-0.5 -mr-1 -mt-0.5 cursor-pointer shrink-0">
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1715,6 +1716,7 @@
       const endTarget = new THREE.Vector3(0, 0, 0);
       const tweenObj = { t: 0 };
 
+      if (window.novaState) window.novaState.setTravelPhase("traveling");
       new TWEEN.Tween(tweenObj)
         .to({ t: 1 }, durationMs)
         .easing(TWEEN.Easing.Cubic.InOut)
@@ -1735,6 +1737,7 @@
             window._novaTravelState.active = false;
           }
           if (typeof controls !== "undefined" && controls) controls.enabled = true;
+          if (window.novaState) window.novaState.setTravelPhase("arrived");
         })
         .start();
     };
@@ -7520,6 +7523,7 @@
 
       TWEEN.removeAll();
       isFlyingToTarget = true;
+      if (window.novaState) window.novaState.setTravelPhase("traveling");
 
       const startCamPos = camera.position.clone();
       const startTargetPos = controls.target.clone();
@@ -7604,6 +7608,7 @@
           if (activeTargetMesh) {
             activeTargetMesh.getWorldPosition(lastTrackedTargetPos);
           }
+          if (window.novaState) window.novaState.setTravelPhase("arrived");
         })
         .start();
     };
@@ -13773,11 +13778,12 @@
   body.nova-tier-sweep #spatial-telemetry-layer,
   body.nova-tier-sweep #spatial-satellite-layer,
   body.nova-tier-sweep #spatial-callout-card,
-  body.nova-camera-in-transit #spatial-telemetry-layer,
-  body.nova-camera-in-transit #spatial-satellite-layer,
-  body.nova-camera-in-transit #spatial-callout-card,
-  #spatial-telemetry-layer.nova-in-transit,
-  #spatial-satellite-layer.nova-in-transit {
+  html[data-travel="traveling"] #spatial-telemetry-layer,
+  html[data-travel="traveling"] #spatial-satellite-layer,
+  html[data-travel="traveling"] #spatial-callout-card,
+  html[data-travel="settling"] #spatial-telemetry-layer,
+  html[data-travel="settling"] #spatial-satellite-layer,
+  html[data-travel="settling"] #spatial-callout-card {
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
@@ -13862,6 +13868,124 @@
     letter-spacing: 0.14em !important;
     color: #f8fafc !important;
   }
+
+  /* === PHASE 0: SUBTITLE WRAP, WCAG AA HUD CONTRAST (>=4.5:1) & SCALE DISCLOSURE CHIP === */
+  #spatial-target-meta {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.35 !important;
+    font-size: 11.5px !important;
+    color: rgba(216, 224, 236, 0.92) !important;
+  }
+
+  /* Raise inactive time controls & bottom HUD toggles above 4.5:1 AA contrast and >=12px */
+  #nova-ephemeris-hud button,
+  #hud-toggle-group button,
+  #hud-right-controls button {
+    color: #9aa3b2 !important;
+    font-size: 12px !important;
+  }
+  #nova-ephemeris-hud button:hover,
+  #hud-toggle-group button:hover,
+  #hud-right-controls button:hover {
+    color: #f1f5f9 !important;
+  }
+  #nova-ephemeris-hud button.active {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+  }
+  #nova-attitude-label,
+  .attitude-label,
+  [data-attitude-label] {
+    color: #9aa3b2 !important;
+    font-size: 12px !important;
+  }
+
+  /* Persistent Scale Disclosure (Zero-Box Minimalist) */
+  #nova-scale-chip-wrap {
+    position: fixed;
+    top: 44px;
+    left: 24px;
+    transform: none;
+    z-index: 45;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    pointer-events: auto;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  #nova-scale-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 1px 2px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: #9aa3b2;
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 0, 0, 0.75);
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  #nova-scale-chip:hover,
+  #nova-scale-chip:focus-visible,
+  #nova-scale-chip[aria-expanded="true"] {
+    color: #fbbf24;
+    border-bottom-color: rgba(251, 191, 36, 0.55);
+    outline: none;
+  }
+  #nova-scale-chip .scale-info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    font-size: 8.5px;
+    font-weight: 600;
+    line-height: 1;
+    opacity: 0.85;
+  }
+  #nova-scale-popover {
+    margin-top: 8px;
+    width: min(360px, 88vw);
+    padding: 2px 0 2px 12px;
+    background: transparent;
+    border: none;
+    border-left: 1px solid rgba(251, 191, 36, 0.55);
+    color: #e2e8f0;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin-left: 4px;
+    text-align: left;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95), 0 0 16px rgba(0, 0, 0, 0.85);
+  }
+  #nova-scale-popover strong {
+    color: #fbbf24;
+    font-weight: 600;
+  }
+  #nova-scale-popover[hidden] {
+    display: none;
+  }
+
+  /* Hide scale disclosure during Observatory Standby, Fullscreen, or Guided Tour */
+  body.nova-standby-active #nova-scale-chip-wrap,
+  body.nova-tour-active #nova-scale-chip-wrap,
+  :fullscreen #nova-scale-chip-wrap,
+  :-webkit-full-screen #nova-scale-chip-wrap {
+    display: none !important;
+  }
+
+  body.nova-tier-sweep #nova-scale-chip-wrap {
+    opacity: 0.45;
+  }
+
   #spatial-target-meta {
     font-size: 10.5px !important;
     color: rgba(203, 213, 225, 0.78) !important;
@@ -14852,20 +14976,7 @@
   })();
 })();
 </script>
-<script>
-(function initNovaTransitGuard() {
-  if (window.__novaTransitGuardRunning) return;
-  window.__novaTransitGuardRunning = true;
-  function tick() {
-    const travelActive = Boolean(window._novaTravelState && window._novaTravelState.active);
-    const tweenActive = (typeof TWEEN !== "undefined" && typeof TWEEN.getAll === "function" && TWEEN.getAll().length > 0);
-    const inTransit = travelActive || Boolean(window.isFlyingToTarget) || tweenActive;
-    document.body.classList.toggle("nova-camera-in-transit", inTransit);
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-})();
-</script>
+
 <script>
 window.runCinematicTierSweep = function(tier, durationMs) {
   if (typeof TWEEN === "undefined" || typeof camera === "undefined" || typeof controls === "undefined") return;
@@ -14905,6 +15016,132 @@ window.runCinematicTierSweep = function(tier, durationMs) {
     })
     .start();
 };
+</script>
+
+<!-- === PHASE 0: SCALE DISCLOSURE CHIP & PLAIN-LANGUAGE HUD TOOLTIPS === -->
+<div id="nova-scale-chip-wrap" role="region" aria-label="Scale Disclosure">
+  <button type="button" id="nova-scale-chip" aria-expanded="false" aria-controls="nova-scale-popover" title="Learn why sizes and distances are scaled">
+    <span>SIZES EXAGGERATED · DISTANCES COMPRESSED</span>
+    <span class="scale-info-icon" aria-hidden="true">i</span>
+  </button>
+  <div id="nova-scale-popover" hidden>
+    <strong>Logarithmic Visualization Scale:</strong> At true scale, planets and stars would shrink below a single pixel across vast empty space. NOVA exaggerates object sizes and compresses distances so you can explore all 4 cosmic tiers in one continuous view. Real-world astronomical figures are shown in the HUD and object cards.
+  </div>
+</div>
+<script>
+(function initPhase0Accessibility() {
+  const chip = document.getElementById("nova-scale-chip");
+  const pop = document.getElementById("nova-scale-popover");
+  if (chip && pop) {
+    chip.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = pop.hasAttribute("hidden");
+      pop.toggleAttribute("hidden", !open);
+      chip.setAttribute("aria-expanded", String(open));
+    });
+    document.addEventListener("pointerdown", (e) => {
+      if (!pop.hasAttribute("hidden") && !chip.contains(e.target) && !pop.contains(e.target)) {
+        pop.setAttribute("hidden", "");
+        chip.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  // Plain-language tooltips & aria-labels for mission-control HUD abbreviations
+  const tooltips = {
+    "btn-cosmic-tour": "Guided Tour — Start or pause the narrated 44-stop journey",
+    "btn-cosmic-web": "Cosmic Web — Toggle large-scale galaxy filaments",
+    "btn-orbits": "Orbits — Toggle planetary and stellar orbital paths",
+    "btn-toggle-labels": "Labels — Show or hide object name labels",
+    "btn-t0": "Scales (Tiers) — Filter view by cosmic scale (Solar System to Cosmic Web)",
+    "btn-toggle-sidebar": "Info — Toggle object details panel",
+    "btn-fullscreen-zen": "Fullscreen — Toggle immersive fullscreen view",
+    "nova-attitude-sphere": "Camera Orientation — Drag to rotate view, click to reset"
+  };
+  Object.entries(tooltips).forEach(([id, label]) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.setAttribute("title", label);
+      el.setAttribute("aria-label", label);
+    }
+  });
+
+  // Ensure any ATTITUDE text label meets contrast & has a tooltip
+  document.querySelectorAll("span, div, p").forEach((el) => {
+    if (el.children.length === 0 && el.textContent.trim() === "ATTITUDE") {
+      el.style.color = "#9aa3b2";
+      el.style.fontSize = "12px";
+      el.setAttribute("title", "Camera Orientation Gimbal");
+    }
+  });
+})();
+</script>
+
+<style>
+  body.nova-standby-hidden #nova-scale-chip-wrap {
+    display: none !important;
+  }
+</style>
+<script>
+(function initNovaStandbyScaleHide() {
+  if (window.__novaStandbyScaleHideInstalled) return;
+  window.__novaStandbyScaleHideInstalled = true;
+
+  let hookStandbyActive = false;
+
+  function applyStandbyHide(active) {
+    document.body.classList.toggle("nova-standby-hidden", Boolean(active));
+    if (active) {
+      const pop = document.getElementById("nova-scale-popover");
+      const chip = document.getElementById("nova-scale-chip");
+      if (pop && !pop.hasAttribute("hidden")) {
+        pop.setAttribute("hidden", "");
+        if (chip) chip.setAttribute("aria-expanded", "false");
+      }
+    }
+  }
+
+  function isElementActuallyVisible(el) {
+    let cur = el;
+    while (cur && cur !== document.body) {
+      const cs = getComputedStyle(cur);
+      if (cs.display === "none" || cs.visibility === "hidden" || parseFloat(cs.opacity || "1") < 0.05) {
+        return false;
+      }
+      cur = cur.parentElement;
+    }
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  }
+
+  if (typeof window.enterScreensaverMode === "function") {
+    const origEnter = window.enterScreensaverMode;
+    window.enterScreensaverMode = function(...args) {
+      hookStandbyActive = true;
+      applyStandbyHide(true);
+      return origEnter.apply(this, args);
+    };
+  }
+
+  if (typeof window.exitScreensaverMode === "function") {
+    const origExit = window.exitScreensaverMode;
+    window.exitScreensaverMode = function(...args) {
+      hookStandbyActive = false;
+      const res = origExit.apply(this, args);
+      applyStandbyHide(false);
+      return res;
+    };
+  }
+
+  setInterval(() => {
+    const bannerVisible = Array.from(document.querySelectorAll("div, span, p")).some((el) => {
+      if (el.children.length > 0 || !el.textContent) return false;
+      if (!el.textContent.toLowerCase().includes("observatory standby")) return false;
+      return isElementActuallyVisible(el);
+    });
+    applyStandbyHide(hookStandbyActive || bannerVisible);
+  }, 150);
+})();
 </script>
 </body>
 </html>
