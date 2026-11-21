@@ -2738,8 +2738,8 @@
         const currentDist = Math.sqrt(x * x + y * y + z * z) || 1.0;
         const ux = x / currentDist, uy = y / currentDist, uz = z / currentDist;
         const targetDist = (tier === 4 || id === 'great-attractor')
-          ? (950 + currentDist * 4.5)
-          : (450 + currentDist * 3.2);
+          ? (2800 + currentDist * 8.5)
+          : (1100 + currentDist * 5.2);
         const hash = id.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
         const verticalSpread = Math.sin(hash * 1.37) * 0.38;
         const ny = uy + verticalSpread;
@@ -3971,17 +3971,17 @@
           const glowProx = makeFractalNodeSprite('rgba(239, 68, 68, 0.75)', 1.5);
           proximaMesh.add(glowProx);
 
-          const abOrbitCurve = new THREE.EllipseCurve(0, 0, 4.8, 3.2, 0, 2 * Math.PI, false, 0.4);
-          const abPoints = abOrbitCurve.getPoints(64);
-          const abOrbitGeo = new THREE.BufferGeometry().setFromPoints(abPoints.map(p => new THREE.Vector3(p.x, p.y * 0.3, p.y)));
-          const abOrbitLine = new THREE.Line(abOrbitGeo, new THREE.LineBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.25 }));
+          const abOrbitCurve = new THREE.EllipseCurve(0, 0, 7.5, 7.5, 0, 2 * Math.PI, false, 0);
+          const abPoints = abOrbitCurve.getPoints(96);
+          const abOrbitGeo = new THREE.BufferGeometry().setFromPoints(abPoints.map(p => new THREE.Vector3(p.x, -p.y * 0.25, p.y)));
+          const abOrbitLine = new THREE.Line(abOrbitGeo, new THREE.LineBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.42 }));
           abOrbitLine.raycast = () => {};
           alphaCentauriGroup.add(abOrbitLine);
 
-          const proxOrbitCurve = new THREE.EllipseCurve(0, 0, 16.5, 14.5, 0, 2 * Math.PI, false, 0);
-          const proxPoints = proxOrbitCurve.getPoints(90);
+          const proxOrbitCurve = new THREE.EllipseCurve(0, 0, 46.0, 40.0, 0, 2 * Math.PI, false, 0);
+          const proxPoints = proxOrbitCurve.getPoints(128);
           const proxOrbitGeo = new THREE.BufferGeometry().setFromPoints(proxPoints.map(p => new THREE.Vector3(p.x, p.y * 0.2, p.y)));
-          const proxOrbitLine = new THREE.Line(proxOrbitGeo, new THREE.LineBasicMaterial({ color: 0xf87171, transparent: true, opacity: 0.2 }));
+          const proxOrbitLine = new THREE.Line(proxOrbitGeo, new THREE.LineBasicMaterial({ color: 0xf87171, transparent: true, opacity: 0.38 }));
           proxOrbitLine.raycast = () => {};
           alphaCentauriGroup.add(proxOrbitLine);
           alphaCentauriGroup.userData.orbitLine = proxOrbitLine;
@@ -4515,7 +4515,7 @@
         const isPlanetaryOrbiter = item.tier === 1 && !["sun", "moon", "sedna", "halley-comet", "oumuamua"].includes(item.id);
 
         if (isPlanetaryOrbiter) {
-          const orbitRadius = Math.sqrt(item.position[0]**2 + item.position[2]**2);
+          const orbitRadius = Math.sqrt(item.position[0]**2 + item.position[2]**2) * 1.45;
           const nov2026HeliocentricDeg = {
             "mercury": 27.0,
             "venus":   34.0,
@@ -9506,17 +9506,17 @@
       // Assign target radial distance shell based on astrophysical category/tier
       let targetDist = currentDist;
       if (['el-gordo', 'shapley-supercluster', 'great-attractor', 'smacs-0723', 'gn-z11', 'ton-618', 'bootes-void'].includes(id) || tier === 4) {
-        // Tier 4: Deep Cosmological Web & Quasars (950 - 1,650 units out)
-        targetDist = 950 + (currentDist * 4.5);
+        // Tier 4: Deep Cosmological Web & Quasars
+        targetDist = 2800 + (currentDist * 8.5);
       } else if (['andromeda', 'sombrero-galaxy', 'centaurus-a', 'messier-87', 'lmc', 'smc', 'triangulum'].includes(id) || type.includes('galaxy') || tier === 3) {
-        // Tier 3: Galaxies & Local Group (450 - 820 units out)
-        targetDist = 450 + (currentDist * 3.2);
+        // Tier 3: Galaxies & Local Group
+        targetDist = 1100 + (currentDist * 5.2);
       } else if (['eagle-nebula', 'crab-nebula', 'orion-nebula', 'pillars-of-creation'].includes(id) || type.includes('nebula')) {
-        // Tier 2B: Galactic Nebulae & Supernova Remnants (220 - 380 units out)
-        targetDist = 220 + (currentDist * 2.2);
+        // Tier 2B: Galactic Nebulae & Supernova Remnants
+        targetDist = 480 + (currentDist * 3.0);
       } else {
-        // Tier 2A: Stellar Neighbors, Pulsars, Stellar Black Holes (120 - 210 units out)
-        targetDist = 120 + (currentDist * 1.6);
+        // Tier 2A: Stellar Neighbors, Pulsars, Stellar Black Holes
+        targetDist = 260 + (currentDist * 2.2);
       }
 
       // Add vertical (Y-axis) 3D dispersion so objects don't sit on a flat pancake plane
@@ -10147,9 +10147,9 @@
         }
 
         if (alphaCenAMesh && alphaCenBMesh && proximaMesh) {
-          alphaCenBinaryAngle += 0.005;
-          const rA = 1.8;
-          const rB = 2.4;
+          alphaCenBinaryAngle += 0.0035;
+          const rA = 5.5;
+          const rB = 7.5;
           alphaCenAMesh.position.set(
             -Math.cos(alphaCenBinaryAngle) * rA,
             Math.sin(alphaCenBinaryAngle) * (rA * 0.25),
@@ -10161,11 +10161,11 @@
             Math.sin(alphaCenBinaryAngle) * rB
           );
 
-          proximaOrbitAngle -= 0.0008;
+          proximaOrbitAngle -= 0.0005;
           proximaMesh.position.set(
-            Math.cos(proximaOrbitAngle) * 16.5,
-            Math.sin(proximaOrbitAngle) * 2.8,
-            Math.sin(proximaOrbitAngle) * 14.5
+            Math.cos(proximaOrbitAngle) * 46.0,
+            Math.sin(proximaOrbitAngle) * 8.0,
+            Math.sin(proximaOrbitAngle) * 40.0
           );
         }
 
@@ -10213,31 +10213,62 @@
         } catch (err) {}
       }
 
-      if (isCosmicWebVisible && window._cosmicMaterials) {
-        if (cosmicWebGroup) cosmicWebGroup.visible = true;
-        const t = performance.now() * 0.001;
-        // Gentle breathing factor across all zoom levels without distance dimming
-        const webScale = 0.85 + 0.10 * Math.sin(t * 0.8) + 0.05 * Math.sin(t * 2.0);
+      const _camDistDepth = camera.position.length();
 
-        window._cosmicMaterials.core.opacity = 0.24 * webScale;
-        window._cosmicMaterials.outer.opacity = 0.14 * webScale;
-        window._cosmicMaterials.branch.opacity = 0.095 * webScale;
-
-        filamentFlowParticles.forEach(item => {
-          item.progress = (item.progress + item.speed) % 1.0;
-          const pt = item.curve.getPoint(item.progress);
-          item.mesh.position.set(pt.x, pt.y, pt.z);
-          
-          // --- Sync electrical pulse opacity with the toned-down breathing web ---
-          if (item.sparkMat) item.sparkMat.opacity = 0.15 * webScale;
-          if (item.haloMat) item.haloMat.opacity = 0.075 * webScale;
-          // -----------------------------------------------------------
-
-          if (item.progress < 0.99) {
-            const lookPt = item.curve.getPoint(item.progress + 0.01);
-            item.mesh.lookAt(lookPt);
+      // === PHASE 2: SCALE-GATED 3D TIER VISIBILITY (True Cosmic Depth) ===
+      if (typeof manualTierLock !== "undefined" && manualTierLock === 0 && Array.isArray(celestialObjects)) {
+        for (let i = 0; i < celestialObjects.length; i++) {
+          const obj = celestialObjects[i];
+          if (!obj || !obj.userData) continue;
+          const tNum = obj.userData.tier || 1;
+          if (tNum <= 1) continue;
+          const isSameSystem = Boolean(
+            activeTargetMesh && obj.parent && activeTargetMesh.parent === obj.parent && obj.parent !== scene
+          );
+          const isActiveTier = Boolean(
+            activeTargetMesh && activeTargetMesh.userData && (activeTargetMesh.userData.tier || 1) === tNum
+          );
+          const isPinnedTarget = (obj === activeTargetMesh || obj === hoveredCelestialMesh || isSameSystem || isActiveTier);
+          let shouldShow = true;
+          if (!isPinnedTarget) {
+            if (tNum === 2) shouldShow = _camDistDepth >= 160;
+            else if (tNum === 3) shouldShow = _camDistDepth >= 420;
+            else if (tNum >= 4) shouldShow = _camDistDepth >= 1150;
           }
-        });
+          if (obj.visible !== shouldShow) {
+            obj.visible = shouldShow;
+          }
+        }
+      }
+
+      if (isCosmicWebVisible && window._cosmicMaterials) {
+        // Depth-fade Cosmic Web out inside the Solar System so filaments don't wrap behind Earth/Venus
+        const webDepthFade = (typeof manualTierLock !== "undefined" && manualTierLock >= 3)
+          ? 1.0
+          : THREE.MathUtils.clamp((_camDistDepth - 340) / 960, 0.0, 1.0);
+
+        if (cosmicWebGroup) cosmicWebGroup.visible = webDepthFade > 0.01;
+
+        if (webDepthFade > 0.01) {
+          const t = performance.now() * 0.001;
+          const webScale = (0.85 + 0.10 * Math.sin(t * 0.8) + 0.05 * Math.sin(t * 2.0)) * webDepthFade;
+
+          window._cosmicMaterials.core.opacity = 0.24 * webScale;
+          window._cosmicMaterials.outer.opacity = 0.14 * webScale;
+          window._cosmicMaterials.branch.opacity = 0.095 * webScale;
+
+          filamentFlowParticles.forEach(item => {
+            item.progress = (item.progress + item.speed) % 1.0;
+            const pt = item.curve.getPoint(item.progress);
+            item.mesh.position.set(pt.x, pt.y, pt.z);
+            if (item.sparkMat) item.sparkMat.opacity = 0.15 * webScale;
+            if (item.haloMat) item.haloMat.opacity = 0.075 * webScale;
+            if (item.progress < 0.99) {
+              const lookPt = item.curve.getPoint(item.progress + 0.01);
+              item.mesh.lookAt(lookPt);
+            }
+          });
+        }
       }
 
       if (asteroidBelt) {
