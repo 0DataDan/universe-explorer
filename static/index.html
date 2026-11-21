@@ -4022,10 +4022,10 @@
           const glowB = makeFractalNodeSprite('rgba(147, 197, 253, 0.85)', 2.4);
           siriusBMesh.add(glowB);
 
-          const binaryOrbitCurve = new THREE.EllipseCurve(0, 0, 10.5, 6.5, 0, 2 * Math.PI, false, 0.25);
-          const binaryPoints = binaryOrbitCurve.getPoints(90);
-          const binaryOrbitGeo = new THREE.BufferGeometry().setFromPoints(binaryPoints.map(p => new THREE.Vector3(p.x, p.y * 0.35, p.y)));
-          const binaryOrbitLine = new THREE.Line(binaryOrbitGeo, new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.3 }));
+          const binaryOrbitCurve = new THREE.EllipseCurve(0, 0, 15.5, 9.3, 0, 2 * Math.PI, false, 0);
+          const binaryPoints = binaryOrbitCurve.getPoints(120);
+          const binaryOrbitGeo = new THREE.BufferGeometry().setFromPoints(binaryPoints.map(p => new THREE.Vector3(p.x, -p.y * 0.5, p.y)));
+          const binaryOrbitLine = new THREE.Line(binaryOrbitGeo, new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.42 }));
           binaryOrbitLine.raycast = () => {};
           siriusBarycenterGroup.add(binaryOrbitLine);
           siriusBarycenterGroup.userData.orbitLine = binaryOrbitLine;
@@ -6796,12 +6796,9 @@
       window._surfaceZoomState.lockedCamOffset = null;
 
       const mainCard = document.getElementById("spatial-callout-card");
-      if (mainCard && rawName.toUpperCase().indexOf("SOLAR SYSTEM") === -1) {
-        mainCard.style.transition = "opacity 600ms cubic-bezier(0.16, 1, 0.3, 1)";
-        mainCard.style.opacity = "0";
-        setTimeout(function() {
-          if (mainCard) mainCard.style.opacity = "1";
-        }, 1750);
+      if (mainCard) {
+        mainCard.style.transition = "";
+        mainCard.style.opacity = "";
       }
 
       state.matchedMetric = computeScriptTimedMetric(rawName, window._spatialCurrentMetrics || [], activeText);
@@ -6810,7 +6807,7 @@
 
       // Wait 4.2 full seconds (1.8s camera flight + 2.4s calm reading time) before gently fading in the Satellite HUD!
       if (state.matchedMetric) {
-        state.metricCueStartSec = 4.2;
+        state.metricCueStartSec = 0.0;
         state.metricCueEndSec = 14.5;
       } else {
         state.metricCueStartSec = -1;
@@ -6818,7 +6815,7 @@
       }
 
       if (siteMatch) {
-        state.siteCueStartSec = 3.6;
+        state.siteCueStartSec = 0.0;
       } else {
         state.siteCueStartSec = -1;
       }
@@ -7253,7 +7250,17 @@
       const ring = document.getElementById('spatial-anchor-ring');
       if (!layer || !card || !line || !dot || !ring) return;
 
-      if (!isPlanetOverviewEnabled) {
+      const _travelPhase = (window.novaState && typeof window.novaState.getTravelPhase === 'function')
+        ? window.novaState.getTravelPhase()
+        : 'idle';
+      const _isInTransit = Boolean(
+        (typeof isFlyingToTarget !== 'undefined' && isFlyingToTarget) ||
+        _travelPhase === 'traveling' ||
+        _travelPhase === 'settling' ||
+        document.body.classList.contains('nova-tier-sweep')
+      );
+
+      if (!isPlanetOverviewEnabled || _isInTransit) {
         window._isSpatialCalloutVisible = false;
         layer.classList.add('opacity-0');
         card.style.pointerEvents = 'none';
@@ -7301,10 +7308,6 @@
         return;
       }
 
-      line.style.opacity = '1';
-      dot.style.opacity = '1';
-      ring.style.opacity = '1';
-
       if (
         window._spatialCalloutDismissedForMesh === activeTargetMesh ||
         !isNodeVisible(activeTargetMesh)
@@ -7342,6 +7345,18 @@
         return;
       }
 
+      const _nameEl = document.getElementById('spatial-target-name');
+      const _hasCardText = Boolean(_nameEl && _nameEl.textContent && _nameEl.textContent.trim().length > 0);
+      if (!_hasCardText) {
+        window._isSpatialCalloutVisible = false;
+        layer.classList.add('opacity-0');
+        card.style.pointerEvents = 'none';
+        return;
+      }
+
+      line.style.opacity = '1';
+      dot.style.opacity = '1';
+      ring.style.opacity = '1';
       window._isSpatialCalloutVisible = true;
       layer.classList.remove('opacity-0');
       card.style.pointerEvents = 'auto';
@@ -10131,9 +10146,9 @@
         });
 
         if (siriusAMesh && siriusBMesh) {
-          siriusBinaryAngle += 0.007;
-          const sepA = 2.4;
-          const sepB = 7.6;
+          siriusBinaryAngle += 0.0045;
+          const sepA = 7.0;
+          const sepB = 15.5;
           siriusAMesh.position.set(
             -Math.cos(siriusBinaryAngle) * sepA,
             Math.sin(siriusBinaryAngle) * (sepA * 0.3),
@@ -10586,16 +10601,32 @@
         }
       };
 
-      // Wait 1.8s for camera fly-in before Sonia starts speaking (0.6s for tier intros)
-      const arrivalWait = stepData.kind === "tier-intro" ? 600 : TOUR_ARRIVAL_DELAY_MS;
-      tourArrivalDelayTimer = setTimeout(() => {
+      // Arrival-synced narration: wait for camera settle (data-travel="arrived") on object stops, 600ms on tier intros
+      const startPlay = () => {
         if (!isTourActive || isTourPaused || currentTourAudio !== audio) return;
         audio.play().catch(() => {
           if (currentTourAudio === audio && isTourActive && !isTourPaused) {
             scheduleNextTourStep(fallbackDwellMs);
           }
         });
-      }, arrivalWait);
+      };
+
+      if (stepData.kind === "tier-intro") {
+        tourArrivalDelayTimer = setTimeout(startPlay, 600);
+      } else {
+        const waitStartedAt = performance.now();
+        const pollArrival = () => {
+          if (!isTourActive || isTourPaused || currentTourAudio !== audio) return;
+          const phase = document.documentElement.getAttribute("data-travel");
+          const elapsed = performance.now() - waitStartedAt;
+          if ((phase === "arrived" && elapsed >= 450) || elapsed >= 4500) {
+            tourArrivalDelayTimer = setTimeout(startPlay, 350);
+          } else {
+            tourArrivalDelayTimer = setTimeout(pollArrival, 120);
+          }
+        };
+        tourArrivalDelayTimer = setTimeout(pollArrival, 450);
+      }
     }
 
     // Extend dwell timer whenever the user interacts with the HUD surface/feature inspector
@@ -10673,6 +10704,7 @@
         }
         // Timer synced with audio completion in speakTourNarration
       } else {
+        if (window.novaState) window.novaState.setTravelPhase("traveling");
         document.body.classList.remove("nova-tier-sweep");
       }
     }
@@ -10929,6 +10961,7 @@
         }
 
       } else if (step.kind === "object") {
+        if (window.novaState) window.novaState.setTravelPhase("traveling");
         activeTarget = step.data;
         const targetMesh = step.mesh || (typeof celestialObjects !== 'undefined' ? celestialObjects.find(o => o.data?.name?.toLowerCase() === step.data?.name?.toLowerCase())?.mesh : null);
         activeTargetMesh = targetMesh;
@@ -14810,7 +14843,27 @@
     function findCatalogMatches(query) {
       const catalog = (typeof window.novaGetCatalog === "function") ? window.novaGetCatalog() : [];
       const q = (query || "").toLowerCase().trim();
-      if (!q) return [];
+
+      if (!q) {
+        const featuredIds = ["earth", "saturn", "sirius", "alpha-centauri", "sagittarius-a-star", "ton-618"];
+        const featured = [];
+        for (const fid of featuredIds) {
+          const hit = catalog.find(m => m && m.userData && String(m.userData.id || "").toLowerCase() === fid);
+          if (hit) {
+            featured.push({
+              mesh: hit,
+              name: String(hit.userData.name || hit.userData.id || ""),
+              type: String(hit.userData.type || "OBJECT"),
+              tier: hit.userData.tier || 1,
+              score: 100
+            });
+          }
+        }
+        return featured;
+      }
+
+      const tierMatch = q.match(/^(?:tier\s*|t)([1-4])$/);
+      const wantTier = tierMatch ? parseInt(tierMatch[1], 10) : null;
 
       const scored = [];
       for (const mesh of catalog) {
@@ -14818,25 +14871,28 @@
         const name = String(mesh.userData.name || mesh.userData.id || "");
         const id = String(mesh.userData.id || "");
         const type = String(mesh.userData.type || "");
+        const tier = mesh.userData.tier || 1;
         const nLow = name.toLowerCase();
         const iLow = id.toLowerCase();
 
         let score = 0;
-        if (nLow === q || iLow === q) score = 100;
+        if (wantTier !== null) {
+          if (tier === wantTier) score = 60;
+        } else if (nLow === q || iLow === q) score = 100;
         else if (nLow.startsWith(q) || iLow.startsWith(q)) score = 75;
         else if (nLow.includes(q) || iLow.includes(q)) score = 45;
         else if (type.toLowerCase().includes(q)) score = 20;
 
-        if (score > 0) scored.push({ mesh, name, type, score });
+        if (score > 0) scored.push({ mesh, name, type, tier, score });
       }
 
       scored.sort((a, b) => b.score - a.score || a.name.length - b.name.length);
-      return scored.slice(0, 5);
+      return scored.slice(0, 7);
     }
 
     function renderMatches(raw) {
       const parsed = parseCommand(raw);
-      if (parsed.action !== "slew" || !parsed.query) {
+      if (parsed.action === "reset") {
         currentMatches = [];
         selectedIdx = 0;
         resultsEl.innerHTML = "";
@@ -14844,7 +14900,8 @@
         return;
       }
 
-      currentMatches = findCatalogMatches(parsed.query);
+      const queryStr = parsed.action === "slew" ? parsed.query : "";
+      currentMatches = findCatalogMatches(queryStr);
       selectedIdx = Math.min(selectedIdx, Math.max(0, currentMatches.length - 1));
 
       if (!currentMatches.length) {
@@ -14856,7 +14913,7 @@
       resultsEl.innerHTML = currentMatches.map((m, i) => `
         <div class="nova-cmd-item ${i === selectedIdx ? "selected" : ""}" data-idx="${i}">
           <span>${m.name}</span>
-          <span class="nova-cmd-meta">${m.type || "OBJECT"}</span>
+          <span class="nova-cmd-meta">T${m.tier || 1} · ${m.type || "OBJECT"}</span>
         </div>
       `).join("");
       resultsEl.classList.add("has-items");
@@ -14887,10 +14944,13 @@
         setTimeout(() => { if (window.controls) window.controls.enabled = true; }, 1600);
         return;
       }
-      if (parsed.action === "slew") {
-        const match = currentMatches[selectedIdx] || findCatalogMatches(parsed.query)[0];
+      if (parsed.action === "slew" || (parsed.action === "empty" && currentMatches.length)) {
+        const match = currentMatches[selectedIdx] || (parsed.query ? findCatalogMatches(parsed.query)[0] : null);
         if (match && typeof window.novaSlewToMesh === "function") {
-          window.novaSlewToMesh(match.mesh, parsed.override);
+          if (typeof isTourActive !== "undefined" && isTourActive && typeof window.stopCosmicTour === "function") {
+            window.stopCosmicTour();
+          }
+          window.novaSlewToMesh(match.mesh, parsed.override || null);
           closeConsole();
         } else {
           statusEl.classList.add("is-error"); statusEl.textContent = `TARGET NOT FOUND: "${parsed.query || input.value.trim()}"`;
@@ -14898,8 +14958,14 @@
       }
     }
 
+    input.addEventListener("focus", () => {
+      selectedIdx = 0;
+      renderMatches(input.value);
+    });
+
     input.addEventListener("input", () => {
       selectedIdx = 0;
+      if (statusEl) statusEl.classList.remove("is-error");
       renderMatches(input.value);
     });
 
