@@ -13,7 +13,10 @@
     "type": "G-type Main-Sequence Star (G2V)",
     "distance": "1.00 AU",
     "scale_order": "10^9 m (1.39M km)",
-    "summary": "The gravitational center of our planetary system, fusing 600 million tons of hydrogen into helium every second in its core. Average Distance from Earth - 1.00 AU."
+    "summary": "The gravitational center of our planetary system, fusing 600 million tons of hydrogen into helium every second in its core.",
+    "kind": "star",
+    "imagery": "observed",
+    "haloMultiplier": 1.28
   },
   {
     "id": "mercury",
@@ -29,7 +32,10 @@
     "type": "Terrestrial Planet",
     "distance": "1.04 AU",
     "scale_order": "10^10 m",
-    "summary": "The smallest planet and closest to the Sun, with a heavily cratered silicate crust and Caloris impact basin experiencing swings between 430°C and -180°C. Average Distance from Earth - 1.04 AU."
+    "summary": "The smallest planet and closest to the Sun, with a heavily cratered silicate crust and Caloris impact basin experiencing swings between 430°C and -180°C.",
+    "kind": "planet",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "venus",
@@ -45,7 +51,10 @@
     "type": "Terrestrial Planet",
     "distance": "1.14 AU",
     "scale_order": "10^10 m",
-    "summary": "A runaway greenhouse furnace veiled by super-rotating sulfuric acid cloud chevrons and a crushing carbon dioxide atmosphere. Average Distance from Earth - 1.14 AU."
+    "summary": "A runaway greenhouse furnace veiled by super-rotating sulfuric acid cloud chevrons and a crushing carbon dioxide atmosphere.",
+    "kind": "planet",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "earth",
@@ -61,7 +70,10 @@
     "type": "Terrestrial Planet (Habitable)",
     "distance": "Our Home Planet",
     "scale_order": "10^11 m (149.6M km)",
-    "summary": "The cradle of human civilization, featuring liquid water oceans, dynamic atmospheric cloud bands, and carbon-based life. Our Home Planet."
+    "summary": "The cradle of human civilization, featuring liquid water oceans, dynamic atmospheric cloud bands, and carbon-based life.",
+    "kind": "planet",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "moon",
@@ -77,7 +89,10 @@
     "type": "Natural Satellite (Earth-Moon System)",
     "distance": "0.00257 AU",
     "scale_order": "10^8 m (3,474 km)",
-    "summary": "Earth's tidally locked natural satellite, scarred by dark basaltic lunar maria (Mare Imbrium, Oceanus Procellarum) and ancient anorthositic highland ray craters. Average Distance from Earth - 0.00257 AU."
+    "summary": "Earth's tidally locked natural satellite, scarred by dark basaltic lunar maria (Mare Imbrium, Oceanus Procellarum) and ancient anorthositic highland ray craters.",
+    "kind": "moon",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "mars",
@@ -93,7 +108,10 @@
     "type": "Terrestrial Planet",
     "distance": "1.50 AU",
     "scale_order": "10^11 m",
-    "summary": "The iron oxide-rich Red Planet, home to Olympus Mons, the Valles Marineris canyon system, dark Syrtis Major basaltic plains, and polar ice caps. Average Distance from Earth - 1.50 AU."
+    "summary": "The iron oxide-rich Red Planet, home to Olympus Mons, the Valles Marineris canyon system, dark Syrtis Major basaltic plains, and polar ice caps.",
+    "kind": "planet",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "ceres",
@@ -109,7 +127,10 @@
     "type": "Dwarf Planet (Asteroid Belt)",
     "distance": "2.77 AU",
     "scale_order": "10^11 m (940 km)",
-    "summary": "The largest body in the main asteroid belt, containing a third of its total mass and harboring bright sodium carbonate evaporite deposits in Occator Crater. Average Distance from Earth - 2.77 AU."
+    "summary": "The largest body in the main asteroid belt, containing a third of its total mass and harboring bright sodium carbonate evaporite deposits in Occator Crater.",
+    "kind": "dwarf-planet",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "jupiter",
@@ -125,7 +146,10 @@
     "type": "Gas Giant",
     "distance": "5.20 AU",
     "scale_order": "10^11 m",
-    "summary": "A monumental gas giant banded by turbulent ammonia cloud belts, the Great Red Spot anticyclone, and 95 moons. Average Distance from Earth - 5.20 AU."
+    "summary": "A monumental gas giant banded by turbulent ammonia cloud belts, the Great Red Spot anticyclone, and 95 moons.",
+    "kind": "planet",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "saturn",
@@ -141,7 +165,10 @@
     "type": "Gas Giant (Ring System)",
     "distance": "9.58 AU",
     "scale_order": "10^12 m",
-    "summary": "Famous for its golden ammonia haze bands, north polar hexagon jet stream, and expansive icy ring system. Average Distance from Earth - 9.58 AU."
+    "summary": "Famous for its golden ammonia haze bands, north polar hexagon jet stream, and expansive icy ring system.",
+    "kind": "planet",
+    "imagery": "observed",
+    "haloMultiplier": 2.15
   },
   {
     "id": "uranus",
@@ -157,7 +184,10 @@
     "type": "Ice Giant",
     "distance": "19.2 AU",
     "scale_order": "10^12 m",
-    "summary": "An ice giant knocked onto its side with an axial tilt of 97.8 degrees, veiled in a cyan methane-rich atmosphere and faint vertical rings. Average Distance from Earth - 19.2 AU."
+    "summary": "An ice giant knocked onto its side with an axial tilt of 97.8 degrees, veiled in a cyan methane-rich atmosphere and faint vertical rings.",
+    "kind": "planet",
+    "imagery": "observed",
+    "haloMultiplier": 2.15
   },
   {
     "id": "neptune",
@@ -173,7 +203,10 @@
     "type": "Ice Giant",
     "distance": "30.1 AU",
     "scale_order": "10^12 m",
-    "summary": "The most distant major planet, featuring deep azure methane bands, bright high-altitude cirrus streaks, and supersonic 2,100 km/h winds. Average Distance from Earth - 30.1 AU."
+    "summary": "The most distant major planet, featuring deep azure methane bands, bright high-altitude cirrus streaks, and supersonic 2,100 km/h winds.",
+    "kind": "planet",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "oumuamua",
@@ -189,7 +222,10 @@
     "type": "Interstellar Object (Hyperbolic)",
     "distance": "33.5 AU (Outbound)",
     "scale_order": "10^11 m (~400 m core)",
-    "summary": "The first confirmed interstellar object detected visiting from beyond Sol, following an unbound hyperbolic trajectory with a cosmic-ray-reddened tholin crust. Average Distance from Earth - 33.5 AU (Outbound)."
+    "summary": "The first confirmed interstellar object detected visiting from beyond Sol, following an unbound hyperbolic trajectory with a cosmic-ray-reddened tholin crust.",
+    "kind": "interstellar-object",
+    "imagery": "illustrative",
+    "haloMultiplier": 1.15
   },
   {
     "id": "halley-comet",
@@ -205,7 +241,10 @@
     "type": "Periodic Comet",
     "distance": "17.8 AU (Mean)",
     "scale_order": "10^12 m",
-    "summary": "The premier short-period comet, returning every 75–76 years along a highly inclined, retrograde Keplerian ellipse. Average Distance from Earth - 17.8 AU (Mean)."
+    "summary": "The premier short-period comet, returning every 75–76 years along a highly inclined, retrograde Keplerian ellipse.",
+    "kind": "comet",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "sedna",
@@ -219,9 +258,12 @@
     ],
     "color": 12131356,
     "type": "Detached Trans-Neptunian Object",
-    "distance": "85 AU (Perihelion)",
+    "distance": "~84 AU (Current)",
     "scale_order": "10^13 m",
-    "summary": "An extremely distant minor planet coated in crimson methane/nitrogen tholin ices whose eccentric 11,400-year orbit hints at an unobserved outer perturber. Average Distance from Earth - 85 AU (Perihelion)."
+    "summary": "An extremely distant minor planet coated in crimson methane and nitrogen tholin ices. Its 11,400-year orbit swings from ~76 AU at perihelion out past 900 AU, hinting at an unobserved outer perturber.",
+    "kind": "tno",
+    "imagery": "illustrative",
+    "haloMultiplier": 1.15
   },
   {
     "id": "alpha-centauri",
@@ -237,7 +279,10 @@
     "type": "Triple-Star Hierarchy",
     "distance": "4.37 ly",
     "scale_order": "10^16 m (~4.37 ly)",
-    "summary": "Our closest stellar neighbors, composed of solar-type binary pair Rigil Kentaurus (G2V) and Toliman (K1V), orbited by red dwarf flare star Proxima Centauri. Average Distance from Earth - 4.37 ly."
+    "summary": "Our closest stellar neighbors, composed of solar-type binary pair Rigil Kentaurus (G2V) and Toliman (K1V), orbited by red dwarf flare star Proxima Centauri.",
+    "kind": "star",
+    "imagery": "illustrative",
+    "haloMultiplier": 1.15
   },
   {
     "id": "barnards-star",
@@ -253,7 +298,10 @@
     "type": "Red Dwarf (M4.0V)",
     "distance": "5.96 ly",
     "scale_order": "10^16 m (~6.0 ly)",
-    "summary": "A high-velocity low-mass red dwarf displaying the largest known proper motion of any star relative to Sol. Average Distance from Earth - 5.96 ly."
+    "summary": "A high-velocity low-mass red dwarf displaying the largest known proper motion of any star relative to Sol.",
+    "kind": "star",
+    "imagery": "illustrative",
+    "haloMultiplier": 1.15
   },
   {
     "id": "sirius",
@@ -269,7 +317,10 @@
     "type": "Binary Star (A1V + DA2)",
     "distance": "8.60 ly",
     "scale_order": "10^17 m (~8.6 ly)",
-    "summary": "The brightest apparent star in Earth's sky, dancing with degenerate carbon-oxygen white dwarf companion Sirius B (The Pup). Average Distance from Earth - 8.60 ly."
+    "summary": "The brightest apparent star in Earth's sky, dancing with degenerate carbon-oxygen white dwarf companion Sirius B (The Pup).",
+    "kind": "star",
+    "imagery": "illustrative",
+    "haloMultiplier": 1.15
   },
   {
     "id": "trappist-1",
@@ -285,7 +336,10 @@
     "type": "Ultra-Cool Red Dwarf (M8V)",
     "distance": "40.6 ly",
     "scale_order": "10^17 m (~40 ly)",
-    "summary": "A compact ultra-cool red dwarf hosting seven temperate terrestrial exoplanets, three orbiting inside the liquid-water habitable zone. Average Distance from Earth - 40.6 ly."
+    "summary": "A compact ultra-cool red dwarf hosting seven temperate terrestrial exoplanets, three orbiting inside the liquid-water habitable zone.",
+    "kind": "star",
+    "imagery": "illustrative",
+    "haloMultiplier": 1.15
   },
   {
     "id": "polaris",
@@ -301,7 +355,10 @@
     "type": "Multiple Cepheid Variable (F7Ib)",
     "distance": "433 ly",
     "scale_order": "10^18 m (~433 ly)",
-    "summary": "Earth's north celestial pole star, a luminous yellow supergiant pulsating radially as a classic Cepheid standard candle. Average Distance from Earth - 433 ly."
+    "summary": "Earth's north celestial pole star, a luminous yellow supergiant pulsating radially as a classic Cepheid standard candle.",
+    "kind": "star",
+    "imagery": "illustrative",
+    "haloMultiplier": 1.15
   },
   {
     "id": "betelgeuse",
@@ -317,7 +374,10 @@
     "type": "Red Supergiant (M1-2 Ia-ab)",
     "distance": "642 ly",
     "scale_order": "10^19 m (~650 ly)",
-    "summary": "A semiregular pulsating red supergiant boiling with giant convection cells near core collapse, destined to end in a Type II supernova. Average Distance from Earth - 642 ly."
+    "summary": "A semiregular pulsating red supergiant boiling with giant convection cells near core collapse, destined to end in a Type II supernova.",
+    "kind": "star",
+    "imagery": "illustrative",
+    "haloMultiplier": 1.15
   },
   {
     "id": "crab-nebula",
@@ -333,7 +393,10 @@
     "type": "Supernova Remnant / Pulsar",
     "distance": "6,500 ly",
     "scale_order": "10^20 m (~6.5 kly)",
-    "summary": "The expanding filamentary wreckage of supernova SN 1054, powered by a central synchrotron neutron star spinning 30 times a second. Average Distance from Earth - 6,500 ly."
+    "summary": "The expanding filamentary wreckage of supernova SN 1054, powered by a central synchrotron neutron star spinning 30 times a second.",
+    "kind": "nebula",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "orion-nebula",
@@ -349,7 +412,10 @@
     "type": "Diffuse Star-Forming Nebula",
     "distance": "1,344 ly",
     "scale_order": "10^19 m (~1.3 kly)",
-    "summary": "A massive H II stellar nursery visible to the naked eye, actively birthing protoplanetary disks inside the glowing Trapezium cluster. Average Distance from Earth - 1,344 ly."
+    "summary": "A massive H II stellar nursery visible to the naked eye, actively birthing protoplanetary disks inside the glowing Trapezium cluster.",
+    "kind": "nebula",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "eagle-nebula",
@@ -365,7 +431,10 @@
     "type": "Active Emission Nebula / H II Region",
     "distance": "5,700 ly",
     "scale_order": "10^20 m (~5.7 kly)",
-    "summary": "A prolific stellar nursery housing the towering 'Pillars of Creation', where ultraviolet radiation from young O-type stars sculpts cold molecular gas. Average Distance from Earth - 5,700 ly."
+    "summary": "A prolific stellar nursery housing the towering 'Pillars of Creation', where ultraviolet radiation from young O-type stars sculpts cold molecular gas.",
+    "kind": "nebula",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "stephenson-2-18",
@@ -381,7 +450,10 @@
     "type": "Extreme Red Hypergiant (M6)",
     "distance": "18,900 ly",
     "scale_order": "10^20 m (~2,150 R_sun)",
-    "summary": "One of the largest known stars in the universe, an extreme red hypergiant with an estimated radius of 2,150 solar radii—large enough to engulf Saturn's orbit. Average Distance from Earth - 18,900 ly."
+    "summary": "One of the largest known stars in the universe, an extreme red hypergiant with an estimated radius of 2,150 solar radii—large enough to engulf Saturn's orbit.",
+    "kind": "star",
+    "imagery": "illustrative",
+    "haloMultiplier": 1.15
   },
   {
     "id": "sagittarius-a-star",
@@ -397,7 +469,10 @@
     "type": "Supermassive Black Hole",
     "distance": "26,673 ly (Galactic Core)",
     "scale_order": "10^21 m (~27 kly)",
-    "summary": "The 4.15-million solar-mass gravitational anchor at the nucleus of the Milky Way, surrounded by relativistic Doppler-boosted accretion flares. Average Distance from Earth - 26,673 ly (Galactic Core)."
+    "summary": "The 4.15-million solar-mass gravitational anchor at the nucleus of the Milky Way, surrounded by relativistic Doppler-boosted accretion flares.",
+    "kind": "black-hole",
+    "imagery": "modeled",
+    "haloMultiplier": 2.65
   },
   {
     "id": "lmc",
@@ -413,7 +488,10 @@
     "type": "Satellite Dwarf Spiral Galaxy",
     "distance": "163,000 ly",
     "scale_order": "10^21 m (~163 kly)",
-    "summary": "The most massive satellite galaxy of the Milky Way, featuring an off-center stellar bar and the glowing Tarantula Nebula starburst complex. Average Distance from Earth - 163,000 ly."
+    "summary": "The most massive satellite galaxy of the Milky Way, featuring an off-center stellar bar and the glowing Tarantula Nebula starburst complex.",
+    "kind": "galaxy",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "smc",
@@ -429,7 +507,10 @@
     "type": "Dwarf Irregular Galaxy",
     "distance": "204,000 ly",
     "scale_order": "10^21 m (~204 kly)",
-    "summary": "A gas-rich dwarf irregular galaxy bound to the Milky Way, tidally stretched by past gravitational encounters with the LMC. Average Distance from Earth - 204,000 ly."
+    "summary": "A gas-rich dwarf irregular galaxy bound to the Milky Way, tidally stretched by past gravitational encounters with the LMC.",
+    "kind": "galaxy",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "andromeda",
@@ -445,7 +526,10 @@
     "type": "Barred Spiral Galaxy (SA(s)b)",
     "distance": "2.537 Mly",
     "scale_order": "10^22 m (~2.5 Mly)",
-    "summary": "The largest galaxy in the Local Group, heading toward the Milky Way on a blueshifted collision trajectory at 110 km/s. Average Distance from Earth - 2.537 Mly."
+    "summary": "The largest galaxy in the Local Group, heading toward the Milky Way on a blueshifted collision trajectory at 110 km/s.",
+    "kind": "galaxy",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "triangulum",
@@ -461,7 +545,10 @@
     "type": "Spiral Galaxy (SA(s)cd)",
     "distance": "2.73 Mly",
     "scale_order": "10^22 m (~2.7 Mly)",
-    "summary": "The third-largest member of the Local Group, displaying loosely wound spiral arms and prominent H II star-forming regions. Average Distance from Earth - 2.73 Mly."
+    "summary": "The third-largest member of the Local Group, displaying loosely wound spiral arms and prominent H II star-forming regions.",
+    "kind": "galaxy",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "sombrero-galaxy",
@@ -477,7 +564,10 @@
     "type": "Unbarred Lenticular Galaxy (SAa)",
     "distance": "31.1 Mly",
     "scale_order": "10^23 m (~31 Mly)",
-    "summary": "A magnificent lenticular galaxy distinguished by an extraordinarily luminous central bulge and a sharp, dark equatorial dust absorption lane. Average Distance from Earth - 31.1 Mly."
+    "summary": "A magnificent lenticular galaxy distinguished by an extraordinarily luminous central bulge and a sharp, dark equatorial dust absorption lane.",
+    "kind": "galaxy",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "centaurus-a",
@@ -493,7 +583,10 @@
     "type": "Active Radio Galaxy (AGN)",
     "distance": "12.0 Mly",
     "scale_order": "10^23 m (~12 Mly)",
-    "summary": "A giant peculiar elliptical galaxy bisected by a warped dark dust lane, launching relativistic synchrotron plasma jets from its central black hole. Average Distance from Earth - 12.0 Mly."
+    "summary": "A giant peculiar elliptical galaxy bisected by a warped dark dust lane, launching relativistic synchrotron plasma jets from its central black hole.",
+    "kind": "galaxy",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "messier-87",
@@ -509,7 +602,10 @@
     "type": "Supergiant Elliptical Galaxy (cD)",
     "distance": "53.5 Mly",
     "scale_order": "10^23 m (~53.5 Mly)",
-    "summary": "The dominant supergiant elliptical galaxy of the Virgo Cluster, hosting a 6.5-billion-solar-mass black hole launching a 5,000-light-year relativistic jet. Average Distance from Earth - 53.5 Mly."
+    "summary": "The dominant supergiant elliptical galaxy of the Virgo Cluster, hosting a 6.5-billion-solar-mass black hole launching a 5,000-light-year relativistic jet.",
+    "kind": "galaxy",
+    "imagery": "observed",
+    "haloMultiplier": 2.65
   },
   {
     "id": "great-attractor",
@@ -525,7 +621,10 @@
     "type": "Gravitational Anomaly / Laniakea Focal Core",
     "distance": "220 Mly",
     "scale_order": "10^24 m (~220 Mly)",
-    "summary": "A massive gravitational focal point in the Zone of Avoidance drawing the Milky Way and hundreds of thousands of galaxies along the Laniakea Supercluster. Average Distance from Earth - 220 Mly."
+    "summary": "A massive gravitational focal point in the Zone of Avoidance drawing the Milky Way and hundreds of thousands of galaxies along the Laniakea Supercluster.",
+    "kind": "cluster",
+    "imagery": "modeled",
+    "haloMultiplier": 1.15
   },
   {
     "id": "bootes-void",
@@ -541,7 +640,10 @@
     "type": "Cosmic Supervoid",
     "distance": "700 Mly",
     "scale_order": "10^24 m (~700 Mly)",
-    "summary": "A gargantuan spherical cosmic desert spanning 330 million light-years across, containing only ~60 galaxies where 2,000 would normally form. Average Distance from Earth - 700 Mly."
+    "summary": "A gargantuan spherical cosmic desert spanning 330 million light-years across, containing only ~60 galaxies where 2,000 would normally form.",
+    "kind": "void",
+    "imagery": "modeled",
+    "haloMultiplier": 1.15
   },
   {
     "id": "shapley-supercluster",
@@ -557,7 +659,10 @@
     "type": "Supercluster Concentration",
     "distance": "650 Mly",
     "scale_order": "10^25 m (~650 Mly)",
-    "summary": "The largest concentration of gravitationally bound galaxies in the nearby universe, pulling the Laniakea Supercluster and Great Attractor toward its core. Average Distance from Earth - 650 Mly."
+    "summary": "The largest concentration of gravitationally bound galaxies in the nearby universe, pulling the Laniakea Supercluster and Great Attractor toward its core.",
+    "kind": "cluster",
+    "imagery": "modeled",
+    "haloMultiplier": 1.15
   },
   {
     "id": "el-gordo",
@@ -573,7 +678,10 @@
     "type": "Colliding Galaxy Supercluster",
     "distance": "7.0 Gly (z = 0.87)",
     "scale_order": "10^25 m (~7 Gly)",
-    "summary": "The most massive colliding galaxy cluster observed in the distant universe, glowing with shock-heated X-ray intracluster plasma across 3 quadrillion solar masses. Average Distance from Earth - 7.0 Gly (z = 0.87)."
+    "summary": "The most massive colliding galaxy cluster observed in the distant universe, glowing with shock-heated X-ray intracluster plasma across 3 quadrillion solar masses.",
+    "kind": "galaxy",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "smacs-0723",
@@ -589,7 +697,10 @@
     "type": "Gravitational Lensing Cluster",
     "distance": "4.6 Gly (z = 0.39)",
     "scale_order": "10^25 m (~4.6 Gly)",
-    "summary": "A massive galaxy cluster bending spacetime into an Einstein gravitational lens, famous as the target of JWST's First Deep Field. Average Distance from Earth - 4.6 Gly (z = 0.39)."
+    "summary": "A massive galaxy cluster bending spacetime into an Einstein gravitational lens, famous as the target of JWST's First Deep Field.",
+    "kind": "cluster",
+    "imagery": "observed",
+    "haloMultiplier": 1.15
   },
   {
     "id": "ton-618",
@@ -605,7 +716,10 @@
     "type": "Hyperluminous Quasar / Ultramassive Black Hole",
     "distance": "10.8 Gly (z = 2.219)",
     "scale_order": "10^26 m (~390B km / 2,600 AU Event Horizon)",
-    "summary": "The largest known ultramassive black hole (66 billion solar masses), featuring a 390-billion-kilometer (~2,600 AU) event horizon that dwarfs our entire Solar System, a relativistic quasar jet, and a golden-orange accretion disk shining with the power of 140 trillion Suns. Average Distance from Earth - 10.8 Gly (z = 2.219)."
+    "summary": "The largest known ultramassive black hole (66 billion solar masses), featuring a 390-billion-kilometer (~2,600 AU) event horizon that dwarfs our entire Solar System, a relativistic quasar jet, and a golden-orange accretion disk shining with the power of 140 trillion Suns.",
+    "kind": "black-hole",
+    "imagery": "illustrative",
+    "haloMultiplier": 2.65
   },
   {
     "id": "earendel",
@@ -621,7 +735,10 @@
     "type": "Lensed Massive Blue Supergiant (B-type)",
     "distance": "12.9 Gly (z = 6.2)",
     "scale_order": "10^26 m (~28 Billion ly Comoving)",
-    "summary": "The most distant individual star ever detected, observed 900 million years after the Big Bang via gravitational lensing magnification. Average Distance from Earth - 12.9 Gly (z = 6.2)."
+    "summary": "The most distant individual star ever detected, observed 900 million years after the Big Bang via gravitational lensing magnification.",
+    "kind": "star",
+    "imagery": "illustrative",
+    "haloMultiplier": 1.15
   },
   {
     "id": "gn-z11",
@@ -637,6 +754,9 @@
     "type": "High-Redshift Lyman-Break Galaxy",
     "distance": "13.4 Gly (z = 10.6)",
     "scale_order": "10^26 m (~13.4 Gly)",
-    "summary": "An intensely star-forming primordial galaxy observed just 400 million years after the Big Bang, strongly redshifted into the infrared. Average Distance from Earth - 13.4 Gly (z = 10.6)."
+    "summary": "An intensely star-forming primordial galaxy observed just 400 million years after the Big Bang, strongly redshifted into the infrared.",
+    "kind": "galaxy",
+    "imagery": "illustrative",
+    "haloMultiplier": 1.15
   }
 ]

@@ -7331,11 +7331,10 @@
       const pxPerUnit = (window.innerHeight * 0.5) / Math.max(0.05, Math.tan(fovRad * 0.5) * distToCam);
       const baseSize = (activeTarget && activeTarget.size) ? Number(activeTarget.size) : 1.0;
 
-      // Account for rings / relativistic accretion disks on Saturn, Uranus, Sagittarius A*, M87*, TON 618
-      let haloMultiplier = 1.15;
-      if (targetId === 'saturn' || targetId === 'uranus') haloMultiplier = 2.15;
-      else if (targetId.includes('sagittarius-a') || targetId.includes('m87') || targetId.includes('messier-87') || targetId.includes('ton-618')) haloMultiplier = 2.65;
-      else if (targetId === 'sun') haloMultiplier = 1.28;
+      // Data-driven visual clearance from static/catalog.json
+      const haloMultiplier = (activeTarget && typeof activeTarget.haloMultiplier === "number")
+        ? activeTarget.haloMultiplier
+        : 1.15;
 
       const vw = window.innerWidth;
       const vh = window.innerHeight;
