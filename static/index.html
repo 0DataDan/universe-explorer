@@ -7132,6 +7132,12 @@
     };
 
     window.populateSpatialCallout = function(data, isTierOverview = false) {
+      if (isTierOverview) {
+        document.body.classList.add('nova-tier-sweep');
+        if (typeof window.dismissSpatialCallout === 'function') window.dismissSpatialCallout();
+        return;
+      }
+      document.body.classList.remove('nova-tier-sweep');
       if (!data) return;
       window._spatialCalloutDismissedForMesh = null;
       window._spatialFactIndex = 0;
@@ -10600,15 +10606,15 @@
       window._spatialCalloutDismissedForMesh = null;
 
       if (step.kind === "tier-intro") {
-        activeTargetMesh = step.mesh;
-        activeTarget = step.data;
-        if (typeof window.populateSpatialCallout === "function") {
-          window.populateSpatialCallout(step.data, false);
-        }
+        document.body.classList.add("nova-tier-sweep");
+        if (typeof window.dismissSpatialCallout === "function") window.dismissSpatialCallout();
         speakTourNarration(step, step.dwellMs);
-        smoothFlyToTarget(2800);
-
+        if (typeof window.runCinematicTierSweep === "function") {
+          window.runCinematicTierSweep(step.tier || 1, step.dwellMs || 14000);
+        }
         // Timer synced with audio completion in speakTourNarration
+      } else {
+        document.body.classList.remove("nova-tier-sweep");
       }
     }
 
@@ -13764,6 +13770,9 @@
   #spatial-satellite-layer {
     transition: opacity 0.35s ease !important;
   }
+  body.nova-tier-sweep #spatial-telemetry-layer,
+  body.nova-tier-sweep #spatial-satellite-layer,
+  body.nova-tier-sweep #spatial-callout-card,
   body.nova-camera-in-transit #spatial-telemetry-layer,
   body.nova-camera-in-transit #spatial-satellite-layer,
   body.nova-camera-in-transit #spatial-callout-card,
@@ -14856,6 +14865,46 @@
   }
   requestAnimationFrame(tick);
 })();
+</script>
+<script>
+window.runCinematicTierSweep = function(tier, durationMs) {
+  if (typeof TWEEN === "undefined" || typeof camera === "undefined" || typeof controls === "undefined") return;
+  const sweeps = {
+    1: { start: [-18, 13, 22],    end: [20, 7, 16],      look: [0, 0, 0] },
+    2: { start: [-150, 78, 165],  end: [140, 42, 125],   look: [0, 0, 0] },
+    3: { start: [-540, 265, 600], end: [490, 175, 430],  look: [0, 0, 0] },
+    4: { start: [-1650, 860, 1850], end: [1450, 480, 1320], look: [0, 0, 0] }
+  };
+  const cfg = sweeps[tier] || sweeps[1];
+  const sweepMs = Math.max(9000, Math.min(20000, durationMs || 14000));
+
+  TWEEN.removeAll();
+  if (typeof isFlyingToTarget !== "undefined") isFlyingToTarget = true;
+  controls.enabled = false;
+
+  const startPos = new THREE.Vector3(cfg.start[0], cfg.start[1], cfg.start[2]);
+  const endPos = new THREE.Vector3(cfg.end[0], cfg.end[1], cfg.end[2]);
+  const lookTarget = new THREE.Vector3(cfg.look[0], cfg.look[1], cfg.look[2]);
+  const startTarget = controls.target.clone();
+
+  camera.position.copy(startPos);
+  const tweenState = { t: 0 };
+
+  new TWEEN.Tween(tweenState)
+    .to({ t: 1 }, sweepMs)
+    .easing(TWEEN.Easing.Sinusoidal.InOut)
+    .onUpdate(() => {
+      camera.position.lerpVectors(startPos, endPos, tweenState.t);
+      controls.target.lerpVectors(startTarget, lookTarget, Math.min(1, tweenState.t * 2.5));
+      camera.lookAt(controls.target);
+      if (typeof updateScaleSliderFromCamera === "function") updateScaleSliderFromCamera();
+    })
+    .onComplete(() => {
+      if (typeof isFlyingToTarget !== "undefined") isFlyingToTarget = false;
+      controls.enabled = true;
+    })
+    .start();
+};
 </script>
 </body>
 </html>
