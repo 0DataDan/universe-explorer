@@ -5808,44 +5808,31 @@
     }
 
     function isGuidedTourCurrentlyActive() {
-      const card = document.getElementById("spatial-callout-card");
-      if (!card) {
-        window._isTourActiveCached = false;
-        return false;
-      }
-      const cardRect = card.getBoundingClientRect();
-      if (cardRect.width < 50 || cardRect.height < 40) {
-        window._isTourActiveCached = false;
-        return false;
-      }
-
-      const allEls = card.querySelectorAll("div, span");
-      for (let i = 0; i < allEls.length; i++) {
-        const txt = (allEls[i].textContent || "").trim();
-        if (/^\d+\s*\/\s*\d{2}$/.test(txt)) {
-          const r = allEls[i].getBoundingClientRect();
-          if (r.width > 5 && r.height > 5) {
-            window._isTourActiveCached = true;
-            return true;
-          }
-        }
-      }
-      window._isTourActiveCached = false;
-      return false;
+      const active = Boolean(
+        (typeof isTourActive !== "undefined" && isTourActive) ||
+        window.isCosmicTourActive
+      );
+      window._isTourActiveCached = active;
+      return active;
     }
 
     function isOverviewHudEnabled() {
-      if (window.inspectorVisible === false || window.hudVisible === false || window._overviewHudHidden === true) {
+      if (
+        window.inspectorVisible === false ||
+        window.hudVisible === false ||
+        window._overviewHudHidden === true ||
+        window._isSpatialCalloutVisible === false
+      ) {
         return false;
       }
       const mainLayer = document.getElementById("spatial-telemetry-layer");
       const mainCard = document.getElementById("spatial-callout-card");
       if (!mainLayer || !mainCard) return false;
-      if (mainLayer.classList.contains("hidden") || mainCard.classList.contains("hidden")) return false;
-
-      const lStyle = window.getComputedStyle(mainLayer);
-      const cStyle = window.getComputedStyle(mainCard);
-      if (lStyle.display === "none" || cStyle.display === "none" || lStyle.visibility === "hidden" || cStyle.visibility === "hidden") {
+      if (
+        mainLayer.classList.contains("hidden") ||
+        mainLayer.classList.contains("opacity-0") ||
+        mainCard.classList.contains("hidden")
+      ) {
         return false;
       }
       return true;
@@ -6896,9 +6883,8 @@
 
         const tourRunning = isGuidedTourCurrentlyActive();
         const hudEnabled = isOverviewHudEnabled();
-        const rect = mainCard.getBoundingClientRect();
 
-        if (!tourRunning || !hudEnabled || rect.width < 120) {
+        if (!tourRunning || !hudEnabled || mainCard.offsetWidth < 120) {
           if (!satLayer.classList.contains('hidden')) {
             satLayer.classList.add('hidden');
           }
@@ -6912,6 +6898,7 @@
           return;
         }
 
+        const rect = mainCard.getBoundingClientRect();
         window.syncSatelliteCourseHUDs();
 
         // Drive smooth, damped 3D camera surface zoom every frame if active!
@@ -6920,11 +6907,14 @@
         const ctrl = window._novaCtrlRef || window.controls;
         if (zState.active && cam && ctrl && zState.lockedCamOffset) {
           zState.currentRatio += (zState.targetRatio - zState.currentRatio) * 0.08;
-          const liveTarget = ctrl.target.clone();
+          const liveTarget = window._surfLiveTarget || (window._surfLiveTarget = new THREE.Vector3());
+          const scaledOffset = window._surfScaledOffset || (window._surfScaledOffset = new THREE.Vector3());
+          liveTarget.copy(ctrl.target);
           if (window._spatialTargetMesh && typeof window._spatialTargetMesh.getWorldPosition === "function") {
             window._spatialTargetMesh.getWorldPosition(liveTarget);
           }
-          cam.position.copy(liveTarget).add(zState.lockedCamOffset.clone().multiplyScalar(zState.currentRatio));
+          scaledOffset.copy(zState.lockedCamOffset).multiplyScalar(zState.currentRatio);
+          cam.position.copy(liveTarget).add(scaledOffset);
           ctrl.target.copy(liveTarget);
         }
 
