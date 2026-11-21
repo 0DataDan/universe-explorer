@@ -1673,6 +1673,22 @@
 
     let resetAnimTimeout = null;
     window.resetToSolCore = function() {
+      const fromId = window._novaLastTargetId || ((activeTarget && activeTarget.id) ? String(activeTarget.id).toLowerCase() : "sun");
+      const jump = (typeof computeNasaJumpDistance === "function")
+        ? computeNasaJumpDistance(fromId, "sun")
+        : { value: 0, unit: "AU" };
+      const durationMs = (typeof computeTravelDurationMs === "function")
+        ? computeTravelDurationMs(jump)
+        : 1500;
+
+      window._novaLastTargetId = "sun";
+      window._novaTravelState = {
+        active: jump.value > 0,
+        current: 0,
+        total: jump.value,
+        unit: jump.unit
+      };
+
       const resetBtn = document.getElementById("btn-reset-sol");
       if (resetBtn) {
         resetBtn.classList.remove("reset-animating");
@@ -1681,7 +1697,7 @@
         if (resetAnimTimeout) clearTimeout(resetAnimTimeout);
         resetAnimTimeout = setTimeout(() => {
           resetBtn.classList.remove("reset-animating");
-        }, 2050);
+        }, durationMs + 50);
       }
 
       filterTier(0);
@@ -1692,19 +1708,34 @@
         activeTarget = sunMeshRef.userData;
       }
 
-      new TWEEN.Tween(camera.position)
-        .to({ x: 0, y: 9.0, z: 13.0 }, 2000)
+      TWEEN.removeAll();
+      const startCam = camera.position.clone();
+      const endCam = new THREE.Vector3(0, 9.0, 13.0);
+      const startTarget = controls.target.clone();
+      const endTarget = new THREE.Vector3(0, 0, 0);
+      const tweenObj = { t: 0 };
+
+      new TWEEN.Tween(tweenObj)
+        .to({ t: 1 }, durationMs)
         .easing(TWEEN.Easing.Cubic.InOut)
         .onUpdate(() => {
+          camera.position.lerpVectors(startCam, endCam, tweenObj.t);
+          controls.target.lerpVectors(startTarget, endTarget, tweenObj.t);
+          if (window._novaTravelState) {
+            window._novaTravelState.current = window._novaTravelState.total * tweenObj.t;
+            window._novaTravelState.active = tweenObj.t < 0.995;
+          }
           if (typeof updateScaleSliderFromCamera === "function") {
             updateScaleSliderFromCamera();
           }
         })
-        .start();
-
-      new TWEEN.Tween(controls.target)
-        .to({ x: 0, y: 0, z: 0 }, 2000)
-        .easing(TWEEN.Easing.Cubic.InOut)
+        .onComplete(() => {
+          if (window._novaTravelState) {
+            window._novaTravelState.current = window._novaTravelState.total;
+            window._novaTravelState.active = false;
+          }
+          if (typeof controls !== "undefined" && controls) controls.enabled = true;
+        })
         .start();
     };
 
@@ -7311,8 +7342,99 @@
       line.setAttribute('points', `${anchorX.toFixed(1)},${anchorY.toFixed(1)} ${elbowX.toFixed(1)},${attachY.toFixed(1)} ${attachX.toFixed(1)},${attachY.toFixed(1)}`);
     };
 
-    window.smoothFlyToTarget = function(durationMs = 2600) {
+    window.novaGetCatalog = function() {
+      return (typeof celestialObjects !== "undefined" && Array.isArray(celestialObjects)) ? celestialObjects : [];
+    };
+
+    window.novaGetTelemetry = function() {
+      if (typeof camera === "undefined" || typeof controls === "undefined" || !camera || !controls) return null;
+      const offset = camera.position.clone().sub(controls.target);
+      const dist = offset.length();
+      // Azimuth (0 - 359.9 deg) and Elevation (-90 - +90 deg) relative to ecliptic plane
+      let az = (Math.atan2(offset.x, offset.z) * 180) / Math.PI;
+      if (az < 0) az += 360;
+      const horiz = Math.hypot(offset.x, offset.z);
+      const el = (Math.atan2(offset.y, horiz) * 180) / Math.PI;
+      const tier = (typeof activeTarget !== "undefined" && activeTarget && activeTarget.tier) ? activeTarget.tier : 1;
+      return { az, el, dist, tier };
+    };
+
+    window.novaSlewToMesh = function(mesh, override) {
+      if (!mesh || !mesh.userData) return false;
+      if (typeof controls !== "undefined" && controls) controls.enabled = true;
+      activeTargetMesh = mesh;
+      if (typeof isPlanetOverviewEnabled !== "undefined" && isPlanetOverviewEnabled && typeof openInspector === "function") {
+        openInspector(mesh.userData);
+      } else {
+        activeTarget = mesh.userData;
+        if (typeof window.dismissSpatialCallout === "function") window.dismissSpatialCallout();
+      }
+      window._novaFlyOverride = override || null;
+      window.smoothFlyToTarget();
+      return true;
+    };
+
+    // Authoritative NASA/JPL Horizons (AU) & NASA/ESA/Gaia/JWST (light-years) distance catalog
+    const NOVA_NASA_DIST_AU = {
+      sun: 0, mercury: 0.387, venus: 0.723, earth: 1.000, moon: 1.000,
+      mars: 1.524, ceres: 2.767, jupiter: 5.204, saturn: 9.582,
+      uranus: 19.201, neptune: 30.047, pluto: 39.482, haumea: 43.116,
+      makemake: 45.430, eris: 67.864, sedna: 83.5, "90377-sedna": 83.5,
+      "halleys-comet": 35.1, halley: 35.1, "voyager-1": 166.0, "voyager-2": 139.0
+    };
+    const NOVA_NASA_DIST_LY = {
+      "oort-cloud": 0.79, "proxima-centauri": 4.2465, "alpha-centauri": 4.344,
+      "barnards-star": 5.963, sirius: 8.60, vega: 25.04, arcturus: 36.7,
+      "trappist-1": 40.66, betelgeuse: 548, rigel: 863,
+      "orion-nebula": 1344, "crab-nebula": 6500, "eagle-nebula": 6500,
+      "pillars-of-creation": 6500, "sagittarius-a-star": 26673, "milky-way": 26673,
+      lmc: 163000, smc: 200000, andromeda: 2537000, triangulum: 2730000,
+      "centaurus-a": 12000000, "sombrero-galaxy": 31100000, "messier-87": 53500000,
+      "great-attractor": 250000000, "shapley-supercluster": 650000000,
+      "bootes-void": 700000000, "smacs-0723": 4600000000, "el-gordo": 7000000000,
+      "ton-618": 10800000000, earendel: 12900000000, "gn-z11": 13400000000
+    };
+
+    function computeNasaJumpDistance(fromId, toId) {
+      const f = (fromId || "sun").toLowerCase();
+      const t = (toId || "sun").toLowerCase();
+      if (f === t) return { value: 0, unit: "AU" };
+      if ((f === "earth" && t === "moon") || (f === "moon" && t === "earth")) {
+        return { value: 384400, unit: "km" };
+      }
+      const fAU = NOVA_NASA_DIST_AU[f];
+      const tAU = NOVA_NASA_DIST_AU[t];
+      if (fAU !== undefined && tAU !== undefined) {
+        return { value: Math.abs(tAU - fAU), unit: "AU" };
+      }
+      const fLy = NOVA_NASA_DIST_LY[f] !== undefined ? NOVA_NASA_DIST_LY[f] : (fAU !== undefined ? fAU / 63241.077 : 0);
+      const tLy = NOVA_NASA_DIST_LY[t] !== undefined ? NOVA_NASA_DIST_LY[t] : (tAU !== undefined ? tAU / 63241.077 : 0);
+      return { value: Math.abs(tLy - fLy), unit: "ly" };
+    }
+
+    window._novaLastTargetId = window._novaLastTargetId || "sun";
+    window._novaTravelState = window._novaTravelState || { active: false, current: 0, total: 0, unit: "AU" };
+
+    function computeTravelDurationMs(jump) {
+      if (!jump || !jump.value || jump.value <= 0) return 1500;
+      let distAU = jump.value;
+      if (jump.unit === "km") distAU = jump.value / 149597870.7;
+      else if (jump.unit === "ly") distAU = jump.value * 63241.077;
+      const logAU = Math.log10(Math.max(distAU, 0.0025));
+      // Normalize from lunar distance (~-2.6) to observable-universe edge (~15.0)
+      const norm = Math.max(0, Math.min(1, (logAU + 2.6) / 17.6));
+      return Math.round(1300 + Math.pow(norm, 1.5) * 6900);
+    }
+
+    window.smoothFlyToTarget = function(durationMs) {
       if (!activeTargetMesh) return;
+      const nextId = (activeTarget && activeTarget.id) ? String(activeTarget.id).toLowerCase() : "sun";
+      const jump = computeNasaJumpDistance(window._novaLastTargetId, nextId);
+      window._novaLastTargetId = nextId;
+      window._novaTravelState = { active: jump.value > 0, current: 0, total: jump.value, unit: jump.unit };
+      const effectiveDuration = (typeof durationMs === "number" && durationMs > 0)
+        ? durationMs
+        : computeTravelDurationMs(jump);
 
       TWEEN.removeAll();
       isFlyingToTarget = true;
@@ -7349,7 +7471,17 @@
       }
 
       const baseDist = Math.max(objRadius * multiplier, 4.2);
-      const offsetDist = baseDist;
+      let offsetDist = baseDist;
+      if (window._novaFlyOverride) {
+        const ov = window._novaFlyOverride;
+        window._novaFlyOverride = null;
+        const minSafe = Math.max(objRadius * 1.45, 1.8);
+        if (typeof ov.radii === "number" && ov.radii > 0) {
+          offsetDist = Math.max(objRadius * ov.radii, minSafe);
+        } else if (typeof ov.zoom === "number" && ov.zoom > 0) {
+          offsetDist = Math.max(baseDist / ov.zoom, minSafe);
+        }
+      }
 
 
 
@@ -7368,7 +7500,7 @@
 
       const tweenObj = { t: 0 };
       new TWEEN.Tween(tweenObj)
-        .to({ t: 1 }, durationMs)
+        .to({ t: 1 }, effectiveDuration)
         .easing(TWEEN.Easing.Cubic.InOut)
         .onUpdate(() => {
           if (!activeTargetMesh) return;
@@ -7379,9 +7511,14 @@
           camera.position.lerpVectors(startCamPos, desiredEndCam, tweenObj.t);
           controls.target.lerpVectors(startTargetPos, currentWorldPos, tweenObj.t);
           lastTrackedTargetPos.copy(currentWorldPos);
+          if (window._novaTravelState) {
+            window._novaTravelState.current = window._novaTravelState.total * tweenObj.t;
+            window._novaTravelState.active = tweenObj.t < 0.995;
+          }
         })
         .onComplete(() => {
           isFlyingToTarget = false;
+          if (typeof controls !== "undefined" && controls) controls.enabled = true;
           if (activeTargetMesh) {
             activeTargetMesh.getWorldPosition(lastTrackedTargetPos);
           }
@@ -13406,6 +13543,146 @@
     transform: none !important;
   }
 
+  /* === NOVA SLEW CONSOLE (NASA OPEN MCT / JPL AESTHETIC) === */
+  #nova-cmd-overlay {
+    position: fixed;
+    top: 5.25rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    width: min(520px, calc(100vw - 2rem));
+    z-index: 9995;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+  #nova-cmd-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+  #nova-cmd-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(4, 7, 12, 0.90);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 2px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+  }
+  #nova-cmd-prompt {
+    color: #7dd3fc;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    user-select: none;
+  }
+  #nova-cmd-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e2e8f0;
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+    caret-color: #f59e0b;
+  }
+  #nova-cmd-input::placeholder {
+    color: rgba(100, 116, 139, 0.65);
+  }
+  #nova-cmd-hint {
+    color: #64748b;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    user-select: none;
+  }
+  #nova-cmd-results {
+    margin-top: 4px;
+    background: rgba(4, 7, 12, 0.90);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 2px;
+    overflow: hidden;
+    display: none;
+  }
+  #nova-cmd-results.has-items {
+    display: block;
+  }
+  .nova-cmd-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    font-size: 11.5px;
+    color: rgba(226, 232, 240, 0.82);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    transition: background 100ms ease, color 100ms ease, border-color 100ms ease;
+  }
+  .nova-cmd-item:last-child { border-bottom: none; }
+  .nova-cmd-item:hover,
+  .nova-cmd-item.selected {
+    background: rgba(245, 158, 11, 0.10);
+    border-left-color: #f59e0b;
+    color: #f8fafc;
+  }
+  .nova-cmd-meta {
+    font-size: 9.5px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .nova-cmd-item.selected .nova-cmd-meta {
+    color: rgba(245, 158, 11, 0.85);
+  }
+  #nova-cmd-status {
+    margin-top: 5px;
+    padding: 0 2px;
+    font-size: 10px;
+    color: #64748b;
+    letter-spacing: 0.06em;
+    min-height: 14px;
+  }
+  #nova-cmd-status.is-error {
+    color: #f59e0b;
+  }
+
+  /* === GIMBAL LIVE TELEMETRY READOUT === */
+  #nova-nav-telemetry {
+    margin-left: 12px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(148, 163, 184, 0.22);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 9.5px;
+    line-height: 1.25;
+    letter-spacing: 0.08em;
+    font-variant-numeric: tabular-nums;
+    color: #64748b;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+  }
+  #nova-nav-telemetry .t-row {
+    display: flex;
+    gap: 10px;
+  }
+  #nova-nav-telemetry .t-val {
+    color: rgba(226, 232, 240, 0.88);
+  }
+  #nova-nav-telemetry .t-val.in-transit {
+    color: #f59e0b;
+  }
+
   /* === ULTRA-MINIMALIST OBSERVATORY TOOLTIPS === */
   [data-tip] {
     position: relative;
@@ -14006,6 +14283,319 @@
   }
   purgeLegacyBottomCyanLine();
   setInterval(purgeLegacyBottomCyanLine, 500);
+
+  // === NOVA SLEW CONSOLE (TARGETING & RESET TERMINAL) ===
+  (function initNovaSlewConsole() {
+    if (document.getElementById("nova-cmd-overlay")) return;
+
+    const overlay = document.createElement("div");
+    overlay.id = "nova-cmd-overlay";
+    overlay.innerHTML = `
+      <div id="nova-cmd-bar">
+        <span id="nova-cmd-prompt">SLEW &gt;</span>
+        <input id="nova-cmd-input" type="text" autocomplete="off" spellcheck="false"
+               placeholder="goto sedna -z 2  |  saturn 3r  |  reset" />
+        <span id="nova-cmd-hint">ESC</span>
+      </div>
+      <div id="nova-cmd-results"></div>
+      <div id="nova-cmd-status"></div>
+    `;
+    document.body.appendChild(overlay);
+
+    const input = document.getElementById("nova-cmd-input");
+    const resultsEl = document.getElementById("nova-cmd-results");
+    const statusEl = document.getElementById("nova-cmd-status");
+
+    let isOpen = false;
+    let currentMatches = [];
+    let selectedIdx = 0;
+
+    function openConsole() {
+      if (document.documentElement.classList.contains("is-booting")) return;
+      isOpen = true;
+      overlay.classList.add("open");
+      input.value = "";
+      statusEl.classList.remove("is-error"); statusEl.textContent = "FLAGS: -z <zoom> · <n>r (radii) · --close · --wide · reset";
+      renderMatches("");
+      setTimeout(() => input.focus(), 10);
+    }
+
+    function closeConsole() {
+      isOpen = false;
+      overlay.classList.remove("open");
+      input.blur();
+      resultsEl.classList.remove("has-items");
+    }
+
+    function parseCommand(raw) {
+      const text = raw.trim();
+      if (!text) return { action: "empty" };
+      const tokens = text.split(/\s+/);
+      const first = tokens[0].toLowerCase();
+
+      if (first === "reset" || first === "home") {
+        return { action: "reset" };
+      }
+
+      // Optional leading verb
+      let idx = 0;
+      if (["goto", "slew", "approach", "target", "fly", "focus"].includes(first)) {
+        idx = 1;
+      }
+
+      const override = {};
+      const nameParts = [];
+
+      for (let i = idx; i < tokens.length; i++) {
+        const tok = tokens[i];
+        const low = tok.toLowerCase();
+        if (low === "--close" || low === "-c") {
+          override.zoom = 2.2;
+        } else if (low === "--wide" || low === "-w") {
+          override.zoom = 0.45;
+        } else if ((low === "-z" || low === "zoom" || low === "--zoom") && tokens[i + 1]) {
+          const val = parseFloat(tokens[++i]);
+          if (!isNaN(val) && val > 0) override.zoom = val;
+        } else if (/^\d+(\.\d+)?r$/i.test(low)) {
+          const val = parseFloat(low.slice(0, -1));
+          if (!isNaN(val) && val > 0) override.radii = val;
+        } else {
+          nameParts.push(tok);
+        }
+      }
+
+      return {
+        action: "slew",
+        query: nameParts.join(" ").trim(),
+        override: Object.keys(override).length ? override : null
+      };
+    }
+
+    function findCatalogMatches(query) {
+      const catalog = (typeof window.novaGetCatalog === "function") ? window.novaGetCatalog() : [];
+      const q = (query || "").toLowerCase().trim();
+      if (!q) return [];
+
+      const scored = [];
+      for (const mesh of catalog) {
+        if (!mesh || !mesh.userData) continue;
+        const name = String(mesh.userData.name || mesh.userData.id || "");
+        const id = String(mesh.userData.id || "");
+        const type = String(mesh.userData.type || "");
+        const nLow = name.toLowerCase();
+        const iLow = id.toLowerCase();
+
+        let score = 0;
+        if (nLow === q || iLow === q) score = 100;
+        else if (nLow.startsWith(q) || iLow.startsWith(q)) score = 75;
+        else if (nLow.includes(q) || iLow.includes(q)) score = 45;
+        else if (type.toLowerCase().includes(q)) score = 20;
+
+        if (score > 0) scored.push({ mesh, name, type, score });
+      }
+
+      scored.sort((a, b) => b.score - a.score || a.name.length - b.name.length);
+      return scored.slice(0, 5);
+    }
+
+    function renderMatches(raw) {
+      const parsed = parseCommand(raw);
+      if (parsed.action !== "slew" || !parsed.query) {
+        currentMatches = [];
+        selectedIdx = 0;
+        resultsEl.innerHTML = "";
+        resultsEl.classList.remove("has-items");
+        return;
+      }
+
+      currentMatches = findCatalogMatches(parsed.query);
+      selectedIdx = Math.min(selectedIdx, Math.max(0, currentMatches.length - 1));
+
+      if (!currentMatches.length) {
+        resultsEl.innerHTML = "";
+        resultsEl.classList.remove("has-items");
+        return;
+      }
+
+      resultsEl.innerHTML = currentMatches.map((m, i) => `
+        <div class="nova-cmd-item ${i === selectedIdx ? "selected" : ""}" data-idx="${i}">
+          <span>${m.name}</span>
+          <span class="nova-cmd-meta">${m.type || "OBJECT"}</span>
+        </div>
+      `).join("");
+      resultsEl.classList.add("has-items");
+
+      resultsEl.querySelectorAll(".nova-cmd-item").forEach((el) => {
+        el.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          selectedIdx = parseInt(el.getAttribute("data-idx"), 10) || 0;
+          executeCommand();
+        });
+      });
+    }
+
+    function executeCommand() {
+      const parsed = parseCommand(input.value);
+      if (parsed.action === "reset") {
+        if (window.controls) window.controls.enabled = true;
+        window.isFlyingToTarget = false;
+        closeConsole();
+        if (typeof window.triggerMapKeyReset === "function") {
+          window.triggerMapKeyReset();
+        } else if (typeof window.resetCameraToHome === "function") {
+          window.resetCameraToHome();
+        } else {
+          const sphere = document.getElementById("nova-attitude-sphere");
+          if (sphere) sphere.click();
+        }
+        setTimeout(() => { if (window.controls) window.controls.enabled = true; }, 1600);
+        return;
+      }
+      if (parsed.action === "slew") {
+        const match = currentMatches[selectedIdx] || findCatalogMatches(parsed.query)[0];
+        if (match && typeof window.novaSlewToMesh === "function") {
+          window.novaSlewToMesh(match.mesh, parsed.override);
+          closeConsole();
+        } else {
+          statusEl.classList.add("is-error"); statusEl.textContent = `TARGET NOT FOUND: "${parsed.query || input.value.trim()}"`;
+        }
+      }
+    }
+
+    input.addEventListener("input", () => {
+      selectedIdx = 0;
+      renderMatches(input.value);
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeConsole();
+        return;
+      }
+      if (e.key === "ArrowDown" && currentMatches.length) {
+        e.preventDefault();
+        selectedIdx = (selectedIdx + 1) % currentMatches.length;
+        renderMatches(input.value);
+        return;
+      }
+      if (e.key === "ArrowUp" && currentMatches.length) {
+        e.preventDefault();
+        selectedIdx = (selectedIdx - 1 + currentMatches.length) % currentMatches.length;
+        renderMatches(input.value);
+        return;
+      }
+      if (e.key === "Tab" && currentMatches.length) {
+        e.preventDefault();
+        const pick = currentMatches[selectedIdx];
+        const tokens = input.value.trim().split(/\s+/);
+        const hasVerb = ["goto", "slew", "approach", "target", "fly", "focus"].includes((tokens[0] || "").toLowerCase());
+        input.value = (hasVerb ? tokens[0] + " " : "") + pick.name + " ";
+        renderMatches(input.value);
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        executeCommand();
+      }
+    });
+
+    // Global summon shortcut: '/' or Cmd+K / Ctrl+K
+    window.addEventListener("keydown", (e) => {
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      const isCmdK = (e.metaKey || e.ctrlKey) && (e.key || "").toLowerCase() === "k";
+      const isSlash = !e.metaKey && !e.ctrlKey && !e.altKey && e.key === "/" && tag !== "input" && tag !== "textarea";
+
+      if (isCmdK || isSlash) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if (isOpen) closeConsole();
+        else openConsole();
+      } else if (isOpen && e.key === "Escape") {
+        e.preventDefault();
+        closeConsole();
+      }
+    }, true);
+
+    document.addEventListener("pointerdown", (e) => {
+      if (isOpen && !overlay.contains(e.target)) closeConsole();
+      if (e.target && e.target.tagName && e.target.tagName.toLowerCase() === "canvas") {
+        if (!window.isFlyingToTarget && !window.isCosmicTourActive && window.controls && !window.controls.enabled) {
+          window.controls.enabled = true;
+        }
+      }
+    }, true);
+  })();
+
+  // === LIVE GIMBAL TELEMETRY (AZ / EL / RNG + NASA/JPL TRV) ===
+  (function initGimbalTelemetry() {
+    function mountTelemetry() {
+      if (document.getElementById("nova-nav-telemetry")) return true;
+      const gimbal = document.getElementById("hud-center-gimbal");
+      if (!gimbal) return false;
+
+      const readout = document.createElement("div");
+      readout.id = "nova-nav-telemetry";
+      readout.innerHTML = `
+        <div class="t-row">
+          <span>AZ <span class="t-val" id="t-az">000.0°</span></span>
+          <span>EL <span class="t-val" id="t-el">+00.0°</span></span>
+        </div>
+        <div class="t-row">
+          <span>RNG <span class="t-val" id="t-rng">0.00 AU</span></span>
+          <span>TRV <span class="t-val" id="t-trv">—</span></span>
+        </div>
+      `;
+      gimbal.appendChild(readout);
+      return true;
+    }
+
+    function formatRange(dist, tier) {
+      if (tier >= 4 || dist > 6000) return (dist / 1200).toFixed(1) + " Mpc";
+      if (tier === 3 || dist > 900) return (dist / 120).toFixed(1) + " kly";
+      if (tier === 2 || dist > 260) return (dist / 18).toFixed(1) + " ly";
+      return (dist / 12).toFixed(2) + " AU";
+    }
+
+    function formatTravel(val, unit) {
+      if (!val || val <= 0) return "—";
+      if (unit === "km") return Math.round(val).toLocaleString() + " km";
+      if (unit === "AU") return val.toFixed(2) + " AU";
+      // Light-years auto-scaling (ly / kly / Mly / Bly)
+      if (val >= 1e9) return (val / 1e9).toFixed(2) + " Bly";
+      if (val >= 1e6) return (val / 1e6).toFixed(2) + " Mly";
+      if (val >= 1e3) return (val / 1e3).toFixed(1) + " kly";
+      return val.toFixed(2) + " ly";
+    }
+
+    let lastUpdate = 0;
+    function tickTelemetry(now) {
+      requestAnimationFrame(tickTelemetry);
+      if (now - lastUpdate < 60) return;
+      lastUpdate = now;
+      if (!mountTelemetry()) return;
+
+      if (typeof window.novaGetTelemetry === "function") {
+        const t = window.novaGetTelemetry();
+        if (t) {
+          const azEl = document.getElementById("t-az");
+          const elEl = document.getElementById("t-el");
+          const rngEl = document.getElementById("t-rng");
+          if (azEl) azEl.textContent = t.az.toFixed(1).padStart(5, "0") + "°";
+          if (elEl) elEl.textContent = (t.el >= 0 ? "+" : "") + t.el.toFixed(1) + "°";
+          if (rngEl) rngEl.textContent = formatRange(t.dist, t.tier);
+        }
+      }
+
+      const trvEl = document.getElementById("t-trv");
+      const trv = window._novaTravelState;
+      if (trvEl && trv) {
+        trvEl.textContent = formatTravel(trv.current, trv.unit);
+        trvEl.classList.toggle("in-transit", !!trv.active);
+      }
+    }
+    requestAnimationFrame(tickTelemetry);
+  })();
 })();
 </script>
 </body>
