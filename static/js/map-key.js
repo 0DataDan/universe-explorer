@@ -429,8 +429,7 @@
           const decel = Math.pow(1.0 - progress, 2.8);
           const speed = 1.5 + decel * 58;
 
-          ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
-          ctx.fillRect(0, 0, w, h);
+          ctx.clearRect(0, 0, w, h);
 
           for (let i = 0; i < numStars; i++) {
             const s = stars[i];
@@ -628,38 +627,34 @@
       function onPortalTriggerClick(e) {
         if (isWormholeRunning) return;
         isWormholeRunning = true;
-        document.body.classList.remove('nova-portal-o-active', 'nova-cursor-hover');
         if (e && e.stopPropagation) e.stopPropagation();
 
+        // Ensure 3D scene & any remaining chunked builders are ready
+        if (typeof window._ensureNova3DInit === "function") window._ensureNova3DInit();
+        if (typeof window._flushNova3DBuilders === "function") window._flushNova3DBuilders();
+
+        // Hide cursor & strip any blue selection state immediately during travel
+        document.body.classList.add("nova-traveling");
+        document.body.classList.remove("nova-portal-o-active", "nova-cursor-hover");
+        document.documentElement.classList.add("is-wormhole-zooming");
+
+        // Stop the idle constellation field cleanly
+        if (typeof stopIdleBootField === "function") {
+          stopIdleBootField();
+          stopIdleBootField = null;
+        }
+
+        const overlay = document.getElementById("nova-boot-overlay");
         const portalO = document.getElementById("nova-portal-o");
         const svgEl = document.getElementById("nova-boot-svg");
         const splashContainer = document.getElementById("nova-boot-center-container");
         const warpCanvas = document.getElementById("nova-warp-canvas");
 
-        if (portalO) {
-          portalO.style.pointerEvents = "none";
-          portalO.classList.remove("portal-ready");
-          const arcs = portalO.querySelectorAll(".nova-portal-arc");
-          arcs.forEach(arc => {
-            arc.style.animation = "none";
-            arc.style.stroke = "#ffffff";
-            arc.style.filter = "drop-shadow(0 0 18px rgba(255, 255, 255, 0.98))";
-          });
-        }
-
-        if (svgEl) {
-          svgEl.style.transformOrigin = "37.87% 50.35%";
-        }
-        if (splashContainer) {
-          splashContainer.style.transformOrigin = "37.87% 50.35%";
-          splashContainer.style.pointerEvents = "none";
-        }
-
-        // Prepare 3D Solar System destination state
+        // Prepare live 3D Solar System destination state
         if (typeof filterTier === "function") filterTier(0);
         const slider = document.getElementById("scale-slider");
         if (slider) slider.value = "3.70";
-        if (typeof controls !== "undefined") {
+        if (typeof controls !== "undefined" && controls) {
           controls.target.set(0, 0, 0);
           controls.enabled = false;
         }
@@ -670,137 +665,325 @@
           activeTargetMesh = sunMeshRef;
           activeTarget = sunMeshRef.userData;
         }
-        if (typeof applyCharacteristicTexturesToScene === "function") {
-          applyCharacteristicTexturesToScene();
-        }
+
+
+        // Start along an ecliptic-aligned deep-space approach
         if (typeof camera !== "undefined") {
-          camera.position.set(0, 36, 52);
-          camera.fov = 56;
+          camera.position.set(-48, 38, 130);
+          camera.fov = 66;
+          camera.lookAt(0, 0, 0);
           camera.updateProjectionMatrix();
         }
 
-        let stopWarp = null;
+        // -------------------------------------------------------------------
+        // OPTION 3: Ecliptic Wave Horizon
+        // -------------------------------------------------------------------
+        let stopHorizonWave = null;
+        if (warpCanvas && svgEl) {
+          const ctx = warpCanvas.getContext("2d");
+          const w = (warpCanvas.width = window.innerWidth);
+          const h = (warpCanvas.height = window.innerHeight);
+          warpCanvas.style.opacity = "1";
+          warpCanvas.style.transition = "none";
 
-        runStaggeredRippleAndZoom(
-          () => {
-            if (typeof sunMeshRef !== "undefined" && sunMeshRef) {
-              activeTargetMesh = sunMeshRef;
-              activeTarget = sunMeshRef.userData;
+          const svgRect = svgEl.getBoundingClientRect();
+          const scaleX = svgRect.width / 734;
+          const scaleY = svgRect.height / 144;
+          const portalRect = portalO ? portalO.getBoundingClientRect() : null;
+          const cx = portalRect && portalRect.width > 0
+            ? portalRect.left + portalRect.width * 0.5
+            : svgRect.left + 278 * scaleX;
+          const cy = portalRect && portalRect.height > 0
+            ? portalRect.top + portalRect.height * 0.5
+            : svgRect.top + 72.5 * scaleY;
+
+          // 1. Build 3D-tilted monochrome ecliptic particle plane (GravityWave.mov angle)
+          const planeParticles = [];
+          const maxR = Math.hypot(w, h) * 0.78;
+          const rings = 20;
+          for (let rIdx = 1; rIdx <= rings; rIdx++) {
+            const normR = rIdx / rings;
+            const baseRadius = 34 + Math.pow(normR, 1.15) * maxR;
+            const ptsInRing = Math.floor(18 + normR * 52);
+            for (let j = 0; j < ptsInRing; j++) {
+              const theta = (j / ptsInRing) * Math.PI * 2 + (Math.random() - 0.5) * 0.14;
+              const radius = baseRadius + (Math.random() - 0.5) * 18;
+              planeParticles.push({
+                r: radius,
+                theta,
+                size: 1.2 + (1 - normR) * 1.3,
+                baseAlpha: 0.14 + (1 - normR) * 0.44
+              });
             }
-            if (typeof lastTrackedTargetPos !== "undefined") {
-              lastTrackedTargetPos.set(0, 0, 0);
+          }
+
+          // 2. Sample NOVA SVG strokes so the passing wave scatters them into deep-space stars
+          const letterParticles = [];
+          const pathIds = ["nova-base-n", "nova-svg-o-top", "nova-svg-o-bot", "nova-base-v", "nova-base-a"];
+          pathIds.forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el || typeof el.getTotalLength !== "function") return;
+            const len = el.getTotalLength();
+            const count = Math.max(52, Math.floor(len / 2.4));
+            for (let k = 0; k <= count; k++) {
+              const pt = el.getPointAtLength((k / count) * len);
+              const sx = svgRect.left + pt.x * scaleX;
+              const sy = svgRect.top + pt.y * scaleY;
+              const dx = sx - cx;
+              const dy = sy - cy;
+              const dist = Math.hypot(dx, dy);
+              const ang = Math.atan2(dy, dx);
+              letterParticles.push({
+                x: sx,
+                y: sy,
+                ox: sx,
+                oy: sy,
+                dist,
+                ang,
+                vx: Math.cos(ang) * (1.2 + Math.random() * 2.4) + (Math.random() - 0.5) * 1.1,
+                vy: Math.sin(ang) * (0.7 + Math.random() * 1.5) - (0.5 + Math.random() * 1.4),
+                size: 1.15 + Math.random() * 0.85,
+                alpha: 0.96,
+                released: false,
+                releaseTime: 0
+              });
             }
-            isFlyingToTarget = true;
-            if (typeof controls !== "undefined" && controls) {
-              controls.enabled = false;
-              controls.target.set(0, 0, 0);
+          });
+
+          // Sample the dot inside 'A'
+          const dotCx = svgRect.left + 657.5 * scaleX;
+          const dotCy = svgRect.top + 71.5 * scaleY;
+          const dotRad = 11.5 * scaleX;
+          for (let k = 0; k < 28; k++) {
+            const a = (k / 28) * Math.PI * 2;
+            const rr = Math.sqrt(Math.random()) * dotRad;
+            const sx = dotCx + Math.cos(a) * rr;
+            const sy = dotCy + Math.sin(a) * rr;
+            const dx = sx - cx;
+            const dy = sy - cy;
+            const dist = Math.hypot(dx, dy);
+            const ang = Math.atan2(dy, dx);
+            letterParticles.push({
+              x: sx,
+              y: sy,
+              ox: sx,
+              oy: sy,
+              dist,
+              ang,
+              vx: Math.cos(ang) * (1.5 + Math.random() * 2.2),
+              vy: Math.sin(ang) * (0.8 + Math.random() * 1.3) - 0.9,
+              size: 1.2 + Math.random() * 0.7,
+              alpha: 0.96,
+              released: false,
+              releaseTime: 0
+            });
+          }
+
+          // Smoothly crossfade SVG wordmark into canvas particles (zero dotted-line snap)
+          svgEl.style.transition = "opacity 0.24s ease-out";
+          svgEl.style.opacity = "0";
+          setTimeout(() => { svgEl.style.visibility = "hidden"; }, 260);
+          if (splashContainer) splashContainer.style.pointerEvents = "none";
+
+          const duration = 4200;
+          const startTime = performance.now();
+          let rafId = null;
+
+          function renderHorizon(now) {
+            const elapsed = now - startTime;
+            const p = Math.min(1.0, elapsed / duration);
+            const easeOut = 1 - Math.pow(1 - p, 3);
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Single dramatic spiral wave crest expanding from O across the tilted ecliptic plane
+            const waveFront = p * maxR * 1.38;
+            const bandWidth = 105;
+            const planeIn = Math.min(1.0, p / 0.16);
+            const planeOut = p > 0.56 ? Math.max(0, 1.0 - (p - 0.56) / 0.44) : 1.0;
+
+            // Slight tilt toward the 3D Solar System's ecliptic plane
+            const tiltY = 0.34 + 0.08 * easeOut;
+            const planeRot = -0.14 + 0.14 * easeOut;
+            const cosR = Math.cos(planeRot);
+            const sinR = Math.sin(planeRot);
+
+            for (let k = 0; k < planeParticles.length; k++) {
+              const pt = planeParticles[k];
+              const spiralOffset = Math.sin(pt.theta * 2.0 - p * 4.5) * 32;
+              const distFromFront = pt.r - (waveFront + spiralOffset);
+              const crest = Math.exp(-(distFromFront * distFromFront) / (bandWidth * bandWidth));
+
+              // Local 3D-tilted plane coords with vertical wave lift
+              const lx = Math.cos(pt.theta + p * 0.28) * pt.r;
+              const ly = Math.sin(pt.theta + p * 0.28) * pt.r * tiltY - crest * 34;
+
+              // Subtle horizon roll alignment
+              const px = cx + lx * cosR - ly * sinR;
+              const py = cy + lx * sinR + ly * cosR;
+
+              const alpha = (pt.baseAlpha * 0.55 + crest * 0.72) * planeIn * planeOut;
+              if (alpha <= 0.012 || px < -10 || px > w + 10 || py < -10 || py > h + 10) continue;
+
+              const sz = pt.size + crest * 1.6;
+              ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.95, alpha).toFixed(2)})`;
+              ctx.fillRect(px - sz * 0.5, py - sz * 0.5, sz, sz);
             }
 
-            if (typeof camera !== "undefined" && typeof TWEEN !== "undefined") {
-              TWEEN.removeAll();
+            // Capture letter particles into the same 3D-tilted spiral orbital wave (zero NOVA ghost trail)
+            for (let k = 0; k < letterParticles.length; k++) {
+              const lp = letterParticles[k];
+              if (!lp.released && waveFront >= lp.dist * 0.78) {
+                lp.released = true;
+                lp.releaseTime = elapsed;
+                lp.curR = lp.dist;
+                lp.curAng = lp.ang;
+                lp.spinSpeed = 0.018 + Math.random() * 0.022;
+                lp.radialDrift = 0.9 + Math.random() * 1.8;
+              }
 
-              // Continuous, slow cinematic zoom-in directly onto the Sun ({0, 9.0, 13.0}) matching the reference screenshot on completion
-              const zoomDuration = 4800;
-              new TWEEN.Tween(camera.position)
-                .to({ x: 0, y: 9.0, z: 13.0 }, zoomDuration)
-                .easing(TWEEN.Easing.Cubic.Out)
-                .onUpdate(() => {
-                  camera.lookAt(0, 0, 0);
-                  if (typeof controls !== "undefined" && controls) {
-                    controls.target.set(0, 0, 0);
-                  }
-                  if (typeof updateScaleSliderFromCamera === "function") {
-                    updateScaleSliderFromCamera();
-                  }
-                })
-                .onComplete(() => {
-                  camera.position.set(0, 9.0, 13.0);
-                  camera.fov = 50;
-                  camera.updateProjectionMatrix();
-                  document.documentElement.classList.remove("is-wormhole-zooming");
-                  if (typeof controls !== "undefined" && controls) {
-                    controls.target.set(0, 0, 0);
-                    controls.enabled = true;
-                    controls.enableRotate = true;
-                    controls.enableZoom = true;
-                    controls.enablePan = true;
-                    controls.update();
-                  }
-                  if (typeof updateScaleSliderFromCamera === "function") {
-                    updateScaleSliderFromCamera();
-                  }
-                  if (stopWarp) stopWarp();
-                  isFlyingToTarget = false;
-                  isWormholeRunning = false;
-                  try {
-                    localStorage.setItem("hasBootedSession", "true");
-                  } catch (e) {}
+              let drawX = lp.x;
+              let drawY = lp.y;
+              if (lp.released) {
+                const dt = Math.min(1.0, (elapsed - lp.releaseTime) / 1900);
+                const easeIn = dt * dt;
 
-                  if (overlay) {
-                    overlay.style.display = "none";
-                    overlay.style.pointerEvents = "none";
-                    overlay.classList.add("boot-completed");
-                  }
-                  if (splashContainer) {
-                    splashContainer.style.display = "none";
-                    splashContainer.style.pointerEvents = "none";
-                    splashContainer.classList.add("boot-completed");
-                  }
-                  if (warpCanvas) {
-                    warpCanvas.style.display = "none";
-                    warpCanvas.style.pointerEvents = "none";
-                    warpCanvas.classList.add("boot-completed");
-                  }
-                })
-                .start();
+                // Swirl into the tilted ecliptic plane & expand with the wave crest
+                lp.curAng += lp.spinSpeed * (1.0 + dt * 1.8);
+                lp.curR += lp.radialDrift * (1.0 + easeIn * 2.6);
 
-              const fovState = { fov: 56 };
-              new TWEEN.Tween(fovState)
-                .to({ fov: 50 }, zoomDuration)
-                .easing(TWEEN.Easing.Cubic.Out)
-                .onUpdate(() => {
-                  camera.fov = fovState.fov;
-                  camera.updateProjectionMatrix();
-                })
-                .start();
+                const spiralLift = Math.sin(lp.curAng * 2.0 - p * 5.0) * 24 * dt;
+                const lx = Math.cos(lp.curAng) * lp.curR;
+                const ly = Math.sin(lp.curAng) * lp.curR * tiltY - spiralLift;
+                const targetX = cx + lx * cosR - ly * sinR;
+                const targetY = cy + lx * sinR + ly * cosR;
+
+                // Smoothly blend from the original letter position into the swirling wave
+                const blend = Math.min(1.0, dt * 3.2);
+                drawX = lp.ox + (targetX - lp.ox) * blend;
+                drawY = lp.oy + (targetY - lp.oy) * blend;
+                lp.alpha = Math.max(0, 0.96 * (1.0 - Math.pow(dt, 1.6)));
+              }
+
+              if (lp.alpha <= 0.01) continue;
+              const lsz = lp.size * (lp.released ? 1.45 : 1.35);
+              ctx.fillStyle = `rgba(255, 255, 255, ${lp.alpha.toFixed(2)})`;
+              ctx.fillRect(drawX - lsz * 0.5, drawY - lsz * 0.5, lsz, lsz);
             }
 
-            if (overlay) {
-              overlay.style.pointerEvents = "none";
-              overlay.style.transition = "opacity 1200ms ease-out";
-              overlay.style.opacity = "0";
+            if (p < 1.0) {
+              rafId = requestAnimationFrame(renderHorizon);
+            } else {
+              ctx.clearRect(0, 0, w, h);
             }
-            if (warpCanvas) {
-              warpCanvas.style.pointerEvents = "none";
-              warpCanvas.style.transition = "opacity 1600ms ease-out";
-              setTimeout(() => { warpCanvas.style.opacity = "0"; }, 400);
-            }
+          }
 
+          rafId = requestAnimationFrame(renderHorizon);
+          stopHorizonWave = () => {
+            if (rafId) cancelAnimationFrame(rafId);
+            ctx.clearRect(0, 0, w, h);
+          };
+        }
+
+        // Let the spiral gravity wave crest cleanly before opening onto the 3D ecliptic
+        setTimeout(() => {
+          if (overlay) {
+            overlay.style.transition = "background-color 1.6s cubic-bezier(0.25, 1, 0.5, 1)";
+            overlay.style.backgroundColor = "rgba(0, 0, 0, 0)";
+          }
+        }, 1450);
+
+        // Curved 3D orbital dolly sweep into the Sun
+        isFlyingToTarget = true;
+        setTimeout(() => {
+          if (typeof camera !== "undefined" && typeof TWEEN !== "undefined") {
+            TWEEN.removeAll();
+            const travelDuration = 4200;
+            const state = { t: 0 };
+
+            const p0 = { x: -48, y: 38, z: 130 };
+            const p1 = { x: 24, y: 18, z: 40 };
+            const p2 = { x: 0, y: 9.0, z: 13.0 };
+
+            new TWEEN.Tween(state)
+              .to({ t: 1 }, travelDuration)
+              .easing(TWEEN.Easing.Cubic.Out)
+              .onUpdate(() => {
+                const u = 1 - state.t;
+                const x = u * u * p0.x + 2 * u * state.t * p1.x + state.t * state.t * p2.x;
+                const y = u * u * p0.y + 2 * u * state.t * p1.y + state.t * state.t * p2.y;
+                const z = u * u * p0.z + 2 * u * state.t * p1.z + state.t * state.t * p2.z;
+
+                camera.position.set(x, y, z);
+                camera.fov = 66 - 16 * state.t;
+                camera.lookAt(0, 0, 0);
+                camera.updateProjectionMatrix();
+
+                if (typeof controls !== "undefined" && controls) {
+                  controls.target.set(0, 0, 0);
+                }
+                if (typeof updateScaleSliderFromCamera === "function") {
+                  updateScaleSliderFromCamera();
+                }
+              })
+              .onComplete(() => {
+                camera.position.set(0, 9.0, 13.0);
+                camera.fov = 50;
+                camera.updateProjectionMatrix();
+                document.documentElement.classList.remove("is-booting", "is-wormhole-zooming");
+                document.body.classList.remove("nova-traveling");
+
+                if (typeof controls !== "undefined" && controls) {
+                  controls.target.set(0, 0, 0);
+                  controls.enabled = true;
+                  controls.enableRotate = true;
+                  controls.enableZoom = true;
+                  controls.enablePan = true;
+                  controls.update();
+                }
+                if (typeof updateScaleSliderFromCamera === "function") {
+                  updateScaleSliderFromCamera();
+                }
+                if (stopHorizonWave) stopHorizonWave();
+                isFlyingToTarget = false;
+                isWormholeRunning = false;
+                try {
+                  localStorage.setItem("hasBootedSession", "true");
+                } catch (err) {}
+
+                if (overlay) {
+                  overlay.style.display = "none";
+                  overlay.style.pointerEvents = "none";
+                  overlay.classList.add("boot-completed");
+                }
+                if (splashContainer) {
+                  splashContainer.style.display = "none";
+                  splashContainer.style.pointerEvents = "none";
+                  splashContainer.classList.add("boot-completed");
+                }
+                if (warpCanvas) {
+                  warpCanvas.style.display = "none";
+                  warpCanvas.style.pointerEvents = "none";
+                }
+              })
+              .start();
+
+            // Reveal HUD smoothly during the final deceleration beat
             setTimeout(() => {
               document.documentElement.classList.remove("is-booting");
-              const hudElements = [
-                document.getElementById("header-nav"),
-                document.getElementById("bottom-hud"),
-                document.getElementById("map-key-summon-btn"),
-                document.getElementById("celestial-labels-layer"),
-                document.getElementById("odometer-group")
-              ];
-              hudElements.forEach(el => {
-                if (el) {
-                  el.style.transition = "opacity 1400ms cubic-bezier(0.16, 1, 0.3, 1)";
-                  el.style.opacity = "1";
-                  el.style.visibility = "visible";
-                }
-              });
-              if (typeof updateSidebarToggleStyle === "function") {
-                updateSidebarToggleStyle();
-              }
-            }, 1000);
-          },
-          (cx, cy, duration) => {
-            stopWarp = runStarfieldWarp(cx, cy, duration);
+            }, travelDuration - 1000);
+          } else {
+            document.documentElement.classList.remove("is-booting", "is-wormhole-zooming");
+            document.body.classList.remove("nova-traveling");
+            if (stopHorizonWave) stopHorizonWave();
+            if (overlay) {
+              overlay.style.display = "none";
+              overlay.classList.add("boot-completed");
+            }
+            isFlyingToTarget = false;
+            isWormholeRunning = false;
           }
-        );
+        }, 1500);
       }
     })();
 

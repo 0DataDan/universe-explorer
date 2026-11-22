@@ -709,3 +709,25 @@ body { margin: 0; overflow: hidden; background-color: #000000; color: #f8fafc; f
       opacity: 0;
       transform: translateY(5px) scale(0.985);
     }
+
+    /* Hide custom & native cursor cleanly during cinematic travel */
+    body.nova-traveling,
+    body.nova-traveling * {
+      cursor: none !important;
+    }
+    body.nova-traveling #nova-cursor-dot,
+    body.nova-traveling #nova-cursor-halo {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.25s ease !important;
+    }
+
+    /* Keep HUD chrome hidden during cinematic entry sweep */
+    html.is-wormhole-zooming header,
+    html.is-wormhole-zooming #hud-top-bar,
+    html.is-wormhole-zooming #time-controls,
+    html.is-wormhole-zooming #scale-disclaimer {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.6s ease !important;
+    }

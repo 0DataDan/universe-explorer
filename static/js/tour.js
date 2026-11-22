@@ -447,8 +447,8 @@ export function initCosmicTour(ctx) {
             .onComplete(() => {
               ctx.isFlyingToTarget = false;
               controls.enabled = true;
-              controls.autoRotate = true;
-              controls.autoRotateSpeed = 0.2;
+              if (typeof controls !== 'undefined' && controls) controls.autoRotate = true;
+              if (typeof controls !== 'undefined' && controls) controls.autoRotateSpeed = 0.2;
             })
             .start();
         }
@@ -485,7 +485,7 @@ export function initCosmicTour(ctx) {
       ctx.isFlyingToTarget = false;
       if (typeof controls !== 'undefined' && controls) {
         controls.enabled = true;
-        controls.autoRotate = false;
+        if (typeof controls !== 'undefined' && controls) controls.autoRotate = false;
       }
       if (typeof updateTourButtonStyle === 'function') updateTourButtonStyle(false);
 
@@ -611,8 +611,8 @@ export function initCosmicTour(ctx) {
               ctx.isFlyingToTarget = false;
               controls.target.copy(endTarget); 
               controls.enabled = true; 
-              controls.autoRotate = true;
-              controls.autoRotateSpeed = 0.4;
+              if (typeof controls !== 'undefined' && controls) controls.autoRotate = true;
+              if (typeof controls !== 'undefined' && controls) controls.autoRotateSpeed = 0.4;
             })
             .start();
         }
@@ -722,7 +722,7 @@ export function initCosmicTour(ctx) {
       }
 
       // Stop auto-rotation during cinematic flight
-      controls.autoRotate = false;
+      if (typeof controls !== 'undefined' && controls) controls.autoRotate = false;
 
       // Slower, cinematic easing flight (5,200ms)
       const flightDuration = 5200;
@@ -731,8 +731,8 @@ export function initCosmicTour(ctx) {
       // Linger and orbit slowly around the target for 12 seconds
       screensaverLingerTimer = setTimeout(() => {
         if (!ctx.isScreensaverActive) return;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.42;
+        if (typeof controls !== 'undefined' && controls) controls.autoRotate = true;
+        if (typeof controls !== 'undefined' && controls) controls.autoRotateSpeed = 0.42;
 
         // Schedule next random destination
         screensaverLingerTimer = setTimeout(() => {
@@ -768,7 +768,7 @@ export function initCosmicTour(ctx) {
         screensaverLingerTimer = null;
       }
 
-      controls.autoRotate = false;
+      if (typeof controls !== 'undefined' && controls) controls.autoRotate = false;
       if (activeTarget && typeof window.populateSpatialCallout === "function") {
         window.populateSpatialCallout(activeTarget, false);
       }
