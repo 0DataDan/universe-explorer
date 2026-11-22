@@ -790,7 +790,7 @@ export function initCosmicTour(ctx) {
       }
     };
 
-    Object.defineProperty(window, "ctx.isScreensaverActive", {
+    Object.defineProperty(window, "isScreensaverActive", {
       get() { return ctx.isScreensaverActive; },
       set(val) {
         if (val) window.enterScreensaverMode();
