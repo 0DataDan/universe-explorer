@@ -12,7 +12,7 @@ import { createAnimatedSunMaterial, createAnimatedCoronaLayer } from './shaders/
 import { buildVolumetricCelestialStructures, createProceduralCloudTexture, createFbmNebulaTexture } from './volumetrics.js';
 import { initCosmicTour } from './tour.js';
 import { initDeepLinks, setDeepLinkTarget, setDeepLinkTier } from './deeplink.js';
-import { initScaleCompare } from './compare.js?v=2';
+import { initScaleCompare } from './compare.js?v=9';
 
     
     function cleanAstrophysicalText(txt) {

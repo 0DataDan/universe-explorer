@@ -1,70 +1,144 @@
-// NOVA True-Scale Solar System Comparison Stage (static/js/compare.js)
+// NOVA True-Scale Cosmic Comparison Stage — Tiers 1–4 (static/js/compare.js)
 import * as THREE from 'three';
 
-// Authoritative mean diameters in kilometers (NASA Planetary Fact Sheet)
-const SOLAR_DIAMETERS_KM = {
-  sun:     1392700,
-  jupiter:  139820,
-  saturn:   116460,
-  uranus:    50724,
-  neptune:   49244,
-  earth:     12742,
-  venus:     12104,
-  mars:       6779,
-  mercury:    4879,
-  moon:       3474,
-  pluto:      2377,
-  ceres:       939,
+const AU_KM  = 149597870.7;
+const LY_KM  = 9.4607304725808e12;
+const MLY_KM = LY_KM * 1e6;
+
+// Authoritative physical spans (diameter in km) & shape mode
+// shape: 'sphere' = normalize by core sphere radius (preserves ring overhang)
+// shape: 'bounds' = normalize by full 3D bounding-box span (galaxies, nebulae, clusters, voids)
+const COSMIC_CATALOG = {
+  // Tier 1 — Solar System
+  sun:                  { name: 'The Sun (Sol)',    km: 1392700,      tier: 1, shape: 'sphere' },
+  jupiter:              { name: 'Jupiter',          km: 139820,       tier: 1, shape: 'sphere' },
+  saturn:               { name: 'Saturn',           km: 116460,       tier: 1, shape: 'sphere' },
+  uranus:               { name: 'Uranus',           km: 50724,        tier: 1, shape: 'sphere' },
+  neptune:              { name: 'Neptune',          km: 49244,        tier: 1, shape: 'sphere' },
+  earth:                { name: 'Earth',            km: 12742,        tier: 1, shape: 'sphere' },
+  venus:                { name: 'Venus',            km: 12104,        tier: 1, shape: 'sphere' },
+  mars:                 { name: 'Mars',             km: 6779,         tier: 1, shape: 'sphere' },
+  mercury:              { name: 'Mercury',          km: 4879,         tier: 1, shape: 'sphere' },
+  moon:                 { name: 'The Moon',         km: 3474,         tier: 1, shape: 'sphere' },
+  pluto:                { name: 'Pluto',            km: 2377,         tier: 1, shape: 'sphere' },
+  ceres:                { name: '1 Ceres',          km: 939,          tier: 1, shape: 'sphere' },
+
+  // Tier 2 — Individual Stars
+  'trappist-1':         { name: 'TRAPPIST-1',       km: 165800,       tier: 2, shape: 'sphere' },
+  'barnards-star':      { name: "Barnard's Star",   km: 273000,       tier: 2, shape: 'sphere' },
+  sirius:               { name: 'Sirius A',         km: 2380000,      tier: 2, shape: 'sphere' },
+  polaris:              { name: 'Polaris',          km: 52000000,     tier: 2, shape: 'sphere' },
+  betelgeuse:           { name: 'Betelgeuse',       km: 1064000000,   tier: 2, shape: 'sphere' },
+  'stephenson-2-18':    { name: 'Stephenson 2-18',  km: 2990000000,   tier: 2, shape: 'sphere' },
 };
 
-const DISPLAY_ORDER = [
-  'sun', 'jupiter', 'saturn', 'uranus', 'neptune',
-  'earth', 'venus', 'mars', 'mercury', 'moon', 'pluto', 'ceres'
-];
+const TIER_LABELS = {
+  1: 'SOLAR SYSTEM',
+  2: 'STARS',
+};
 
 const PRESETS = [
-  ['earth', 'jupiter'],
-  ['earth', 'sun'],
-  ['moon', 'earth'],
-  ['saturn', 'neptune'],
+  ['earth', 'moon', 'EARTH / MOON'],
+  ['earth', 'jupiter', 'EARTH / JUPITER'],
+  ['sun', 'betelgeuse', 'SOL / BETELGEUSE'],
+  ['betelgeuse', 'stephenson-2-18', 'BETELGEUSE / STEPHENSON'],
 ];
 
-function formatKm(km) {
-  return km.toLocaleString('en-US') + ' km';
+function formatSpan(km) {
+  if (km >= 0.5 * MLY_KM) {
+    const mly = km / MLY_KM;
+    return (mly >= 100 ? mly.toFixed(0) : mly.toFixed(1)) + ' Mly';
+  }
+  if (km >= 0.1 * LY_KM) {
+    const ly = km / LY_KM;
+    if (ly >= 1000) return Math.round(ly).toLocaleString('en-US') + ' ly';
+    return (ly >= 10 ? ly.toFixed(0) : ly.toFixed(1)) + ' ly';
+  }
+  if (km >= 0.5 * AU_KM) {
+    const au = km / AU_KM;
+    if (au >= 100) return Math.round(au).toLocaleString('en-US') + ' AU';
+    return au.toFixed(1) + ' AU';
+  }
+  if (km >= 1e7) {
+    return (km / 1e6).toFixed(1) + 'M km';
+  }
+  return Math.round(km).toLocaleString('en-US') + ' km';
 }
 
 function formatRatio(a, b) {
   const big = Math.max(a, b);
   const small = Math.min(a, b);
   const r = big / small;
-  if (r >= 100) return r.toFixed(0) + '×';
+  if (r >= 1e5) {
+    const exp = Math.floor(Math.log10(r));
+    const mant = (r / Math.pow(10, exp)).toFixed(1);
+    return `${mant}×10^${exp}×`;
+  }
+  if (r >= 100) return Math.round(r).toLocaleString('en-US') + '×';
   if (r >= 10) return r.toFixed(1) + '×';
   return r.toFixed(2) + '×';
 }
 
-function buildCleanPlanetClone(sourceMesh) {
-  let baseRadius = 1;
-  if (sourceMesh.geometry) {
-    sourceMesh.geometry.computeBoundingSphere();
-    if (sourceMesh.geometry.boundingSphere && sourceMesh.geometry.boundingSphere.radius > 0) {
-      baseRadius = sourceMesh.geometry.boundingSphere.radius;
-    }
-  }
-
+function buildCleanBodyClone(sourceMesh, shapeMode) {
   const wrapper = new THREE.Group();
   const clone = sourceMesh.clone(true);
   clone.position.set(0, 0, 0);
   clone.rotation.set(0, 0, 0);
   clone.scale.set(1, 1, 1);
 
+  if (shapeMode === 'sphere') {
+    let baseRadius = 1;
+    if (sourceMesh.geometry) {
+      sourceMesh.geometry.computeBoundingSphere();
+      if (sourceMesh.geometry.boundingSphere && sourceMesh.geometry.boundingSphere.radius > 0) {
+        baseRadius = sourceMesh.geometry.boundingSphere.radius;
+      }
+    }
+    clone.visible = true;
+    clone.traverse((child) => {
+      if (child.isSprite) child.visible = false;
+      else if (child.isMesh || child.isPoints) child.visible = true;
+    });
+    clone.scale.setScalar(1 / baseRadius);
+    wrapper.add(clone);
+    return wrapper;
+  }
+
+  // Non-spherical / multi-part objects (galaxies, nebulae, clusters, voids):
+  // Force visibility (in case cloned from an inactive tier) and measure only Mesh/Points
+  clone.visible = true;
   clone.traverse((child) => {
     if (child.isSprite) {
       child.visible = false;
+    } else if (child.isMesh || child.isPoints) {
+      child.visible = true;
     }
   });
 
-  const norm = 1 / baseRadius;
-  clone.scale.setScalar(norm);
+  clone.updateMatrixWorld(true);
+  const box = new THREE.Box3();
+  clone.traverse((child) => {
+    if ((child.isMesh || child.isPoints) && child.geometry) {
+      child.geometry.computeBoundingBox();
+      if (child.geometry.boundingBox) {
+        const b = child.geometry.boundingBox.clone().applyMatrix4(child.matrixWorld);
+        box.union(b);
+      }
+    }
+  });
+
+  if (!box.isEmpty()) {
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+    const maxHalfSpan = Math.max(size.x, size.y, size.z) * 0.5;
+    if (maxHalfSpan > 0) {
+      const norm = 1 / maxHalfSpan;
+      clone.position.set(-center.x * norm, -center.y * norm, -center.z * norm);
+      clone.scale.setScalar(norm);
+    }
+  }
   wrapper.add(clone);
   return wrapper;
 }
@@ -111,17 +185,35 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
     if (Array.isArray(celestialObjects)) {
       celestialObjects.forEach((m) => {
         const id = (m && m.userData && m.userData.id) ? m.userData.id.toLowerCase() : '';
-        if (id && SOLAR_DIAMETERS_KM[id]) {
+        if (id && COSMIC_CATALOG[id]) {
+          const meta = COSMIC_CATALOG[id];
           byId.set(id, {
             id,
-            name: m.userData.name || id.toUpperCase(),
-            diameterKm: SOLAR_DIAMETERS_KM[id],
+            name: meta.name || m.userData.name || id.toUpperCase(),
+            diameterKm: meta.km,
+            tier: meta.tier,
+            shape: meta.shape,
             mesh: m,
           });
         }
       });
     }
-    return DISPLAY_ORDER.filter((id) => byId.has(id)).map((id) => byId.get(id));
+    return Object.keys(COSMIC_CATALOG)
+      .filter((id) => byId.has(id))
+      .map((id) => byId.get(id));
+  }
+
+  function pickSmartPartner(body, bodies) {
+    // Pick a compelling same-tier partner when opening from a focused object
+    const sameTier = bodies.filter((b) => b.tier === body.tier && b.id !== body.id);
+    if (sameTier.length) {
+      if (body.id === 'earth') return 'jupiter';
+      if (body.tier === 1) return 'earth';
+      // Pick the largest or second-largest in the same tier for dramatic contrast
+      const sorted = [...sameTier].sort((a, b) => b.diameterKm - a.diameterKm);
+      return sorted[0].id;
+    }
+    return body.id === 'earth' ? 'jupiter' : 'earth';
   }
 
   function injectTopBarButton() {
@@ -140,7 +232,7 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
 
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.title = 'True-Scale Solar System Comparison';
+    btn.title = 'True-Scale Cosmic Comparison';
     btn.className = [
       'cursor-pointer flex items-center gap-1.5 py-1',
       'bg-transparent border-0 text-slate-400/80 hover:text-cyan-200',
@@ -163,7 +255,6 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
     wrap.append(sep, btn);
 
     if (logoPill && logoPill.parentElement === header) {
-      // Keep NOVA + SCALE grouped cleanly on the left
       const leftGroup = document.createElement('div');
       leftGroup.className = 'flex items-center pointer-events-none';
       header.insertBefore(leftGroup, logoPill);
@@ -195,11 +286,11 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
         <div class="flex items-center gap-3">
           <span class="text-[10px] tracking-[0.26em] uppercase text-cyan-300/85">TRUE-SCALE COMPARISON</span>
           <span class="text-white/15 text-[10px]">/</span>
-          <span class="text-[10px] tracking-[0.18em] uppercase text-slate-400">SOLAR SYSTEM</span>
+          <span id="compare-tier-subtitle" class="text-[10px] tracking-[0.18em] uppercase text-slate-400">ALL TIERS</span>
         </div>
         <div class="flex items-center gap-5 pointer-events-auto">
-          <div id="compare-presets" class="hidden sm:flex items-center gap-4"></div>
-          <span class="hidden sm:inline text-white/15 text-[10px]">|</span>
+          <div id="compare-presets" class="hidden md:flex items-center gap-4"></div>
+          <span class="hidden md:inline text-white/15 text-[10px]">|</span>
           <button id="compare-close-btn" type="button" class="bg-transparent border-0 text-[10px] tracking-[0.22em] uppercase text-slate-400 hover:text-white transition-colors cursor-pointer">
             ESC &times;
           </button>
@@ -211,7 +302,7 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
         <div class="pointer-events-auto flex flex-wrap items-center justify-center gap-4">
           <div class="flex items-center gap-2.5">
             <div class="relative inline-flex items-center gap-1 group">
-              <span id="compare-label-a" class="text-xs tracking-[0.18em] uppercase text-white group-hover:text-cyan-200 transition-colors"></span>
+              <span id="compare-name-a" style="color:#ffffff;display:inline-block;" class="whitespace-nowrap text-xs tracking-[0.18em] uppercase text-white group-hover:text-cyan-200 transition-colors"></span>
               <svg width="9" height="6" viewBox="0 0 9 6" fill="none" class="text-slate-400 group-hover:text-cyan-300 transition-colors shrink-0">
                 <path d="M1 1L4.5 4.5L8 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -221,13 +312,13 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
           </div>
 
           <div class="flex items-center gap-2.5 px-3 border-x border-white/15">
-            <span id="compare-ratio" class="text-xs font-semibold text-cyan-300 tracking-wider"></span>
+            <span id="compare-ratio" style="color:#67e8f9;display:inline-block;" class="text-xs font-semibold text-cyan-300 tracking-wider"></span>
             <button id="compare-swap-btn" type="button" title="Swap" class="bg-transparent border-0 text-slate-400 hover:text-cyan-300 text-xs transition-colors cursor-pointer">&#8646;</button>
           </div>
 
           <div class="flex items-center gap-2.5">
             <div class="relative inline-flex items-center gap-1 group">
-              <span id="compare-label-b" class="text-xs tracking-[0.18em] uppercase text-white group-hover:text-cyan-200 transition-colors"></span>
+              <span id="compare-name-b" style="color:#ffffff;display:inline-block;" class="whitespace-nowrap text-xs tracking-[0.18em] uppercase text-white group-hover:text-cyan-200 transition-colors"></span>
               <svg width="9" height="6" viewBox="0 0 9 6" fill="none" class="text-slate-400 group-hover:text-cyan-300 transition-colors shrink-0">
                 <path d="M1 1L4.5 4.5L8 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
@@ -280,7 +371,7 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
     canvas.addEventListener('wheel', (e) => {
       if (!isOpen) return;
       e.preventDefault();
-      targetDist = Math.max(1.2, Math.min(36, targetDist * (1 + e.deltaY * 0.0012)));
+      targetDist = Math.max(1.0, Math.min(40, targetDist * (1 + e.deltaY * 0.0012)));
     }, { passive: false });
 
     window.addEventListener('keydown', (e) => {
@@ -299,7 +390,7 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.01, 200);
+    camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.005, 250);
 
     const ambient = new THREE.AmbientLight(0xffffff, 0.55);
     const keyLight = new THREE.DirectionalLight(0xfff8ee, 1.85);
@@ -337,19 +428,30 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
   function populatePickers(bodies) {
     const selA = overlayEl.querySelector('#compare-select-a');
     const selB = overlayEl.querySelector('#compare-select-b');
-    const opts = bodies.map((b) => `<option value="${b.id}" class="bg-slate-950 text-white">${b.name}</option>`).join('');
-    selA.innerHTML = opts;
-    selB.innerHTML = opts;
+
+    let html = '';
+    [1, 2].forEach((tier) => {
+      const group = bodies.filter((b) => b.tier === tier);
+      if (!group.length) return;
+      html += `<optgroup label="${TIER_LABELS[tier]}" class="bg-slate-950 text-slate-400">`;
+      group.forEach((b) => {
+        html += `<option value="${b.id}" class="bg-slate-950 text-white">${b.name}</option>`;
+      });
+      html += '</optgroup>';
+    });
+
+    selA.innerHTML = html;
+    selB.innerHTML = html;
 
     const presetsEl = overlayEl.querySelector('#compare-presets');
     const ids = new Set(bodies.map((b) => b.id));
     presetsEl.innerHTML = '';
-    PRESETS.forEach(([a, b]) => {
+    PRESETS.forEach(([a, b, label]) => {
       if (!ids.has(a) || !ids.has(b)) return;
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'bg-transparent border-0 text-[9px] tracking-[0.18em] uppercase text-slate-400/80 hover:text-cyan-200 transition-colors cursor-pointer';
-      btn.textContent = `${a} / ${b}`;
+      btn.textContent = label;
       btn.addEventListener('click', () => {
         currentIdA = a;
         currentIdB = b;
@@ -369,15 +471,28 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
     currentIdA = bodyA.id;
     currentIdB = bodyB.id;
 
-    overlayEl.querySelector('#compare-select-a').value = bodyA.id;
-    overlayEl.querySelector('#compare-select-b').value = bodyB.id;
-    const labelA = overlayEl.querySelector('#compare-label-a');
-    const labelB = overlayEl.querySelector('#compare-label-b');
+    const selA = overlayEl.querySelector('#compare-select-a');
+    const selB = overlayEl.querySelector('#compare-select-b');
+    const labelA = overlayEl.querySelector('#compare-name-a');
+    const labelB = overlayEl.querySelector('#compare-name-b');
+    const kmA = overlayEl.querySelector('#compare-km-a');
+    const kmB = overlayEl.querySelector('#compare-km-b');
+    const ratioEl = overlayEl.querySelector('#compare-ratio');
+
+    if (selA) selA.value = bodyA.id;
+    if (selB) selB.value = bodyB.id;
     if (labelA) labelA.textContent = bodyA.name;
     if (labelB) labelB.textContent = bodyB.name;
-    overlayEl.querySelector('#compare-km-a').textContent = formatKm(bodyA.diameterKm);
-    overlayEl.querySelector('#compare-km-b').textContent = formatKm(bodyB.diameterKm);
-    overlayEl.querySelector('#compare-ratio').textContent = formatRatio(bodyA.diameterKm, bodyB.diameterKm);
+    if (kmA) kmA.textContent = formatSpan(bodyA.diameterKm);
+    if (kmB) kmB.textContent = formatSpan(bodyB.diameterKm);
+    if (ratioEl) ratioEl.textContent = formatRatio(bodyA.diameterKm, bodyB.diameterKm);
+
+    const sub = overlayEl.querySelector('#compare-tier-subtitle');
+    if (sub) {
+      sub.textContent = bodyA.tier === bodyB.tier
+        ? TIER_LABELS[bodyA.tier]
+        : `${TIER_LABELS[bodyA.tier]} vs ${TIER_LABELS[bodyB.tier]}`;
+    }
 
     while (pairGroup.children.length > 0) {
       pairGroup.remove(pairGroup.children[0]);
@@ -386,18 +501,18 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
 
     const maxD = Math.max(bodyA.diameterKm, bodyB.diameterKm);
     const maxVisualR = 2.4;
-    const rA = maxVisualR * (bodyA.diameterKm / maxD);
-    const rB = maxVisualR * (bodyB.diameterKm / maxD);
+    // Keep extreme ratios mathematically true while preventing WebGL zero-scale NaN
+    const rA = Math.max(0.0005, maxVisualR * (bodyA.diameterKm / maxD));
+    const rB = Math.max(0.0005, maxVisualR * (bodyB.diameterKm / maxD));
 
-    meshA = buildCleanPlanetClone(bodyA.mesh);
-    meshB = buildCleanPlanetClone(bodyB.mesh);
+    meshA = buildCleanBodyClone(bodyA.mesh, bodyA.shape);
+    meshB = buildCleanBodyClone(bodyB.mesh, bodyB.shape);
     meshA.scale.setScalar(rA);
     meshB.scale.setScalar(rB);
 
-    // Measure full horizontal extent including rings/halos so objects never intersect
     const extentA = getFullHorizontalExtent(meshA, rA);
     const extentB = getFullHorizontalExtent(meshB, rB);
-    const gap = Math.max(0.7, (extentA + extentB) * 0.16);
+    const gap = Math.max(0.7, (extentA + extentB) * 0.18);
 
     const totalWidth = extentA * 2 + gap + extentB * 2;
     const xA = -totalWidth / 2 + extentA;
@@ -424,9 +539,9 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
     }
 
     targetYaw = 0.15;
-    targetPitch = 0.10;
+    targetPitch = 0.12;
     targetPanX = 0;
-    targetDist = Math.max(7.0, totalWidth * 1.38);
+    targetDist = Math.max(7.2, totalWidth * 1.42);
   }
 
   function animate() {
@@ -445,8 +560,8 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
     );
     camera.lookAt(panX, 0, 0);
 
-    if (meshA) meshA.rotation.y += 0.0028;
-    if (meshB) meshB.rotation.y += 0.0022;
+    if (meshA) meshA.rotation.y += 0.0022;
+    if (meshB) meshB.rotation.y += 0.0018;
     if (reticleMesh) {
       reticleMesh.lookAt(camera.position);
       const pulse = 1 + Math.sin(performance.now() * 0.004) * 0.08;
@@ -460,6 +575,10 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
     if (!query) return null;
     const q = String(query).toLowerCase().trim();
     if (q === 'sol') return 'sun';
+    if (q === 'sgr' || q === 'sgra' || q === 'sgr-a') return 'sagittarius-a-star';
+    if (q === 'm87') return 'messier-87';
+    if (q === 'm31') return 'andromeda';
+    if (q === 'm33') return 'triangulum';
     const exact = bodies.find((b) => b.id === q || b.name.toLowerCase() === q);
     if (exact) return exact.id;
     const partial = bodies.find((b) => b.id.startsWith(q) || b.name.toLowerCase().includes(q));
@@ -483,11 +602,13 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
       currentIdA = resolvedA;
       currentIdB = resolvedB;
     } else if (resolvedA) {
+      const bodyA = bodies.find((b) => b.id === resolvedA);
       currentIdA = resolvedA;
-      currentIdB = resolvedA === 'earth' ? 'jupiter' : 'earth';
-    } else if (activeId && SOLAR_DIAMETERS_KM[activeId]) {
+      currentIdB = bodyA ? pickSmartPartner(bodyA, bodies) : 'earth';
+    } else if (activeId && COSMIC_CATALOG[activeId]) {
+      const bodyA = bodies.find((b) => b.id === activeId);
       currentIdA = activeId;
-      currentIdB = activeId === 'earth' ? 'jupiter' : 'earth';
+      currentIdB = bodyA ? pickSmartPartner(bodyA, bodies) : 'earth';
     } else {
       currentIdA = 'earth';
       currentIdB = 'jupiter';
@@ -528,5 +649,6 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
 
   injectTopBarButton();
   window.openScaleCompare = openCompare;
+  window.novaScaleIds = new Set(Object.keys(COSMIC_CATALOG));
   return { openCompare, closeCompare };
 }

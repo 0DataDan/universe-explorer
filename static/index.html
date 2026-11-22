@@ -451,7 +451,7 @@
     </div>
   </footer>
 
-    <script type="module" src="./js/app.js"></script>
+    <script type="module" src="./js/app.js?v=9"></script>
 
 
 
@@ -520,6 +520,43 @@
 </div>
 
 
+
+<script>
+  (function autoHideScaleDisclosure() {
+    const wrap = document.getElementById("nova-scale-chip-wrap");
+    const popover = document.getElementById("nova-scale-popover");
+    if (!wrap) return;
+    wrap.style.transition = "opacity 0.8s ease";
+
+    let timer = null;
+    function scheduleHide() {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (popover && !popover.hidden) {
+          scheduleHide();
+          return;
+        }
+        wrap.style.opacity = "0";
+        wrap.style.pointerEvents = "none";
+      }, 6000);
+    }
+
+    function checkBootState() {
+      if (!document.documentElement.classList.contains("is-booting")) {
+        scheduleHide();
+        return true;
+      }
+      return false;
+    }
+
+    if (!checkBootState()) {
+      const obs = new MutationObserver(() => {
+        if (checkBootState()) obs.disconnect();
+      });
+      obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    }
+  })();
+</script>
 
   <script src="./js/hud-enhancements.js"></script>
 </body>

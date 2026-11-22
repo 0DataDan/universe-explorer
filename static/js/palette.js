@@ -377,6 +377,7 @@
       const nearBottom = rect.bottom >= window.innerHeight - 48 && rect.top >= window.innerHeight - 72;
       if (!nearBottom || rect.width < 60) return;
 
+      if (el.closest && el.closest("#nova-compare-overlay")) return;
       const cls = String(el.className || "");
       const html = el.outerHTML || "";
       const isCyanLine =
@@ -551,25 +552,68 @@
       }
 
       if (parsed.action === "compare") {
-        currentMatches = [];
-        selectedIdx = 0;
+        const trailingSpace = /\s$/.test(raw);
+        const activeQuery = trailingSpace
+          ? (parsed.b ? "" : "")
+          : (parsed.b || parsed.a || "");
+        const rawHints = findCatalogMatches(activeQuery);
+        const hints = (window.novaScaleIds
+          ? rawHints.filter((m) => m.mesh && m.mesh.userData && window.novaScaleIds.has(String(m.mesh.userData.id || "").toLowerCase()))
+          : rawHints
+        ).slice(0, 6);
+        currentMatches = hints;
+        selectedIdx = Math.min(selectedIdx, Math.max(0, hints.length - 1));
+
         const pairLabel = (parsed.a && parsed.b)
-          ? `${parsed.a.toUpperCase()} vs ${parsed.b.toUpperCase()}`
-          : (parsed.a ? `${parsed.a.toUpperCase()} vs EARTH` : "SOLAR SYSTEM");
-        resultsEl.innerHTML = `
-          <div class="nova-cmd-item selected" data-compare="1">
+          ? `${parsed.a.toUpperCase()} vs ${parsed.b.toUpperCase()} · ENTER TO LAUNCH`
+          : (parsed.a && trailingSpace
+              ? `${parsed.a.toUpperCase()} vs ... (SELECT 2ND OBJECT)`
+              : (parsed.a ? `${parsed.a.toUpperCase()} · ENTER TO SELECT 1ST` : "SELECT 1ST OBJECT (OR ENTER FOR DEFAULT)"));
+
+        const headerRow = `
+          <div class="nova-cmd-item" data-compare="1">
             <span>SCALE</span>
             <span class="nova-cmd-meta">${pairLabel}</span>
           </div>
         `;
+        const hintRows = hints.map((m, i) => `
+          <div class="nova-cmd-item ${i === selectedIdx ? "selected" : ""}" data-scale-hint="${i}">
+            <span>${m.name}</span>
+            <span class="nova-cmd-meta">T${m.tier || 1} · ${m.type || "OBJECT"}</span>
+          </div>
+        `).join("");
+
+        resultsEl.innerHTML = headerRow + hintRows;
         resultsEl.classList.add("has-items");
-        const item = resultsEl.querySelector("[data-compare]");
-        if (item) {
-          item.addEventListener("mousedown", (e) => {
+
+        const execRow = resultsEl.querySelector("[data-compare]");
+        if (execRow) {
+          execRow.addEventListener("mousedown", (e) => {
             e.preventDefault();
             executeCommand();
           });
         }
+
+        resultsEl.querySelectorAll("[data-scale-hint]").forEach((el) => {
+          el.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            const idx = parseInt(el.getAttribute("data-scale-hint"), 10) || 0;
+            const pick = currentMatches[idx];
+            if (!pick) return;
+            const idToken = (pick.mesh && pick.mesh.userData && pick.mesh.userData.id) ? pick.mesh.userData.id : pick.name.toLowerCase();
+            if (!parsed.a || (!trailingSpace && !parsed.b)) {
+              input.value = `scale ${idToken} `;
+              selectedIdx = 0;
+              renderMatches(input.value);
+              input.focus();
+            } else {
+              closeConsole();
+              if (typeof window.openScaleCompare === "function") {
+                window.openScaleCompare(parsed.a, idToken);
+              }
+            }
+          });
+        });
         return;
       }
 
@@ -603,9 +647,38 @@
     function executeCommand() {
       const parsed = parseCommand(input.value);
       if (parsed.action === "compare") {
-        closeConsole();
-        if (typeof window.openScaleCompare === "function") {
-          window.openScaleCompare(parsed.a, parsed.b);
+        const trailingSpace = /\s$/.test(input.value);
+        const pick = currentMatches[selectedIdx];
+        const pickId = pick
+          ? ((pick.mesh && pick.mesh.userData && pick.mesh.userData.id) ? pick.mesh.userData.id : pick.name.toLowerCase())
+          : null;
+
+        // Just "scale" with no space -> quick launch with smart default
+        if (!parsed.a && !trailingSpace) {
+          closeConsole();
+          if (typeof window.openScaleCompare === "function") window.openScaleCompare();
+          return;
+        }
+
+        // Step 1: selecting the first object (e.g. "scale " or "scale sag") -> lock it in and wait for 2nd
+        if (!parsed.a || (!trailingSpace && !parsed.b)) {
+          const firstId = pickId || parsed.a;
+          if (firstId) {
+            input.value = `scale ${firstId} `;
+            selectedIdx = 0;
+            renderMatches(input.value);
+            input.focus();
+          }
+          return;
+        }
+
+        // Step 2: first object is locked ("scale sag " or "scale sag ton") -> launch with 2nd object
+        const secondId = pickId || parsed.b;
+        if (secondId) {
+          closeConsole();
+          if (typeof window.openScaleCompare === "function") {
+            window.openScaleCompare(parsed.a, secondId);
+          }
         }
         return;
       }
@@ -670,6 +743,19 @@
       if (e.key === "Tab" && currentMatches.length) {
         e.preventDefault();
         const pick = currentMatches[selectedIdx];
+        const parsed = parseCommand(input.value);
+        if (parsed.action === "compare") {
+          const trailingSpace = /\s$/.test(input.value);
+          const idToken = (pick.mesh && pick.mesh.userData && pick.mesh.userData.id) ? pick.mesh.userData.id : pick.name.toLowerCase();
+          if (!parsed.a || (!trailingSpace && !parsed.b)) {
+            input.value = `scale ${idToken} `;
+          } else {
+            input.value = `scale ${parsed.a} ${idToken}`;
+          }
+          selectedIdx = 0;
+          renderMatches(input.value);
+          return;
+        }
         const tokens = input.value.trim().split(/\s+/);
         const hasVerb = ["goto", "slew", "approach", "target", "fly", "focus"].includes((tokens[0] || "").toLowerCase());
         input.value = (hasVerb ? tokens[0] + " " : "") + pick.name + " ";
