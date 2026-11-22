@@ -731,3 +731,13 @@ body { margin: 0; overflow: hidden; background-color: #000000; color: #f8fafc; f
       pointer-events: none !important;
       transition: opacity 0.6s ease !important;
     }
+
+    /* Lock all HUD chrome hidden during the deep-space dolly-in */
+    html.is-wormhole-zooming body > header,
+    html.is-wormhole-zooming body > nav,
+    html.is-wormhole-zooming body > aside,
+    html.is-wormhole-zooming body > div:not(#nova-boot-overlay):not(#nova-cursor-dot):not(#nova-cursor-halo) {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.85s ease !important;
+    }

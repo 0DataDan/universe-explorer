@@ -405,15 +405,10 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
       ];
       if (document.documentElement.classList.contains("is-booting")) {
         let _idx = 0;
-        const _runNextStep = () => {
-          if (_idx >= _buildSteps.length) return;
-          _buildSteps[_idx++]();
-          setTimeout(() => requestAnimationFrame(_runNextStep), 32);
-        };
+        // Hold all 5 heavy background builders off the boot screen for locked 60fps cursor
         window._flushNova3DBuilders = () => {
           while (_idx < _buildSteps.length) _buildSteps[_idx++]();
         };
-        requestAnimationFrame(_runNextStep);
       } else {
         _buildSteps.forEach((fn) => fn());
       }
@@ -1361,9 +1356,10 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
       try {
         const res = await fetch('./catalog.json');
         catalog = (await res.json()).filter(item => item.id !== 'voyager-1');
-        renderCatalogNodes();
-        initDeepLinks({ celestialObjects, filterTier: window.filterTier, novaSlewToMesh: window.novaSlewToMesh });
-        initScaleCompare({ celestialObjects, getActiveTarget: () => activeTarget });
+        renderCatalogNodes(() => {
+          initDeepLinks({ celestialObjects, filterTier: window.filterTier, novaSlewToMesh: window.novaSlewToMesh });
+          initScaleCompare({ celestialObjects, getActiveTarget: () => activeTarget });
+        });
       } catch (err) {
         console.error("Failed to fetch catalog:", err);
       }
@@ -1376,8 +1372,11 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
       return new THREE.Vector3(x, y, z);
     }
 
-    function renderCatalogNodes() {
-      catalog.forEach((item, index) => {
+    function renderCatalogNodes(onComplete) {
+      let _nodeIdx = 0;
+      let _finalized = false;
+
+      function buildSingleCatalogNode(item, index) {
         if (item.id === "oort-cloud") return;
 
         let material;
@@ -2951,13 +2950,52 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
         }
 
         celestialObjects.push(mesh);
-      });
+      }
 
-      buildCelestialObjectLabels();
+      function finalizeCatalogNodes(applyTexturesNow) {
+        if (!_finalized) {
+          _finalized = true;
+          buildCelestialObjectLabels();
+          if (typeof onComplete === 'function') onComplete();
+        }
+        if (applyTexturesNow && !window._texturesInitialized && typeof applyCharacteristicTexturesToScene === 'function') {
+          applyCharacteristicTexturesToScene();
+          window._texturesInitialized = true;
+        }
+      }
 
-      if (typeof applyCharacteristicTexturesToScene === 'function') {
-        applyCharacteristicTexturesToScene();
-        window._texturesInitialized = true;
+      if (document.documentElement.classList.contains("is-booting")) {
+        const scheduleIdle = window.requestIdleCallback
+          ? (fn) => window.requestIdleCallback(fn, { timeout: 120 })
+          : (fn) => setTimeout(fn, 24);
+
+        const processBatch = () => {
+          const t0 = performance.now();
+          // 2.5ms idle budget prevents even micro-hitches on the boot cursor
+          while (_nodeIdx < catalog.length && performance.now() - t0 < 2.5) {
+            buildSingleCatalogNode(catalog[_nodeIdx], _nodeIdx);
+            _nodeIdx++;
+          }
+          if (_nodeIdx < catalog.length) {
+            scheduleIdle(processBatch);
+          }
+          // Hold buildCelestialObjectLabels() + 4K textures until portal click flush
+        };
+
+        window._flushNovaCatalogNodes = () => {
+          while (_nodeIdx < catalog.length) {
+            buildSingleCatalogNode(catalog[_nodeIdx], _nodeIdx);
+            _nodeIdx++;
+          }
+          finalizeCatalogNodes(true);
+        };
+
+        requestAnimationFrame(processBatch);
+      } else {
+        for (let i = 0; i < catalog.length; i++) {
+          buildSingleCatalogNode(catalog[i], i);
+        }
+        finalizeCatalogNodes(true);
       }
     }
 

@@ -632,6 +632,7 @@
         // Ensure 3D scene & any remaining chunked builders are ready
         if (typeof window._ensureNova3DInit === "function") window._ensureNova3DInit();
         if (typeof window._flushNova3DBuilders === "function") window._flushNova3DBuilders();
+        if (typeof window._flushNovaCatalogNodes === "function") window._flushNovaCatalogNodes();
 
         // Hide cursor & strip any blue selection state immediately during travel
         document.body.classList.add("nova-traveling");
@@ -669,8 +670,8 @@
 
         // Start along an ecliptic-aligned deep-space approach
         if (typeof camera !== "undefined") {
-          camera.position.set(-48, 38, 130);
-          camera.fov = 66;
+          camera.position.set(-220, 72, -55);
+          camera.fov = 70;
           camera.lookAt(0, 0, 0);
           camera.updateProjectionMatrix();
         }
@@ -898,24 +899,34 @@
         setTimeout(() => {
           if (typeof camera !== "undefined" && typeof TWEEN !== "undefined") {
             TWEEN.removeAll();
-            const travelDuration = 4200;
+            const travelDuration = 3800;
             const state = { t: 0 };
 
-            const p0 = { x: -48, y: 38, z: 130 };
-            const p1 = { x: 24, y: 18, z: 40 };
-            const p2 = { x: 0, y: 9.0, z: 13.0 };
+            // Polar orbital sweep: 110-deg arc around the ecliptic, dipping low for parallax
+            const startAngle = -1.82; // radians (~-104 deg off +Z)
+            const endAngle = 0.0;     // finishes directly on +Z (x=0, z=13)
+            const startRadius = 227.0;
+            const endRadius = 13.0;
 
             new TWEEN.Tween(state)
               .to({ t: 1 }, travelDuration)
-              .easing(TWEEN.Easing.Cubic.Out)
+              .easing(TWEEN.Easing.Cubic.InOut)
               .onUpdate(() => {
-                const u = 1 - state.t;
-                const x = u * u * p0.x + 2 * u * state.t * p1.x + state.t * state.t * p2.x;
-                const y = u * u * p0.y + 2 * u * state.t * p1.y + state.t * state.t * p2.y;
-                const z = u * u * p0.z + 2 * u * state.t * p1.z + state.t * state.t * p2.z;
+                const t = state.t;
+                // Exponential radius decay keeps apparent speed exciting all the way in
+                const radius = startRadius * Math.pow(endRadius / startRadius, t);
+                const angle = startAngle + (endAngle - startAngle) * t;
+
+                // Dip low across the ecliptic mid-flight, then rise slightly into the Sun
+                const baseY = 72 * Math.pow(1 - t, 2.2) + 9.0 * (1 - Math.pow(1 - t, 2.2));
+                const eclipticDip = -Math.sin(t * Math.PI) * 10.5;
+                const y = Math.max(3.8, baseY + eclipticDip);
+
+                const x = Math.sin(angle) * radius;
+                const z = Math.cos(angle) * radius;
 
                 camera.position.set(x, y, z);
-                camera.fov = 66 - 16 * state.t;
+                camera.fov = 70 - 20 * t;
                 camera.lookAt(0, 0, 0);
                 camera.updateProjectionMatrix();
 
@@ -968,10 +979,10 @@
               })
               .start();
 
-            // Reveal HUD smoothly during the final deceleration beat
+            // Reveal entire HUD cleanly together during the final deceleration beat
             setTimeout(() => {
-              document.documentElement.classList.remove("is-booting");
-            }, travelDuration - 1000);
+              document.documentElement.classList.remove("is-booting", "is-wormhole-zooming");
+            }, travelDuration - 700);
           } else {
             document.documentElement.classList.remove("is-booting", "is-wormhole-zooming");
             document.body.classList.remove("nova-traveling");
@@ -983,7 +994,7 @@
             isFlyingToTarget = false;
             isWormholeRunning = false;
           }
-        }, 1500);
+        }, 1350);
       }
     })();
 
