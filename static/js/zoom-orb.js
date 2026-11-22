@@ -506,6 +506,7 @@
 
         // Flight-Deck Keyboard Shortcuts
         window.addEventListener("keydown", (e) => {
+          const _cmp = document.getElementById("nova-compare-overlay"); if (_cmp && !_cmp.classList.contains("hidden") && _cmp.style.display !== "none") return;
           if (e.defaultPrevented) return;
           if (e.metaKey || e.ctrlKey || e.altKey) return;
           if (document.documentElement.classList.contains("is-booting")) return;

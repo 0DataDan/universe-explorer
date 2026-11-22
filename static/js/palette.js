@@ -254,6 +254,7 @@
 
   // 9. App-wide keyboard shortcuts (F=Fullscreen, T=Tour, R=Reset View, 1-4=Time Speed)
   window.addEventListener("keydown", (e) => {
+    const _cmp = document.getElementById("nova-compare-overlay"); if (_cmp && !_cmp.classList.contains("hidden") && _cmp.style.display !== "none") return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
     if (tag === "input" || tag === "textarea" || tag === "select") return;
@@ -326,6 +327,7 @@
 
   // High-priority capture-phase shortcuts for K/M (Map Key), R (Reset), & S (Standby)
   window.addEventListener("keydown", (e) => {
+    const _cmp = document.getElementById("nova-compare-overlay"); if (_cmp && !_cmp.classList.contains("hidden") && _cmp.style.display !== "none") return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (document.documentElement.classList.contains("is-booting")) return;
     const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
