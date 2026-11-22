@@ -116,7 +116,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
     const odoDist = document.getElementById('odo-dist');
     const odoTier = document.getElementById('odo-tier');
 
-    if (document.documentElement.classList.contains("is-booting")) {
+    if (document.documentElement.classList.contains("is-booting") && localStorage.getItem("hasBootedSession") !== "true") {
       const startDeferred3D = () => {
         if (window._nova3DInitialized) return;
         window._nova3DInitialized = true;
@@ -403,7 +403,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
         () => buildAsteroidBelt(),
         () => { oortCloudGroup = buildVolumetricOortCloud(scene, createRoundParticleTexture); }
       ];
-      if (document.documentElement.classList.contains("is-booting")) {
+      if (document.documentElement.classList.contains("is-booting") && localStorage.getItem("hasBootedSession") !== "true") {
         let _idx = 0;
         // Hold all 5 heavy background builders off the boot screen for locked 60fps cursor
         window._flushNova3DBuilders = () => {
@@ -2964,7 +2964,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
         }
       }
 
-      if (document.documentElement.classList.contains("is-booting")) {
+      if (document.documentElement.classList.contains("is-booting") && localStorage.getItem("hasBootedSession") !== "true") {
         const scheduleIdle = window.requestIdleCallback
           ? (fn) => window.requestIdleCallback(fn, { timeout: 120 })
           : (fn) => setTimeout(fn, 24);
