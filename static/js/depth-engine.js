@@ -149,7 +149,8 @@ export function buildSunlitAsteroidBelt(sc, count, innerRad, outerRad, thickness
   const tubeRad = (outerRad - innerRad) * 0.48;
   const dustGeom = new THREE.TorusGeometry(midRad, tubeRad, 14, 96);
   dustGeom.rotateX(Math.PI * 0.5);
-  dustGeom.scale(1.0, (thicknessY * 1.2) / Math.max(0.1, tubeRad), 1.0);
+  dustGeom.scale(1.0, Math.min(0.28, (thicknessY * 0.5) / Math.max(0.1, tubeRad)), 1.0);
+  dustGeom.computeVertexNormals();
   const dustMat = new THREE.ShaderMaterial({
     transparent: true,
     depthWrite: false,
@@ -347,7 +348,7 @@ export function initAndStepNovaDepthEngine(sc, cam, celObjs, isSunFocusedOrZoome
 
       const beltInner = rMars + (rJupiter - rMars) * 0.22;
       const beltOuter = rMars + (rJupiter - rMars) * 0.78;
-      const beltThick = (beltOuter - beltInner) * 0.68;
+      const beltThick = (beltOuter - beltInner) * 0.14;
       buildSunlitAsteroidBelt(sc, 4500, beltInner, beltOuter, beltThick, 0x8c6d46, 0xfcd34d, 0.32);
 
       if (rNeptune > rJupiter) {
