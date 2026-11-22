@@ -11,6 +11,8 @@ import {
 import { createAnimatedSunMaterial, createAnimatedCoronaLayer } from './shaders/sun.js';
 import { buildVolumetricCelestialStructures, createProceduralCloudTexture, createFbmNebulaTexture } from './volumetrics.js';
 import { initCosmicTour } from './tour.js';
+import { initDeepLinks, setDeepLinkTarget, setDeepLinkTier } from './deeplink.js';
+import { initScaleCompare } from './compare.js?v=2';
 
     
     function cleanAstrophysicalText(txt) {
@@ -1916,6 +1918,8 @@ import { initCosmicTour } from './tour.js';
         const res = await fetch('./catalog.json');
         catalog = (await res.json()).filter(item => item.id !== 'voyager-1');
         renderCatalogNodes();
+        initDeepLinks({ celestialObjects, filterTier: window.filterTier, novaSlewToMesh: window.novaSlewToMesh });
+        initScaleCompare({ celestialObjects, getActiveTarget: () => activeTarget });
       } catch (err) {
         console.error("Failed to fetch catalog:", err);
       }
@@ -3987,6 +3991,7 @@ import { initCosmicTour } from './tour.js';
     }
 
     function openInspector(data, isTierOverview = false) {
+      if (!isTierOverview && data && data.id) setDeepLinkTarget(data.id);
       activeTarget = data;
       const targetScale = document.getElementById('target-scale');
       if (targetScale) targetScale.textContent = data.scale_order || '';
@@ -5690,6 +5695,7 @@ import { initCosmicTour } from './tour.js';
       if (!mesh || !mesh.userData) return false;
       if (typeof controls !== "undefined" && controls) controls.enabled = true;
       activeTargetMesh = mesh;
+      if (mesh.userData.id) setDeepLinkTarget(mesh.userData.id);
       if (typeof isPlanetOverviewEnabled !== "undefined" && isPlanetOverviewEnabled && typeof openInspector === "function") {
         openInspector(mesh.userData);
       } else {
@@ -5881,6 +5887,7 @@ import { initCosmicTour } from './tour.js';
 
     window.filterTier = function(tier) {
       manualTierLock = tier;
+      setDeepLinkTier(tier);
       for (let i = 0; i <= 4; i++) {
         const btn = document.getElementById(`btn-t${i}`);
         if (!btn) continue;

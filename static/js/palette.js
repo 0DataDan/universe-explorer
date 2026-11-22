@@ -451,6 +451,11 @@
         return { action: "reset" };
       }
 
+      if (first === "scale") {
+        const args = tokens.slice(1).filter((t) => !["vs", "vs.", "/", "to", "and", "with"].includes(t.toLowerCase()));
+        return { action: "compare", a: args[0] || null, b: args[1] || null };
+      }
+
       // Optional leading verb
       let idx = 0;
       if (["goto", "slew", "approach", "target", "fly", "focus"].includes(first)) {
@@ -545,6 +550,29 @@
         return;
       }
 
+      if (parsed.action === "compare") {
+        currentMatches = [];
+        selectedIdx = 0;
+        const pairLabel = (parsed.a && parsed.b)
+          ? `${parsed.a.toUpperCase()} vs ${parsed.b.toUpperCase()}`
+          : (parsed.a ? `${parsed.a.toUpperCase()} vs EARTH` : "SOLAR SYSTEM");
+        resultsEl.innerHTML = `
+          <div class="nova-cmd-item selected" data-compare="1">
+            <span>SCALE</span>
+            <span class="nova-cmd-meta">${pairLabel}</span>
+          </div>
+        `;
+        resultsEl.classList.add("has-items");
+        const item = resultsEl.querySelector("[data-compare]");
+        if (item) {
+          item.addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            executeCommand();
+          });
+        }
+        return;
+      }
+
       const queryStr = parsed.action === "slew" ? parsed.query : "";
       currentMatches = findCatalogMatches(queryStr);
       selectedIdx = Math.min(selectedIdx, Math.max(0, currentMatches.length - 1));
@@ -574,6 +602,13 @@
 
     function executeCommand() {
       const parsed = parseCommand(input.value);
+      if (parsed.action === "compare") {
+        closeConsole();
+        if (typeof window.openScaleCompare === "function") {
+          window.openScaleCompare(parsed.a, parsed.b);
+        }
+        return;
+      }
       if (parsed.action === "reset") {
         if (window.controls) window.controls.enabled = true;
         window.isFlyingToTarget = false;
