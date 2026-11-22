@@ -44,6 +44,17 @@ const PRESETS = [
   ['betelgeuse', 'stephenson-2-18', 'BETELGEUSE / STEPHENSON'],
 ];
 
+const CYCLE_PAIRS = [
+  ['earth', 'moon'],
+  ['earth', 'mars'],
+  ['earth', 'jupiter'],
+  ['jupiter', 'saturn'],
+  ['sun', 'earth'],
+  ['sun', 'sirius'],
+  ['sun', 'betelgeuse'],
+  ['betelgeuse', 'stephenson-2-18'],
+];
+
 function formatSpan(km) {
   if (km >= 0.5 * MLY_KM) {
     const mly = km / MLY_KM;
@@ -328,7 +339,7 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
           </div>
         </div>
         <div class="text-[9px] tracking-[0.22em] uppercase text-slate-500">
-          DRAG TO ORBIT &bull; SCROLL TO ZOOM
+          DRAG TO ORBIT &bull; SCROLL TO ZOOM &bull; S SWAP &bull; &larr;/&rarr; PRESETS
         </div>
       </div>
     `;
@@ -353,6 +364,46 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
     });
 
     const canvas = overlayEl.querySelector('#nova-compare-canvas');
+    canvas.addEventListener('dblclick', () => {
+      targetYaw = 0.18;
+      targetPitch = 0.12;
+      targetDist = 9.5;
+      targetPanX = 0;
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (!overlayEl || overlayEl.classList.contains('hidden') || overlayEl.style.display === 'none') return;
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) return;
+
+      const key = e.key.toLowerCase();
+      if (key === 's') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const tmp = currentIdA;
+        currentIdA = currentIdB;
+        currentIdB = tmp;
+        renderPair();
+      } else if (key === 'r') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        targetYaw = 0.18;
+        targetPitch = 0.12;
+        targetDist = 9.5;
+        targetPanX = 0;
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const idx = CYCLE_PAIRS.findIndex(([a, b]) =>
+          (a === currentIdA && b === currentIdB) || (a === currentIdB && b === currentIdA)
+        );
+        const dir = e.key === 'ArrowRight' ? 1 : -1;
+        const nextIdx = idx === -1 ? 0 : (idx + dir + CYCLE_PAIRS.length) % CYCLE_PAIRS.length;
+        currentIdA = CYCLE_PAIRS[nextIdx][0];
+        currentIdB = CYCLE_PAIRS[nextIdx][1];
+        renderPair();
+      }
+    }, true);
+
     canvas.addEventListener('pointerdown', (e) => {
       isDragging = true;
       lastX = e.clientX;

@@ -41,7 +41,8 @@
     };
 
     (function initNovaCinematicBoot() {
-      const hasBooted = false;
+      const _rawHash = (window.location.hash || "").replace(/^#/, "").trim();
+      const hasBooted = new RegExp("(?:^|&)(?:target|tier)=", "i").test(_rawHash);
 
       const overlay = document.getElementById("nova-boot-overlay");
       if (hasBooted) {
