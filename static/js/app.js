@@ -387,7 +387,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
       controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
-      controls.maxDistance = 26000;
+      controls.maxDistance = 42000;
       controls.minDistance = 0.08;
       controls.zoomSpeed = -1.15;
       window.camera = camera;

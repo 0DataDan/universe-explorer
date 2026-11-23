@@ -536,68 +536,213 @@ export function buildNASAHubbleCosmicWeb(scene, createRoundParticleTexture, isCo
 }
 
 export function buildDelicateAuroraCMB(scene) {
-  // Expanded from 2,150 to 8,650 so all celestial objects (furthest at ~7,744 units) dwell within the Observable Universe border
-  const radius = 8650;
-  const geometry = new THREE.SphereGeometry(radius, 128, 96);
-  const count = geometry.attributes.position.count;
-  const colors = new Float32Array(count * 3);
+  // Base radius 12,500; auto-scales on first active frame to 1.18x the furthest deep-space object
+  const BASE_RADIUS = 12500;
+  const PARTICLE_COUNT = 5800;
 
+  const positions = new Float32Array(PARTICLE_COUNT * 3);
+  const colors = new Float32Array(PARTICLE_COUNT * 3);
+  const sizes = new Float32Array(PARTICLE_COUNT);
+  const phases = new Float32Array(PARTICLE_COUNT);
+
+  // Fibonacci sphere base + 22% volumetric radial band (0.90x - 1.12x) for 3D depth without starfield washout
+  const goldenAngle = Math.PI * (3.0 - Math.sqrt(5.0));
+  const cInner = new THREE.Color(0xff6b3d); // luminous cosmological orange-crimson
+  const cMid   = new THREE.Color(0xe6392e); // vivid redshift crimson
+  const cOuter = new THREE.Color(0x7a1b28); // deep ruby outer edge
+  const tmpCol = new THREE.Color();
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const yNorm = 1.0 - (i / (PARTICLE_COUNT - 1)) * 2.0;
+    const rRing = Math.sqrt(Math.max(0.0, 1.0 - yNorm * yNorm));
+    const theta = goldenAngle * i + (Math.random() - 0.5) * 0.30;
+
+    const u = (Math.random() + Math.random()) * 0.5; // bell-curved 0..1
+    const r = BASE_RADIUS * (0.90 + u * 0.22);
+
+    const i3 = i * 3;
+    positions[i3]     = Math.cos(theta) * rRing * r;
+    positions[i3 + 1] = yNorm * r;
+    positions[i3 + 2] = Math.sin(theta) * rRing * r;
+
+    if (u < 0.45) {
+      tmpCol.lerpColors(cInner, cMid, u / 0.45);
+    } else {
+      tmpCol.lerpColors(cMid, cOuter, (u - 0.45) / 0.55);
+    }
+    colors[i3]     = tmpCol.r;
+    colors[i3 + 1] = tmpCol.g;
+    colors[i3 + 2] = tmpCol.b;
+
+    sizes[i] = 26.0 + Math.pow(Math.random(), 2.0) * 74.0;
+    phases[i] = Math.random() * Math.PI * 2.0;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+  geometry.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
   cmbColorsAttribute = geometry.attributes.color;
 
-  cmbMaterial = new THREE.MeshBasicMaterial({
-    vertexColors: true,
-    side: THREE.BackSide,
+  cmbMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0.0 },
+      uOpacity: { value: 0.0 }
+    },
+    vertexShader: `
+      attribute float aSize;
+      attribute float aPhase;
+      varying vec3 vColor;
+      varying float vLimb;
+      varying float vPulse;
+      uniform float uTime;
+
+      void main() {
+        vColor = color;
+
+        float drift = uTime * 0.16 + aPhase;
+        vec3 pos = position;
+        pos.x += sin(drift) * 55.0;
+        pos.y += cos(drift * 0.85) * 55.0;
+        pos.z += sin(drift * 0.7 + 1.3) * 55.0;
+
+        vec4 worldPos = modelMatrix * vec4(pos, 1.0);
+        vec3 normalDir = normalize(worldPos.xyz);
+        vec3 viewDir = normalize(cameraPosition - worldPos.xyz);
+
+        // Tightened limb falloff: clean transparent center, glowing curved boundary
+        float ndotv = abs(dot(normalDir, viewDir));
+        vLimb = mix(0.08, 1.0, pow(1.0 - ndotv, 2.8));
+        vPulse = 0.82 + 0.18 * sin(uTime * 0.85 + aPhase * 2.0);
+
+        vec4 mvPosition = viewMatrix * worldPos;
+        gl_Position = projectionMatrix * mvPosition;
+        gl_PointSize = clamp(aSize * (16500.0 / max(100.0, -mvPosition.z)), 2.0, 15.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      varying float vLimb;
+      varying float vPulse;
+      uniform float uOpacity;
+
+      void main() {
+        vec2 uv = gl_PointCoord - vec2(0.5);
+        float d = length(uv);
+        if (d > 0.5) discard;
+
+        float core = exp(-d * d * 24.0);
+        float halo = pow(1.0 - d * 2.0, 1.45) * 0.65;
+        float alpha = clamp((core + halo) * vLimb * vPulse * uOpacity, 0.0, 1.0);
+        gl_FragColor = vec4(vColor * 1.35, alpha);
+      }
+    `,
     transparent: true,
-    opacity: 0.0,
+    vertexColors: true,
     blending: THREE.AdditiveBlending,
     depthWrite: false
   });
 
-  cmbSphere = new THREE.Mesh(geometry, cmbMaterial);
+  // Expose .opacity so app.js zoom-tier fading works without modifying app.js
+  cmbMaterial.opacity = 0.0;
+
+  cmbSphere = new THREE.Points(geometry, cmbMaterial);
+  cmbSphere.userData.baseRadius = BASE_RADIUS;
+  cmbSphere.userData.autoFitted = false;
+  cmbSphere.frustumCulled = false;
   cmbSphere.raycast = () => {};
   cmbSphere.visible = true;
+
+  // Razor-thin Fresnel Rim Mesh — defines the spherical horizon silhouette cleanly
+  const rimGeo = new THREE.SphereGeometry(BASE_RADIUS, 96, 64);
+  const rimMat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime: { value: 0.0 },
+      uOpacity: { value: 0.0 }
+    },
+    vertexShader: `
+      varying vec3 vWorldPos;
+      varying vec3 vWorldNormal;
+
+      void main() {
+        vec4 worldPos = modelMatrix * vec4(position, 1.0);
+        vWorldPos = worldPos.xyz;
+        vWorldNormal = normalize(mat3(modelMatrix) * normal);
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vWorldPos;
+      varying vec3 vWorldNormal;
+      uniform float uTime;
+      uniform float uOpacity;
+
+      void main() {
+        vec3 N = normalize(vWorldNormal);
+        vec3 V = normalize(cameraPosition - vWorldPos);
+        float ndotv = abs(dot(N, V));
+
+        // 100% clear interior, razor-sharp ember glow strictly along the grazing horizon rim
+        float fresnel = pow(1.0 - ndotv, 4.2);
+
+        // Subtle high-frequency CMB anisotropy shimmer along the rim
+        vec3 dir = normalize(vWorldPos);
+        float ripple = 0.85 + 0.15 * sin(dir.x * 18.0 + uTime * 0.25) * cos(dir.y * 18.0 - uTime * 0.2) * sin(dir.z * 18.0);
+
+        vec3 rimColor = mix(vec3(0.55, 0.10, 0.16), vec3(1.0, 0.40, 0.22), fresnel);
+        float alpha = clamp(fresnel * ripple * 0.22 * uOpacity, 0.0, 1.0);
+        gl_FragColor = vec4(rimColor, alpha);
+      }
+    `,
+    transparent: true,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+
+  const fresnelRimMesh = new THREE.Mesh(rimGeo, rimMat);
+  fresnelRimMesh.raycast = () => {};
+  fresnelRimMesh.frustumCulled = false;
+  cmbSphere.add(fresnelRimMesh);
+  cmbSphere.userData.rimMaterial = rimMat;
+
   scene.add(cmbSphere);
   return { cmbSphere, cmbMaterial, cmbColorsAttribute };
 }
 
 export function updateCMBThermalAcoustics(timeSec) {
-  if (!cmbSphere || cmbMaterial.opacity <= 0.002 || !cmbColorsAttribute) return;
+  if (!cmbSphere || !cmbMaterial) return;
 
-  const pos = cmbSphere.geometry.attributes.position;
-  const colors = cmbColorsAttribute.array;
-  const count = pos.count;
-  const t = timeSec * 0.30;
-
-  for (let i = 0; i < count; i++) {
-    const x = pos.getX(i);
-    const y = pos.getY(i);
-    const z = pos.getZ(i);
-
-    // Scaled spatial frequencies for the 8,650-unit Observable Universe border sphere
-    const w1 = Math.sin(x * 0.0025 + t) * Math.cos(y * 0.0025);
-    const w2 = Math.sin(y * 0.0035 - t * 0.75) * Math.cos(z * 0.0035);
-    const w3 = Math.cos(z * 0.0050 + t * 0.4) * Math.sin(x * 0.0050);
-    const anisotropy = (w1 + w2 + w3) / 3.0;
-
-    const i3 = i * 3;
-    if (anisotropy > 0.12) {
-      const factor = (anisotropy - 0.12) * 1.8;
-      colors[i3] = 0.0;
-      colors[i3 + 1] = 0.55 * factor;
-      colors[i3 + 2] = 0.75 * factor;
-    } else if (anisotropy < -0.12) {
-      const factor = (-anisotropy - 0.12) * 1.6;
-      colors[i3] = 0.32 * factor;
-      colors[i3 + 1] = 0.10 * factor;
-      colors[i3 + 2] = 0.60 * factor;
-    } else {
-      colors[i3] = 0.0;
-      colors[i3 + 1] = 0.0;
-      colors[i3 + 2] = 0.0;
+  // Auto-fit once to ensure every deep-space outlier sits cleanly inside the horizon shell
+  if (!cmbSphere.userData.autoFitted && cmbSphere.parent && cmbSphere.parent.children.length > 20) {
+    let maxDist = 0;
+    for (const child of cmbSphere.parent.children) {
+      if (child === cmbSphere || !child.position) continue;
+      if (child.userData && child.userData.id) {
+        const d = child.position.length();
+        if (d > maxDist && d < 60000) maxDist = d;
+      }
+    }
+    if (maxDist > 100) {
+      const targetRadius = Math.max(cmbSphere.userData.baseRadius, maxDist * 1.18);
+      cmbSphere.scale.setScalar(targetRadius / cmbSphere.userData.baseRadius);
+      cmbSphere.userData.autoFitted = true;
     }
   }
 
-  cmbColorsAttribute.needsUpdate = true;
-}
+  // Normalize app.js opacity (0.0 -> 0.075) to full 0.0 -> 1.0 shader visibility
+  const normOpacity = Math.min(1.0, (cmbMaterial.opacity || 0.0) / 0.075);
+  cmbSphere.visible = normOpacity > 0.005;
+  if (!cmbSphere.visible) return;
 
+  if (cmbMaterial.uniforms) {
+    cmbMaterial.uniforms.uTime.value = timeSec;
+    cmbMaterial.uniforms.uOpacity.value = normOpacity;
+  }
+  const rimMat = cmbSphere.userData.rimMaterial;
+  if (rimMat && rimMat.uniforms) {
+    rimMat.uniforms.uTime.value = timeSec;
+    rimMat.uniforms.uOpacity.value = normOpacity;
+  }
+}
