@@ -717,8 +717,8 @@ export function initCosmicTour(ctx) {
 
       ctx.activeTargetMesh = targetMesh;
       activeTarget = targetData;
-      if (typeof window.populateSpatialCallout === "function") {
-        window.populateSpatialCallout(targetData, false);
+      if (typeof window.dismissSpatialCallout === "function") {
+        window.dismissSpatialCallout();
       }
 
       // Stop auto-rotation during cinematic flight
@@ -769,8 +769,8 @@ export function initCosmicTour(ctx) {
       }
 
       if (typeof controls !== 'undefined' && controls) controls.autoRotate = false;
-      if (activeTarget && typeof window.populateSpatialCallout === "function") {
-        window.populateSpatialCallout(activeTarget, false);
+      if (typeof window.dismissSpatialCallout === "function") {
+        window.dismissSpatialCallout();
       }
       document.documentElement.classList.remove("screensaver-active");
       const labelsLayer = document.getElementById("celestial-labels-layer");

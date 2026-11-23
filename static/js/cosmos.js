@@ -208,19 +208,23 @@ export function buildTriangulumSpiral(scene, createRoundParticleTexture) {
 
 // Subtle, Translucent Electric Fractal Cosmic Web
 export function buildNASAHubbleCosmicWeb(scene, createRoundParticleTexture, isCosmicWebVisible = true) {
-  let cosmicWebGroup;
-  cosmicWebGroup = new THREE.Group();
+  const cosmicWebGroup = new THREE.Group();
   const filamentFlowParticles = [];
   window._filamentPulses = [];
 
-  // Deterministic PRNG for structured fractal repeatability
+  // Deterministic PRNG for repeatable large-scale structure
   let seed = 421337;
   function fRand() {
     seed = (seed * 16807) % 2147483647;
     return (seed - 1) / 2147483646;
   }
+  function fGauss() {
+    const u1 = Math.max(1e-6, fRand());
+    const u2 = fRand();
+    return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+  }
 
-  // Helper matching applyCosmicDepthProportions() so Cosmic Web filaments reach exact positions of furthest objects
+  // Helper matching applyCosmicDepthProportions() so filaments anchor to deep-space catalog objects
   function computeRescaledTargetPos(id, rawPos, tier) {
     const x = rawPos[0], y = rawPos[1], z = rawPos[2];
     const currentDist = Math.sqrt(x * x + y * y + z * z) || 1.0;
@@ -235,51 +239,52 @@ export function buildNASAHubbleCosmicWeb(scene, createRoundParticleTexture, isCo
     return new THREE.Vector3((ux / norm) * targetDist, (ny / norm) * targetDist, (uz / norm) * targetDist);
   }
 
-  // 1. Multi-Shell Supercluster Attractor Nodes spanning from Local Group (380) to Deep Cosmic Horizon (~7,850)
+  // 1. Define Spherical Cosmic Voids (empty bubbles framed by filaments, like Bootes Void)
+  const voids = [];
+  for (let v = 0; v < 28; v++) {
+    const u = fRand(), w = fRand();
+    const theta = u * 2.0 * Math.PI;
+    const phi = Math.acos(2.0 * w - 1.0);
+    const r = 2400 + Math.cbrt(fRand()) * 13600;
+    voids.push({
+      center: new THREE.Vector3(
+        r * Math.sin(phi) * Math.cos(theta),
+        r * Math.sin(phi) * Math.sin(theta) * 0.90,
+        r * Math.cos(phi)
+      ),
+      radius: 1400 + fRand() * 1200
+    });
+  }
+
+  function insideVoid(pt) {
+    for (let v = 0; v < voids.length; v++) {
+      if (pt.distanceTo(voids[v].center) < voids[v].radius) return true;
+    }
+    return false;
+  }
+
+  // 2. Volume-Filling Supercluster Nodes (cube-root radial sampling = homogeneous 3D foam)
   const nodes = [];
-  // Inner shell: Local Group & nearby supercluster web (r = 380 .. 2,150)
-  const innerCount = 82;
-  for (let i = 0; i < innerCount; i++) {
+  const targetNodes = 380;
+  let attempts = 0;
+  while (nodes.length < targetNodes && attempts < 3600) {
+    attempts++;
     const u = fRand(), v = fRand();
     const theta = u * 2.0 * Math.PI;
     const phi = Math.acos(2.0 * v - 1.0);
-    const r = 380 + fRand() * 1770;
-    nodes.push(new THREE.Vector3(
+    // Uniform volumetric distribution from r = 550 out to the CMB horizon (r = 17,600)
+    const r = 550 + Math.cbrt(fRand()) * 17050;
+    const candidate = new THREE.Vector3(
       r * Math.sin(phi) * Math.cos(theta),
-      r * Math.sin(phi) * Math.sin(theta) * 0.65,
+      r * Math.sin(phi) * Math.sin(theta) * 0.92,
       r * Math.cos(phi)
-    ));
+    );
+    if (!insideVoid(candidate)) {
+      nodes.push(candidate);
+    }
   }
 
-  // Mid-deep shell: Laniakea, Shapley, and Coma-scale filaments (r = 2,100 .. 5,300)
-  const midCount = 58;
-  for (let i = 0; i < midCount; i++) {
-    const u = fRand(), v = fRand();
-    const theta = u * 2.0 * Math.PI;
-    const phi = Math.acos(2.0 * v - 1.0);
-    const r = 2100 + fRand() * 3200;
-    nodes.push(new THREE.Vector3(
-      r * Math.sin(phi) * Math.cos(theta),
-      r * Math.sin(phi) * Math.sin(theta) * 0.72,
-      r * Math.cos(phi)
-    ));
-  }
-
-  // Outer horizon shell: High-redshift protocluster web reaching the furthest objects (r = 5,100 .. 7,850)
-  const outerCount = 44;
-  for (let i = 0; i < outerCount; i++) {
-    const u = fRand(), v = fRand();
-    const theta = u * 2.0 * Math.PI;
-    const phi = Math.acos(2.0 * v - 1.0);
-    const r = 5100 + fRand() * 2750;
-    nodes.push(new THREE.Vector3(
-      r * Math.sin(phi) * Math.cos(theta),
-      r * Math.sin(phi) * Math.sin(theta) * 0.78,
-      r * Math.cos(phi)
-    ));
-  }
-
-  // Anchor nodes at the exact rescaled coordinates of Tier 3 & Tier 4 celestial objects (including furthest map objects)
+  // Embed exact Tier 3 & Tier 4 catalog anchors into the web
   const deepCatalogAnchors = [
     { id: 'andromeda', pos: [380, 105, -255], tier: 3 },
     { id: 'triangulum', pos: [450, 48, -330], tier: 3 },
@@ -294,241 +299,160 @@ export function buildNASAHubbleCosmicWeb(scene, createRoundParticleTexture, isCo
     { id: 'earendel', pos: [670, -540, 1240], tier: 4 },
     { id: 'gn-z11', pos: [0, 0, 1500], tier: 4 }
   ];
-
   const anchorVectors = deepCatalogAnchors.map(item => computeRescaledTargetPos(item.id, item.pos, item.tier));
   anchorVectors.forEach(vec => nodes.push(vec));
 
-  // Create organic stepping-stone bridge nodes from the inner web out to each furthest Tier 4 anchor so filaments visibly reach them
-  anchorVectors.forEach(targetVec => {
-    const distFromCore = targetVec.length();
-    if (distFromCore > 2400) {
-      const dir = targetVec.clone().normalize();
-      const steps = 4;
-      let prevPt = dir.clone().multiplyScalar(1450);
-      nodes.push(prevPt);
-      for (let s = 1; s < steps; s++) {
-        const frac = s / steps;
-        const radialDist = 1450 + frac * (distFromCore - 1450);
-        const stepPt = dir.clone().multiplyScalar(radialDist);
-        // Organic lateral offset so the filament bridge winds naturally through 3D space
-        stepPt.x += (fRand() - 0.5) * 420;
-        stepPt.y += (fRand() - 0.5) * 320;
-        stepPt.z += (fRand() - 0.5) * 420;
-        nodes.push(stepPt);
-        prevPt = stepPt;
-      }
-    }
-  });
-
-  // 2. Recursive Midpoint-Displacement Fractal Bolt Generator
-  function generateFractalBolt(pStart, pEnd, depth, jitterScale) {
-    let pts = [pStart.clone(), pEnd.clone()];
-    let currentJitter = jitterScale;
-    for (let d = 0; d < depth; d++) {
-      const nextPts = [pts[0]];
-      for (let k = 0; k < pts.length - 1; k++) {
-        const a = pts[k];
-        const b = pts[k + 1];
-        const mid = a.clone().add(b).multiplyScalar(0.5);
-        mid.x += (fRand() - 0.5) * currentJitter;
-        mid.y += (fRand() - 0.5) * currentJitter;
-        mid.z += (fRand() - 0.5) * currentJitter;
-        nextPts.push(mid, b);
-      }
-      pts = nextPts;
-      currentJitter *= 0.52;
-    }
-    return pts;
-  }
-
-  // 3. Subtle, Translucent Electric Fractal Palette (Never overpowers foreground objects)
-  const coreFilamentMat = new THREE.LineBasicMaterial({
-    color: 0xf472b6,
-    transparent: true,
-    opacity: 0.22,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
-
-  const outerFilamentMat = new THREE.LineBasicMaterial({
-    color: 0xd946ef,
-    transparent: true,
-    opacity: 0.11,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
-
-  const branchFilamentMat = new THREE.LineBasicMaterial({
-    color: 0xa855f7,
-    transparent: true,
-    opacity: 0.07,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
-
-  window._cosmicMaterials = { 
-    core: coreFilamentMat, 
-    outer: outerFilamentMat, 
-    branch: branchFilamentMat 
-  };
-
-  const pulseHaloGeo = new THREE.SphereGeometry(2.1, 8, 8);
-  const pulseHaloMat = new THREE.MeshBasicMaterial({
-    color: 0xe879f9,
-    transparent: true,
-    opacity: 0.18,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
-
-  function addFractalConduit(pA, pB, dist) {
-    const boltPts = generateFractalBolt(pA, pB, 4, dist * 0.20);
-    const boltGeom = new THREE.BufferGeometry().setFromPoints(boltPts);
-
-    const coreLine = new THREE.Line(boltGeom, coreFilamentMat);
-    coreLine.raycast = () => {};
-    cosmicWebGroup.add(coreLine);
-
-    const sheathPts = generateFractalBolt(pA, pB, 4, dist * 0.24);
-    const sheathGeom = new THREE.BufferGeometry().setFromPoints(sheathPts);
-    const sheathLine = new THREE.Line(sheathGeom, outerFilamentMat);
-    sheathLine.raycast = () => {};
-    cosmicWebGroup.add(sheathLine);
-
-    const branchReach = Math.max(85, dist * 0.14);
-    const branchCount = 1 + Math.floor(fRand() * 2);
-    for (let b = 0; b < branchCount; b++) {
-      const pickIdx = 3 + Math.floor(fRand() * (boltPts.length - 6));
-      const branchOrigin = boltPts[pickIdx];
-      const branchDir = new THREE.Vector3(
-        (fRand() - 0.5) * branchReach,
-        (fRand() - 0.5) * (branchReach * 0.75),
-        (fRand() - 0.5) * branchReach
-      );
-      const branchTarget = branchOrigin.clone().add(branchDir);
-      const subPts = generateFractalBolt(branchOrigin, branchTarget, 3, branchReach * 0.28);
-      const subGeom = new THREE.BufferGeometry().setFromPoints(subPts);
-      const subLine = new THREE.Line(subGeom, branchFilamentMat);
-      subLine.raycast = () => {};
-      cosmicWebGroup.add(subLine);
-    }
-
-    if (fRand() > 0.48) {
-      const boltCurve = new THREE.CatmullRomCurve3(boltPts);
-      const pulseGroup = new THREE.Group();
-      const sparkPts = [
-        new THREE.Vector3(0, 0, -4.5),
-        new THREE.Vector3(1.0, 0.8, -2.0),
-        new THREE.Vector3(-0.8, -0.7, 0.0),
-        new THREE.Vector3(0.6, 0.5, 2.0),
-        new THREE.Vector3(0, 0, 4.5)
-      ];
-      const sparkGeo = new THREE.BufferGeometry().setFromPoints(sparkPts);
-      const sparkMat = new THREE.LineBasicMaterial({
-        color: 0xff33bb,
-        transparent: true,
-        opacity: 0.325,
-        blending: THREE.AdditiveBlending
-      });
-      const sparkLine = new THREE.Line(sparkGeo, sparkMat);
-      sparkLine.raycast = () => {};
-      pulseGroup.add(sparkLine);
-
-      const pHalo = new THREE.Mesh(pulseHaloGeo, pulseHaloMat);
-      pHalo.raycast = () => {};
-      pulseGroup.add(pHalo);
-      cosmicWebGroup.add(pulseGroup);
-
-      const pulseItem = {
-        mesh: pulseGroup,
-        curve: boltCurve,
-        progress: fRand(),
-        speed: 0.0014 + fRand() * 0.0022,
-        sparkMat: sparkMat,
-        haloMat: pulseHaloMat
-      };
-      filamentFlowParticles.push(pulseItem);
-      window._filamentPulses.push(pulseItem);
-    }
-  }
-
-  // 4. Connect Supercluster Nodes with Adaptive Radial Thresholds across Inner, Mid, and Deep Horizon Shells
+  // 3. Build Cellular Foam Edges (connect each node to its 3-4 nearest neighbors)
+  const edges = [];
   const connectedPairs = new Set();
   for (let i = 0; i < nodes.length; i++) {
-    const rA = nodes[i].length();
-    for (let j = i + 1; j < nodes.length; j++) {
-      const rB = nodes[j].length();
-      const maxR = Math.max(rA, rB);
-      const dist = nodes[i].distanceTo(nodes[j]);
-
-      // Scale connection span with radial depth so both inner and deep-horizon shells form a continuous web
-      const minSpan = maxR < 2200 ? 240 : (maxR < 5200 ? 480 : 650);
-      const maxSpan = maxR < 2200 ? 640 : (maxR < 5200 ? 1580 : 2250);
-
-      if (dist > minSpan && dist < maxSpan) {
-        connectedPairs.add(`${i}-${j}`);
-        addFractalConduit(nodes[i], nodes[j], dist);
-      }
-    }
-  }
-
-  // Ensure every deep catalog anchor (GN-z11, Earendel, TON 618, SMACS 0723, El Gordo, Shapley, etc.)
-  // has at least 3 direct cosmic web filament conduits connecting it into the broader network
-  anchorVectors.forEach(anchorPt => {
-    const anchorIdx = nodes.indexOf(anchorPt);
     const candidates = [];
-    for (let k = 0; k < nodes.length; k++) {
-      if (k === anchorIdx) continue;
-      const d = anchorPt.distanceTo(nodes[k]);
-      if (d > 180) candidates.push({ idx: k, dist: d });
+    for (let j = 0; j < nodes.length; j++) {
+      if (i === j) continue;
+      const d = nodes[i].distanceTo(nodes[j]);
+      if (d > 320 && d < 5400) {
+        candidates.push({ idx: j, dist: d });
+      }
     }
     candidates.sort((a, b) => a.dist - b.dist);
-    for (let c = 0; c < Math.min(3, candidates.length); c++) {
-      const otherIdx = candidates[c].idx;
-      const key = anchorIdx < otherIdx ? `${anchorIdx}-${otherIdx}` : `${otherIdx}-${anchorIdx}`;
+    const maxLinks = i >= nodes.length - anchorVectors.length ? 4 : 3;
+    for (let c = 0; c < Math.min(maxLinks, candidates.length); c++) {
+      const other = candidates[c].idx;
+      const key = i < other ? `${i}-${other}` : `${other}-${i}`;
       if (!connectedPairs.has(key)) {
         connectedPairs.add(key);
-        addFractalConduit(anchorPt, nodes[otherIdx], candidates[c].dist);
+        edges.push([nodes[i], nodes[other], candidates[c].dist]);
       }
+    }
+  }
+
+  // 4. Generate Smooth Curved Gas Backbone + ~40,000 Pinpoint Galaxies Along Filaments
+  const linePositions = [];
+  const galaxyPositions = [];
+  const galaxyColors = [];
+
+  const colNodeWarm = new THREE.Color(0xfff1d6);   // Hot intracluster gas & elliptical hubs
+  const colMidAmber = new THREE.Color(0xe2b887);   // Transitional filament
+  const colBridgeBlue = new THREE.Color(0x7c93c3); // Faint outer slate-blue galaxy streams
+  const tmpColor = new THREE.Color();
+
+  edges.forEach(([pA, pB, dist]) => {
+    // Gently curved organic 3-point spline (no jagged lightning bolts)
+    const mid = pA.clone().add(pB).multiplyScalar(0.5);
+    const bend = dist * 0.14;
+    mid.x += (fRand() - 0.5) * bend;
+    mid.y += (fRand() - 0.5) * bend * 0.8;
+    mid.z += (fRand() - 0.5) * bend;
+
+    const curve = new THREE.CatmullRomCurve3([pA, mid, pB]);
+    const segs = 12;
+    const curvePts = curve.getPoints(segs);
+    for (let s = 0; s < segs; s++) {
+      linePositions.push(
+        curvePts[s].x, curvePts[s].y, curvePts[s].z,
+        curvePts[s + 1].x, curvePts[s + 1].y, curvePts[s + 1].z
+      );
+    }
+
+    // Populate filament with pinpoint galaxies (thick at nodes, tapered in the middle)
+    const galCount = Math.min(130, Math.max(40, Math.floor(dist * 0.038)));
+    for (let g = 0; g < galCount; g++) {
+      // Bias slightly toward the supercluster hubs at t=0 and t=1
+      let t = fRand();
+      if (fRand() < 0.35) {
+        t = fRand() < 0.5 ? Math.pow(fRand(), 2.2) * 0.35 : 1.0 - Math.pow(fRand(), 2.2) * 0.35;
+      }
+      const pt = curve.getPoint(t);
+      const hubProximity = 1.0 - Math.sin(t * Math.PI); // 1 at nodes, 0 at midpoint
+      const spread = (22.0 + dist * 0.024) * (0.55 + 0.85 * hubProximity);
+
+      galaxyPositions.push(
+        pt.x + fGauss() * spread,
+        pt.y + fGauss() * spread,
+        pt.z + fGauss() * spread
+      );
+
+      // Density-mapped color: warm gold-white near nodes -> muted slate-blue in bridges
+      if (hubProximity > 0.55) {
+        tmpColor.copy(colMidAmber).lerp(colNodeWarm, (hubProximity - 0.55) / 0.45);
+      } else {
+        tmpColor.copy(colBridgeBlue).lerp(colMidAmber, hubProximity / 0.55);
+      }
+      const brightness = 0.42 + 0.58 * Math.pow(fRand(), 1.4);
+      galaxyColors.push(tmpColor.r * brightness, tmpColor.g * brightness, tmpColor.b * brightness);
     }
   });
 
-  function makeSubtleNodeSprite(rgbaColor, scaleSize) {
-    const c = document.createElement('canvas');
-    c.width = 64;
-    c.height = 64;
-    const ctx = c.getContext('2d');
-    const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    grad.addColorStop(0.0, rgbaColor);
-    grad.addColorStop(0.4, rgbaColor);
-    grad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 64, 64);
-    const tex = new THREE.CanvasTexture(c);
-    const mat = new THREE.SpriteMaterial({
-      map: tex,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
-    });
-    const sprite = new THREE.Sprite(mat);
-    sprite.scale.set(scaleSize, scaleSize, 1.0);
-    return sprite;
-  }
-
-  // 5. Subtle Supercluster Intersection Nodes (scaled gently for deep-horizon visibility)
-  nodes.forEach(pt => {
-    const rScale = pt.length() > 2500 ? 2.2 : 1.0;
-    const outerAura = makeSubtleNodeSprite('rgba(232, 121, 249, 0.18)', 9.0 * rScale);
-    outerAura.position.copy(pt);
-    outerAura.raycast = () => {};
-    cosmicWebGroup.add(outerAura);
-
-    const hotCore = makeSubtleNodeSprite('rgba(253, 242, 248, 0.32)', 3.8 * rScale);
-    hotCore.position.copy(pt);
-    hotCore.raycast = () => {};
-    cosmicWebGroup.add(hotCore);
+  // Ultra-faint WHIM / dark-matter gas backbone (single draw call via LineSegments)
+  const backboneGeo = new THREE.BufferGeometry();
+  backboneGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+  const coreFilamentMat = new THREE.LineBasicMaterial({
+    color: 0x64748b,
+    transparent: true,
+    opacity: 0.09,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
   });
+  const backboneLines = new THREE.LineSegments(backboneGeo, coreFilamentMat);
+  backboneLines.raycast = () => {};
+  cosmicWebGroup.add(backboneLines);
+
+  // Pinpoint galaxy cloud tracing the cosmic foam (single draw call)
+  const galaxyGeo = new THREE.BufferGeometry();
+  galaxyGeo.setAttribute('position', new THREE.Float32BufferAttribute(galaxyPositions, 3));
+  galaxyGeo.setAttribute('color', new THREE.Float32BufferAttribute(galaxyColors, 3));
+  const outerFilamentMat = new THREE.PointsMaterial({
+    size: 28.0,
+    sizeAttenuation: true,
+    map: typeof createRoundParticleTexture === 'function' ? createRoundParticleTexture() : null,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.72,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  const galaxyCloud = new THREE.Points(galaxyGeo, outerFilamentMat);
+  galaxyCloud.raycast = () => {};
+  cosmicWebGroup.add(galaxyCloud);
+
+  // Shared radial glow texture for supercluster intersection hubs
+  const hubCanvas = document.createElement('canvas');
+  hubCanvas.width = 64;
+  hubCanvas.height = 64;
+  const hctx = hubCanvas.getContext('2d');
+  const grad = hctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0.0, 'rgba(255, 244, 224, 0.55)');
+  grad.addColorStop(0.35, 'rgba(226, 184, 135, 0.18)');
+  grad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+  hctx.fillStyle = grad;
+  hctx.fillRect(0, 0, 64, 64);
+  const hubTex = new THREE.CanvasTexture(hubCanvas);
+
+  const branchFilamentMat = new THREE.SpriteMaterial({
+    map: hubTex,
+    transparent: true,
+    opacity: 0.35,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+
+  // Soft warm halos at supercluster intersections
+  nodes.forEach(pt => {
+    const rLen = pt.length();
+    const rScale = 1.2 + Math.min(3.8, rLen / 4200);
+    const hubSprite = new THREE.Sprite(branchFilamentMat);
+    hubSprite.position.copy(pt);
+    hubSprite.scale.set(34.0 * rScale, 34.0 * rScale, 1.0);
+    hubSprite.raycast = () => {};
+    cosmicWebGroup.add(hubSprite);
+  });
+
+  // Preserve window._cosmicMaterials contract for app.js depth-fading
+  window._cosmicMaterials = {
+    core: coreFilamentMat,
+    outer: outerFilamentMat,
+    branch: branchFilamentMat
+  };
 
   cosmicWebGroup.visible = typeof isCosmicWebVisible !== 'undefined' ? isCosmicWebVisible : true;
   scene.add(cosmicWebGroup);

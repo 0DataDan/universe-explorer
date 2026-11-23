@@ -14,7 +14,7 @@ import { initCosmicTour } from './tour.js';
 import { initDeepLinks, setDeepLinkTarget, setDeepLinkTier } from './deeplink.js';
 import { initScaleCompare } from './compare.js?v=11';
 import { initAndStepNovaDepthEngine, enforceSceneDepthOcclusion } from './depth-engine.js?v=2';
-import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAuroraCMB, updateCMBThermalAcoustics } from './cosmos.js?v=2';
+import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAuroraCMB, updateCMBThermalAcoustics } from './cosmos.js?v=4';
 
     
     function cleanAstrophysicalText(txt) {
@@ -945,27 +945,25 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
         ctx.fillRect(0, 0, 512, 18);
         ctx.fillRect(0, 238, 512, 18);
       } else if (type === 'uranus') {
+        // True-color pale icy-cyan with subtle polar hood (preserving original banding)
         const grad = ctx.createLinearGradient(0, 0, 0, 256);
-        grad.addColorStop(0, '#cffafe');
-        grad.addColorStop(0.3, '#67e8f9');
-        grad.addColorStop(0.7, '#22d3ee');
-        grad.addColorStop(1, '#cffafe');
+        grad.addColorStop(0, '#d8ecee');
+        grad.addColorStop(0.3, '#b4dce3');
+        grad.addColorStop(0.7, '#99ccd8');
+        grad.addColorStop(1, '#cce5ea');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 512, 256);
         for (let y = 60; y < 200; y += 18) {
           ctx.fillRect(0, y, 512, 3);
         }
       } else if (type === 'neptune') {
+        // True-color muted azure/periwinkle (1989 Voyager 2 Great Dark Spot removed; methane cirrus streaks preserved)
         const grad = ctx.createLinearGradient(0, 0, 0, 256);
-        grad.addColorStop(0, '#1e3a8a');
-        grad.addColorStop(0.5, '#2563eb');
-        grad.addColorStop(1, '#1d4ed8');
+        grad.addColorStop(0, '#5b7db8');
+        grad.addColorStop(0.5, '#7698d4');
+        grad.addColorStop(1, '#5878b2');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 512, 256);
-        ctx.fillStyle = '#0f172a';
-        ctx.beginPath();
-        ctx.ellipse(260, 150, 24, 13, 0.1, 0, Math.PI * 2);
-        ctx.fill();
         ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
         for (let i = 0; i < 18; i++) {
           const cx = Math.random() * 450;
@@ -1399,7 +1397,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
             depthTest: true
           });
         } else if (item.id === "earendel") {
-          material = new THREE.MeshBasicMaterial({ color: 0x93c5fd });
+          material = new THREE.MeshBasicMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.0, depthWrite: false });
         } else if (item.id === "earth") {
           material = new THREE.MeshBasicMaterial({ map: createProceduralTexture('earth') });
         } else if (item.id === "jupiter") {
@@ -1623,27 +1621,27 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
                 float t = clamp((r - uInnerR) / (uOuterR - uInnerR), 0.0, 1.0);
                 float angle = atan(vLocalPos.y, vLocalPos.x);
 
-                // Multi-stranded razor-thin Uranus ring system (6, 5, 4, alpha, beta, eta, gamma, delta, epsilon)
+                // Multi-stranded razor-thin, low-albedo Uranus ring system (6, 5, 4, alpha, beta, eta, gamma, delta, epsilon)
                 float strands = 0.0;
-                strands += ringStrand(t, 0.14, 0.012, 0.28);
-                strands += ringStrand(t, 0.24, 0.010, 0.32);
-                strands += ringStrand(t, 0.36, 0.009, 0.42);
-                strands += ringStrand(t, 0.48, 0.011, 0.38);
-                strands += ringStrand(t, 0.62, 0.009, 0.50);
-                strands += ringStrand(t, 0.74, 0.010, 0.45);
-                // Bright, slightly asymmetric outer Epsilon ring
+                strands += ringStrand(t, 0.14, 0.012, 0.09);
+                strands += ringStrand(t, 0.24, 0.010, 0.11);
+                strands += ringStrand(t, 0.36, 0.009, 0.14);
+                strands += ringStrand(t, 0.48, 0.011, 0.13);
+                strands += ringStrand(t, 0.62, 0.009, 0.17);
+                strands += ringStrand(t, 0.74, 0.010, 0.15);
+                // Subtle, slightly asymmetric outer Epsilon ring
                 float epsVar = 0.72 + 0.28 * sin(angle * 1.0 + 0.8);
-                strands += ringStrand(t, 0.89, 0.016, 0.95 * epsVar);
+                strands += ringStrand(t, 0.89, 0.015, 0.30 * epsVar);
 
-                // Faint warm dust sheet between strands
-                float dust = smoothstep(0.05, 0.25, t) * (1.0 - smoothstep(0.85, 1.0, t)) * 0.06;
+                // Ultra-faint dark dust sheet between strands
+                float dust = smoothstep(0.05, 0.25, t) * (1.0 - smoothstep(0.85, 1.0, t)) * 0.025;
 
-                vec3 warmDust = vec3(0.82, 0.72, 0.62);
-                vec3 icyRim   = vec3(0.75, 0.88, 0.96);
+                vec3 warmDust = vec3(0.34, 0.31, 0.30);
+                vec3 icyRim   = vec3(0.42, 0.46, 0.50);
                 vec3 col = mix(warmDust, icyRim, smoothstep(0.55, 0.95, t));
 
-                float alpha = clamp(strands + dust, 0.0, 0.88);
-                if (alpha < 0.015) discard;
+                float alpha = clamp(strands + dust, 0.0, 0.34);
+                if (alpha < 0.006) discard;
                 gl_FragColor = vec4(col, alpha);
               }
             `,
@@ -1685,8 +1683,38 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
           outgasSprite.raycast = () => {};
           mesh.add(outgasSprite);
         } else if (item.id === "stephenson-2-18") {
-          const hypergiantGlow = makeFractalNodeSprite('rgba(220, 38, 38, 0.90)', item.size * 3.8);
+          // Extreme M6 Red Hypergiant: deep crimson core glow + heavy extended dusty mass-loss shell
+          const hypergiantGlow = makeFractalNodeSprite('rgba(185, 28, 28, 0.90)', item.size * 4.2);
+          hypergiantGlow.raycast = () => {};
           mesh.add(hypergiantGlow);
+
+          const outerDust = makeFractalNodeSprite('rgba(127, 29, 29, 0.45)', item.size * 6.8);
+          outerDust.raycast = () => {};
+          mesh.add(outerDust);
+
+          const ejectaCount = 160;
+          const ePos = new Float32Array(ejectaCount * 3);
+          for (let k = 0; k < ejectaCount; k++) {
+            const r = item.size * (1.35 + Math.pow(Math.random(), 1.2) * 2.2);
+            const th = Math.random() * Math.PI * 2;
+            const ph = Math.acos(2 * Math.random() - 1);
+            ePos[k * 3]     = r * Math.sin(ph) * Math.cos(th);
+            ePos[k * 3 + 1] = r * Math.cos(ph);
+            ePos[k * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
+          }
+          const eGeo = new THREE.BufferGeometry();
+          eGeo.setAttribute('position', new THREE.BufferAttribute(ePos, 3));
+          const ePts = new THREE.Points(eGeo, new THREE.PointsMaterial({
+            color: 0xfb7185,
+            size: item.size * 0.22,
+            map: createRoundParticleTexture(),
+            transparent: true,
+            opacity: 0.55,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          }));
+          ePts.raycast = () => {};
+          mesh.add(ePts);
         } else if (item.id === "eagle-nebula") {
           const nebulaAura = makeFractalNodeSprite('rgba(16, 185, 129, 0.55)', item.size * 6.2);
           mesh.add(nebulaAura);
@@ -1764,69 +1792,65 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
               const r = Math.sqrt(r2);
               const idx = (py * 512 + px) * 4;
 
-              // Strictly transparent inside the black hole shadow so the 3D sphere stays pure #000000
-              if (r < rHoriz * 0.968) continue;
+              // Strictly transparent inside the black hole shadow so the 3D void stays pure #000000
+              if (r < rHoriz * 0.992) continue;
 
               const absSin = Math.abs(ny) / Math.max(0.0001, r);
               const isUpper = ny < 0;
               const theta = Math.atan2(ny, nx);
 
-              // Razor-sharp incandescent white-gold Photon Ring right at the shadow edge (5.40.09 PM & 5.41.38 PM)
-              const photonDist = (r - rHoriz * 1.010) / (rHoriz * 0.020);
-              const photonRing = Math.exp(-photonDist * photonDist);
+              // Relativistic Doppler beaming: approaching left side (nx < 0) is hotter & brighter; receding right side is dimmer & redder
+              const approach = Math.max(0.0, Math.min(1.0, 0.5 - 0.5 * (nx / Math.max(0.0001, r))));
+              const dopplerBoost = 0.24 + 1.18 * Math.pow(approach, 1.55);
 
-              // 360-degree turbulent swirling golden-orange & deep crimson vortex ring (Screenshot 5.39.28 PM)
+              // 1. Hair-thin relativistic Photon Ring (n=1 caustic) right at the shadow edge
+              const photonDist = (r - rHoriz * 1.006) / (rHoriz * 0.009);
+              const photonRing = Math.exp(-photonDist * photonDist) * (0.55 + 0.65 * approach);
+
+              // 2. Dark ISCO Plunge Gap: accretion plasma starts outside 1.14 * rHoriz so the black hole reads as a true void
               let vortexRing = 0.0;
               let vortexHeat = 0.0;
-              const uVortex = (r - rHoriz * 0.985) / (rHoriz * 0.62);
+              const uVortex = (r - rHoriz * 1.14) / (rHoriz * 0.72);
               if (uVortex >= 0.0 && uVortex <= 1.0) {
-                const swirlAng = theta + 9.5 * Math.pow(1.0 - uVortex, 1.25);
-                const f1 = Math.sin(swirlAng * 5.0 + uVortex * 34.0) * 0.5 + 0.5;
-                const f2 = Math.cos(swirlAng * 11.0 - uVortex * 62.0) * 0.5 + 0.5;
-                const f3 = Math.sin(uVortex * 48.0 + Math.sin(theta * 4.0) * 2.2) * 0.5 + 0.5;
-                const filament = Math.pow(f1 * 0.45 + f2 * 0.30 + f3 * 0.25, 0.85);
-                const radialEnv = Math.sin(Math.pow(uVortex, 0.65) * Math.PI) * Math.pow(1.0 - uVortex, 0.55);
-                // Brighter golden flare on lower-left and upper-right arcs (matching Screenshot 5.39.28 PM)
-                const asymBoost = 0.72 + 0.38 * Math.pow(Math.cos(theta - 2.35), 2.0) + 0.28 * Math.pow(Math.cos(theta + 0.85), 2.0);
-                vortexRing = radialEnv * (0.38 + 0.78 * filament) * asymBoost;
-                vortexHeat = Math.max(0.0, Math.min(1.0, (1.0 - uVortex * 0.78) * (0.65 + 0.55 * f1)));
+                const swirlAng = theta + 10.5 * Math.pow(1.0 - uVortex, 1.3);
+                const f1 = Math.sin(swirlAng * 5.0 + uVortex * 36.0) * 0.5 + 0.5;
+                const f2 = Math.cos(swirlAng * 12.0 - uVortex * 64.0) * 0.5 + 0.5;
+                const f3 = Math.sin(uVortex * 52.0 + Math.sin(theta * 4.0) * 2.0) * 0.5 + 0.5;
+                const filament = Math.pow(f1 * 0.46 + f2 * 0.30 + f3 * 0.24, 1.1);
+                const innerRamp = Math.min(1.0, uVortex * 5.5);
+                const radialEnv = innerRamp * Math.pow(1.0 - uVortex, 1.45);
+                vortexRing = radialEnv * (0.28 + 0.85 * filament) * dopplerBoost * 0.72;
+                vortexHeat = Math.max(0.0, Math.min(1.0, (1.0 - uVortex * 0.75) * (0.45 + 0.55 * approach)));
               }
 
-              // Tall gravitationally lensed upper & lower Einstein arches (Screenshot 5.40.09 PM & 5.41.38 PM)
+              // 3. Gravitationally lensed upper & lower Einstein arches (also separated by the dark plunge gap)
               const archReach = isUpper
-                ? rHoriz * (1.18 + 1.22 * Math.pow(absSin, 0.68))
-                : rHoriz * (1.14 + 0.95 * Math.pow(absSin, 0.78));
+                ? rHoriz * (1.26 + 1.18 * Math.pow(absSin, 0.72))
+                : rHoriz * (1.20 + 0.88 * Math.pow(absSin, 0.82));
 
               let archIntensity = 0.0;
               let uArch = 0.0;
-              if (r >= rHoriz * 0.985 && r <= archReach) {
-                uArch = (r - rHoriz * 0.985) / Math.max(0.001, archReach - rHoriz * 0.985);
-                const radialEnv = Math.pow(Math.max(0, 1.0 - uArch), 1.35) * Math.pow(Math.min(1.0, uArch * 6.5), 0.52);
-                const polarEnv = Math.pow(absSin, 0.38);
-                const s1 = Math.sin(uArch * 64.0 + Math.cos(theta * 3.0) * 1.5) * 0.5 + 0.5;
-                const s2 = Math.sin(uArch * 148.0 + Math.sin(theta * 6.0) * 1.8) * 0.5 + 0.5;
-                const s3 = Math.sin(uArch * 28.0) * 0.5 + 0.5;
-                const archStreak = s1 * 0.48 + s2 * 0.32 + s3 * 0.20;
-                archIntensity = radialEnv * polarEnv * (0.46 + 0.74 * archStreak);
+              if (r >= rHoriz * 1.12 && r <= archReach) {
+                uArch = (r - rHoriz * 1.12) / Math.max(0.001, archReach - rHoriz * 1.12);
+                const radialEnv = Math.pow(Math.max(0, 1.0 - uArch), 1.55) * Math.pow(Math.min(1.0, uArch * 6.0), 0.75);
+                const polarEnv = Math.pow(absSin, 0.45);
+                const s1 = Math.sin(uArch * 68.0 + Math.cos(theta * 3.0) * 1.5) * 0.5 + 0.5;
+                const s2 = Math.sin(uArch * 150.0 + Math.sin(theta * 6.0) * 1.8) * 0.5 + 0.5;
+                const archStreak = s1 * 0.60 + s2 * 0.40;
+                archIntensity = radialEnv * polarEnv * (0.35 + 0.75 * archStreak) * dopplerBoost * 0.88;
               }
 
-              // Outer crimson-amber quasar corona (Screenshot 5.39.28 PM & 5.41.38 PM)
-              const corona = Math.exp(-Math.pow((r - rHoriz * 1.15) / (rHoriz * 1.05), 2.0)) * 0.26;
-
-              const archHeat = Math.max(0, 1.0 - uArch * 0.82);
+              const archHeat = Math.max(0, 1.0 - uArch * 0.85) * (0.45 + 0.55 * approach);
               const red = photonRing * 255
-                + archIntensity * (255 * archHeat + 245 * (1 - archHeat))
-                + vortexRing * (255 * vortexHeat + 215 * (1 - vortexHeat))
-                + corona * 235;
-              const green = photonRing * 250
-                + archIntensity * (232 * Math.pow(archHeat, 1.15) + 118 * (1 - archHeat))
-                + vortexRing * (195 * Math.pow(vortexHeat, 1.35) + 52 * (1 - vortexHeat))
-                + corona * 95;
-              const blue = photonRing * 228
-                + archIntensity * (185 * Math.pow(archHeat, 2.0) + 32 * (1 - archHeat))
-                + vortexRing * (115 * Math.pow(vortexHeat, 2.4) + 12 * (1 - vortexHeat))
-                + corona * 24;
-              const alpha = Math.min(1.0, photonRing * 0.99 + archIntensity * 0.94 + vortexRing * 0.88 + corona) * 255;
+                + archIntensity * (255 * archHeat + 215 * (1 - archHeat))
+                + vortexRing * (250 * vortexHeat + 185 * (1 - vortexHeat));
+              const green = photonRing * 246
+                + archIntensity * (238 * Math.pow(archHeat, 1.1) + 92 * (1 - archHeat))
+                + vortexRing * (212 * Math.pow(vortexHeat, 1.25) + 46 * (1 - vortexHeat));
+              const blue = photonRing * 235
+                + archIntensity * (255 * Math.pow(archHeat, 1.6) + 22 * (1 - archHeat))
+                + vortexRing * (225 * Math.pow(vortexHeat, 1.9) + 12 * (1 - vortexHeat));
+              const alpha = Math.min(1.0, photonRing * 0.98 + archIntensity * 0.92 + vortexRing * 0.82) * 255;
 
               lData[idx]     = Math.min(255, red | 0);
               lData[idx + 1] = Math.min(255, green | 0);
@@ -1862,7 +1886,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
           const dCtx = diskCanvas.getContext("2d");
           const dImg = dCtx.createImageData(512, 512);
           const dData = dImg.data;
-          const rDiskInner = 0.185; // Matches event horizon radius R on a plane of width R * 10.8
+          const rDiskInner = 0.245; // Real dark ISCO plunge gap around the event horizon shadow
           const rDiskOuter = 0.985;
 
           for (let py = 0; py < 512; py++) {
@@ -1892,23 +1916,25 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
 
               const innerFade = Math.min(1.0, Math.max(0.0, (r - rDiskInner * 0.95) / (rDiskInner * 0.075)));
               const outerFade = Math.pow(1.0 - u, 1.48);
-              const dopplerBoost = 1.0 - 0.18 * (nx / r);
+              // Strong relativistic Doppler beaming (approaching left side blazing hot, receding right side dimmed)
+              const dopplerBoost = Math.max(0.28, 1.0 - 0.46 * (nx / r));
 
+              // Multi-temperature quasar disk: blazing white-blue inner plasma -> dusty rust-orange outer torus
               let cR, cG, cB;
-              if (u < 0.22) {
-                const t = u / 0.22;
-                cR = 255;
-                cG = 252 - t * 24;
-                cB = 235 - t * 95;
+              if (u < 0.24) {
+                const t = u / 0.24;
+                cR = 215 + t * 40;
+                cG = 238 - t * 26;
+                cB = 255 - t * 65;
               } else if (u < 0.58) {
-                const t = (u - 0.22) / 0.36;
-                cR = 255;
-                cG = 228 - t * 96;
-                cB = 140 - t * 105;
+                const t = (u - 0.24) / 0.34;
+                cR = 245 - t * 35;
+                cG = 190 - t * 98;
+                cB = 170 - t * 135;
               } else {
                 const t = (u - 0.58) / 0.42;
-                cR = 255 - t * 95;
-                cG = 132 - t * 102;
+                cR = 210 - t * 115;
+                cG = 92 - t * 68;
                 cB = 35 - t * 28;
               }
 
@@ -1929,6 +1955,41 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
           const ton618DiskTex = new THREE.CanvasTexture(diskCanvas);
           ton618DiskTex.colorSpace = THREE.SRGBColorSpace;
           ton618DiskTex.needsUpdate = true;
+
+          // Animated 3D Gravitational Swirl: orbiting stars & infalling tidal debris accelerated by TON 618's gravity well
+          const tonSwarmCount = 420;
+          const tonSwarmPos = new Float32Array(tonSwarmCount * 3);
+          const tonSwarmCol = new Float32Array(tonSwarmCount * 3);
+          const tonSwarmMeta = [];
+          for (let k = 0; k < tonSwarmCount; k++) {
+            const rNorm = 1.32 + Math.pow(Math.random(), 1.45) * 4.4;
+            const rad = R * rNorm;
+            const ang = Math.random() * Math.PI * 2;
+            const incl = (Math.random() - 0.5) * 1.15;
+            const speed = (0.022 / Math.pow(rNorm, 1.35)) * (0.8 + Math.random() * 0.4);
+            tonSwarmMeta.push({ rad, ang, incl, speed, yPhase: Math.random() * Math.PI * 2 });
+            tonSwarmPos[k * 3]     = Math.cos(ang) * rad;
+            tonSwarmPos[k * 3 + 1] = Math.sin(ang) * rad * Math.sin(incl);
+            tonSwarmPos[k * 3 + 2] = Math.sin(ang) * rad * Math.cos(incl);
+            const c = (rNorm < 2.1) ? new THREE.Color(0xbae6fd) : ((k % 3 === 0) ? new THREE.Color(0xfdba74) : new THREE.Color(0xf8fafc));
+            tonSwarmCol[k * 3] = c.r; tonSwarmCol[k * 3 + 1] = c.g; tonSwarmCol[k * 3 + 2] = c.b;
+          }
+          const tonSwarmGeo = new THREE.BufferGeometry();
+          tonSwarmGeo.setAttribute('position', new THREE.BufferAttribute(tonSwarmPos, 3));
+          tonSwarmGeo.setAttribute('color', new THREE.BufferAttribute(tonSwarmCol, 3));
+          const tonSwarmPts = new THREE.Points(tonSwarmGeo, new THREE.PointsMaterial({
+            size: R * 0.11,
+            map: createRoundParticleTexture(),
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.78,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          }));
+          tonSwarmPts.userData.swarmMeta = tonSwarmMeta;
+          tonSwarmPts.raycast = () => {};
+          ton618TiltGroup.add(tonSwarmPts);
+          window._ton618Swarm = tonSwarmPts;
 
           const ton618DiskPitchGroup = new THREE.Group();
           ton618DiskPitchGroup.rotation.x = -Math.PI * 0.435;
@@ -1987,10 +2048,11 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
               const tipFade = Math.pow(1.0 - u, 0.55);
               const env = baseFade * tipFade;
 
-              const rCol = Math.min(255, (coreProfile * 255 + sheathProfile * 255) * env);
-              const gCol = Math.min(255, (coreProfile * 252 + sheathProfile * 185) * env);
-              const bCol = Math.min(255, (coreProfile * 230 + sheathProfile * 65) * env);
-              const aCol = Math.min(255, Math.min(1.0, coreProfile * 0.98 + sheathProfile * 0.62) * env * 255);
+              // Focused violet-blue relativistic quasar jet (laser-white core + indigo-violet plasma sheath)
+              const rCol = Math.min(255, (coreProfile * 235 + sheathProfile * 125) * env);
+              const gCol = Math.min(255, (coreProfile * 242 + sheathProfile * 145) * env);
+              const bCol = Math.min(255, (coreProfile * 255 + sheathProfile * 255) * env);
+              const aCol = Math.min(255, Math.min(1.0, coreProfile * 0.95 + sheathProfile * 0.52) * env * 255);
 
               const idx = (py * 512 + px) * 4;
               jData[idx]     = rCol | 0;
@@ -2149,22 +2211,75 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
           starPts.raycast = () => {};
           mesh.add(starPts);
         } else if (item.id === "earendel") {
-          const earendelGlow = makeFractalNodeSprite('rgba(147, 197, 253, 0.95)', item.size * 4.2);
-          mesh.add(earendelGlow);
+          // Delicate JWST Sunrise Arc: razor-thin lensed crimson-amber filament + subtle knots + crisp pinpoint star
+          const arcSpan = item.size * 5.8;
+          const arcCurve = new THREE.QuadraticBezierCurve3(
+            new THREE.Vector3(-arcSpan * 0.45, -arcSpan * 0.85, -arcSpan * 0.08),
+            new THREE.Vector3(arcSpan * 0.06, 0, arcSpan * 0.08),
+            new THREE.Vector3(arcSpan * 0.42, arcSpan * 0.88, -arcSpan * 0.05)
+          );
 
-          const causticArcGeo = new THREE.RingGeometry(item.size * 1.8, item.size * 2.1, 32, 1, 0, Math.PI * 1.2);
-          const causticArcMat = new THREE.MeshBasicMaterial({
-            color: 0x38bdf8,
-            side: THREE.DoubleSide,
+          // Subtle continuous crimson lensing filament
+          const ribbonPts = arcCurve.getPoints(80);
+          const ribbonGeo = new THREE.BufferGeometry().setFromPoints(ribbonPts);
+          const ribbonMat = new THREE.LineBasicMaterial({
+            color: 0xe15242,
             transparent: true,
-            opacity: 0.75,
+            opacity: 0.55,
             blending: THREE.AdditiveBlending,
             depthWrite: false
           });
-          const causticArc = new THREE.Mesh(causticArcGeo, causticArcMat);
-          causticArc.rotation.z = Math.PI / 3;
-          causticArc.raycast = () => {};
-          mesh.add(causticArc);
+          const ribbonLine = new THREE.Line(ribbonGeo, ribbonMat);
+          ribbonLine.raycast = () => {};
+          mesh.add(ribbonLine);
+
+          // Fine-grained glowing lensed star-stream particles along the arc
+          const arcCount = 220;
+          const arcPos = new Float32Array(arcCount * 3);
+          const arcCol = new Float32Array(arcCount * 3);
+          const cRed = new THREE.Color(0xf4725a);
+          const cDim = new THREE.Color(0x6b141c);
+          const cTmp = new THREE.Color();
+          for (let k = 0; k < arcCount; k++) {
+            const t = k / (arcCount - 1);
+            const pt = arcCurve.getPoint(t);
+            const jitter = item.size * 0.08;
+            arcPos[k * 3]     = pt.x + (Math.random() - 0.5) * jitter;
+            arcPos[k * 3 + 1] = pt.y + (Math.random() - 0.5) * jitter;
+            arcPos[k * 3 + 2] = pt.z + (Math.random() - 0.5) * jitter;
+            const edgeFade = Math.pow(Math.sin(t * Math.PI), 0.7);
+            cTmp.lerpColors(cDim, cRed, edgeFade);
+            arcCol[k * 3] = cTmp.r; arcCol[k * 3 + 1] = cTmp.g; arcCol[k * 3 + 2] = cTmp.b;
+          }
+          const arcGeo = new THREE.BufferGeometry();
+          arcGeo.setAttribute('position', new THREE.BufferAttribute(arcPos, 3));
+          arcGeo.setAttribute('color', new THREE.BufferAttribute(arcCol, 3));
+          const arcMat = new THREE.PointsMaterial({
+            size: item.size * 0.24,
+            map: createRoundParticleTexture(),
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.78,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          });
+          const sunriseArc = new THREE.Points(arcGeo, arcMat);
+          sunriseArc.raycast = () => {};
+          mesh.add(sunriseArc);
+
+          // Tiny, subtle redshifted star-cluster knots along the arc
+          [0.24, 0.42, 0.72, 0.84].forEach((t) => {
+            const knot = makeFractalNodeSprite('rgba(240, 125, 105, 0.55)', item.size * 0.55);
+            knot.position.copy(arcCurve.getPoint(t));
+            knot.raycast = () => {};
+            mesh.add(knot);
+          });
+
+          // Earendel itself: single crisp, small pinpoint star on the arc
+          const earendelPin = makeFractalNodeSprite('rgba(255, 240, 224, 0.98)', item.size * 0.95);
+          earendelPin.position.copy(arcCurve.getPoint(0.56));
+          earendelPin.raycast = () => {};
+          mesh.add(earendelPin);
         } else if (item.id === "alpha-centauri") {
           alphaCentauriGroup = new THREE.Group();
           alphaCentauriGroup.position.set(item.position[0], item.position[1], item.position[2]);
@@ -2221,15 +2336,15 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
           const abOrbitCurve = new THREE.EllipseCurve(0, 0, 7.5, 7.5, 0, 2 * Math.PI, false, 0);
           const abPoints = abOrbitCurve.getPoints(96);
           const abOrbitGeo = new THREE.BufferGeometry().setFromPoints(abPoints.map(p => new THREE.Vector3(p.x, -p.y * 0.25, p.y)));
-          const abOrbitLine = new THREE.Line(abOrbitGeo, new THREE.LineBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.42 }));
+          const abOrbitLine = new THREE.Line(abOrbitGeo, new THREE.LineBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.16, depthWrite: false }));
           abOrbitLine.raycast = () => {};
-          alphaCentauriGroup.add(abOrbitLine);
 
           const proxOrbitCurve = new THREE.EllipseCurve(0, 0, 46.0, 40.0, 0, 2 * Math.PI, false, 0);
           const proxPoints = proxOrbitCurve.getPoints(128);
           const proxOrbitGeo = new THREE.BufferGeometry().setFromPoints(proxPoints.map(p => new THREE.Vector3(p.x, p.y * 0.2, p.y)));
-          const proxOrbitLine = new THREE.Line(proxOrbitGeo, new THREE.LineBasicMaterial({ color: 0xf87171, transparent: true, opacity: 0.38 }));
+          const proxOrbitLine = new THREE.Line(proxOrbitGeo, new THREE.LineBasicMaterial({ color: 0xf87171, transparent: true, opacity: 0.12, depthWrite: false }));
           proxOrbitLine.raycast = () => {};
+          proxOrbitLine.add(abOrbitLine);
           alphaCentauriGroup.add(proxOrbitLine);
           alphaCentauriGroup.userData.orbitLine = proxOrbitLine;
 
@@ -2286,13 +2401,76 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
           rotatableObjects.push(siriusAMesh);
           return;
         } else if (item.id === "betelgeuse") {
-          const glow = makeFractalNodeSprite('rgba(239, 68, 68, 0.7)', item.size * 3.6);
+          // Red Supergiant (M1-2 Ia-ab): warm photosphere corona + asymmetric ALMA/VLT dusty outflow plume
+          const glow = makeFractalNodeSprite('rgba(239, 68, 68, 0.78)', item.size * 3.8);
+          glow.raycast = () => {};
           mesh.add(glow);
+
+          const plume1 = makeFractalNodeSprite('rgba(234, 88, 12, 0.34)', item.size * 4.8);
+          plume1.position.set(item.size * 0.75, -item.size * 0.45, item.size * 0.2);
+          plume1.raycast = () => {};
+          mesh.add(plume1);
+
+          const plume2 = makeFractalNodeSprite('rgba(180, 45, 30, 0.26)', item.size * 5.6);
+          plume2.position.set(-item.size * 0.55, item.size * 0.35, -item.size * 0.3);
+          plume2.raycast = () => {};
+          mesh.add(plume2);
         } else if (item.id === "polaris") {
-          const glow = makeFractalNodeSprite('rgba(254, 240, 138, 0.8)', item.size * 3.5);
+          // F7Ib Cepheid Triple-Star System: luminous yellow-gold Aa + close Ab + wider B companion
+          const glow = makeFractalNodeSprite('rgba(254, 240, 138, 0.82)', item.size * 3.6);
+          glow.raycast = () => {};
           mesh.add(glow);
-        } else if (item.id === "trappist-1" || item.id === "barnards-star") {
-          const glow = makeFractalNodeSprite('rgba(248, 113, 113, 0.65)', item.size * 3.2);
+
+          const compAb = makeFractalNodeSprite('rgba(254, 249, 195, 0.92)', item.size * 0.85);
+          compAb.position.set(item.size * 1.9, item.size * 0.35, item.size * 0.4);
+          compAb.raycast = () => {};
+          mesh.add(compAb);
+
+          const compB = makeFractalNodeSprite('rgba(224, 242, 254, 0.90)', item.size * 1.05);
+          compB.position.set(-item.size * 3.8, -item.size * 0.9, -item.size * 1.1);
+          compB.raycast = () => {};
+          mesh.add(compB);
+        } else if (item.id === "trappist-1") {
+          // Ultra-Cool Red Dwarf (M8V) + 7 compact, coplanar Earth-sized exoplanets (b-h)
+          const glow = makeFractalNodeSprite('rgba(225, 29, 72, 0.72)', item.size * 3.0);
+          glow.raycast = () => {};
+          mesh.add(glow);
+
+          const sysGroup = new THREE.Group();
+          sysGroup.rotation.set(0.32, 0.15, -0.18);
+          const planets = [
+            { r: 1.75, ang: 0.4,  col: 0xfca5a5, s: 0.13 }, // b
+            { r: 2.10, ang: 1.9,  col: 0xfdba74, s: 0.14 }, // c
+            { r: 2.50, ang: 3.6,  col: 0xfde68a, s: 0.12 }, // d
+            { r: 2.95, ang: 5.1,  col: 0x38bdf8, s: 0.14 }, // e (habitable zone)
+            { r: 3.45, ang: 1.1,  col: 0x60a5fa, s: 0.15 }, // f (habitable zone)
+            { r: 4.00, ang: 2.8,  col: 0x93c5fd, s: 0.16 }, // g (habitable zone)
+            { r: 4.65, ang: 4.5,  col: 0xcbd5e1, s: 0.12 }  // h (outer ice world)
+          ];
+          planets.forEach((p) => {
+            const rad = item.size * p.r;
+            const curve = new THREE.EllipseCurve(0, 0, rad, rad);
+            const pts = curve.getPoints(64).map((v) => new THREE.Vector3(v.x, 0, v.y));
+            const ring = new THREE.LineLoop(
+              new THREE.BufferGeometry().setFromPoints(pts),
+              new THREE.LineBasicMaterial({ color: 0xfda4af, transparent: true, opacity: 0.24, depthWrite: false })
+            );
+            ring.raycast = () => {};
+            sysGroup.add(ring);
+
+            const pMesh = new THREE.Mesh(
+              new THREE.SphereGeometry(item.size * p.s, 12, 12),
+              new THREE.MeshBasicMaterial({ color: p.col })
+            );
+            pMesh.position.set(Math.cos(p.ang) * rad, 0, Math.sin(p.ang) * rad);
+            pMesh.raycast = () => {};
+            sysGroup.add(pMesh);
+          });
+          mesh.add(sysGroup);
+        } else if (item.id === "barnards-star") {
+          // Solitary M4.0V Red Dwarf: tight, deep crimson-orange chromospheric glow
+          const glow = makeFractalNodeSprite('rgba(239, 68, 68, 0.65)', item.size * 2.9);
+          glow.raycast = () => {};
           mesh.add(glow);
         } else if (item.id === "orion-nebula") {
           const nebulaAura = makeFractalNodeSprite('rgba(236, 72, 153, 0.45)', item.size * 5.5);
@@ -2394,67 +2572,190 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
         }
 
         if (item.id === "smacs-0723") {
-          const lensRingGeo = new THREE.RingGeometry(item.size * 1.5, item.size * 1.8, 36);
-          const lensRingMat = new THREE.MeshBasicMaterial({
-            color: 0xfbbf24,
-            side: THREE.DoubleSide,
+          // JWST First Deep Field: bright white-gold foreground cluster + concentric orange-red lensed arcs
+          const coreCluster = makeFractalNodeSprite('rgba(255, 244, 214, 0.9)', item.size * 2.6);
+          coreCluster.raycast = () => {};
+          mesh.add(coreCluster);
+
+          const cCount = 95;
+          const cPos = new Float32Array(cCount * 3);
+          for (let k = 0; k < cCount; k++) {
+            const r = item.size * Math.pow(Math.random(), 1.4) * 1.65;
+            const th = Math.random() * Math.PI * 2;
+            const ph = Math.acos(2 * Math.random() - 1);
+            cPos[k * 3] = r * Math.sin(ph) * Math.cos(th);
+            cPos[k * 3 + 1] = r * Math.cos(ph);
+            cPos[k * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
+          }
+          const cGeo = new THREE.BufferGeometry();
+          cGeo.setAttribute('position', new THREE.BufferAttribute(cPos, 3));
+          const cPts = new THREE.Points(cGeo, new THREE.PointsMaterial({
+            color: 0xfef08a,
+            size: item.size * 0.28,
+            map: createRoundParticleTexture(),
             transparent: true,
-            opacity: 0.75,
+            opacity: 0.9,
             blending: THREE.AdditiveBlending,
             depthWrite: false
+          }));
+          cPts.raycast = () => {};
+          mesh.add(cPts);
+
+          // 7 broken concentric orange-red gravitationally lensed arcs
+          const arcs = [
+            { r: 1.55, start: 0.2, len: 0.95, tiltX: 0.15, tiltY: 0.1, col: 0xf97316 },
+            { r: 1.75, start: 2.1, len: 1.10, tiltX: -0.2, tiltY: 0.25, col: 0xea580c },
+            { r: 2.05, start: 4.1, len: 0.85, tiltX: 0.25, tiltY: -0.15, col: 0xfb923c },
+            { r: 2.35, start: 0.9, len: 0.75, tiltX: -0.1, tiltY: -0.2, col: 0xdc2626 },
+            { r: 2.55, start: 3.1, len: 1.25, tiltX: 0.3, tiltY: 0.12, col: 0xf59e0b },
+            { r: 2.85, start: 5.0, len: 0.90, tiltX: -0.25, tiltY: 0.18, col: 0xea580c },
+            { r: 3.15, start: 1.6, len: 0.65, tiltX: 0.12, tiltY: -0.25, col: 0xdc2626 }
+          ];
+          arcs.forEach((a) => {
+            const aGeo = new THREE.RingGeometry(item.size * a.r, item.size * (a.r + 0.11), 32, 1, a.start, a.len);
+            const aMat = new THREE.MeshBasicMaterial({
+              color: a.col,
+              side: THREE.DoubleSide,
+              transparent: true,
+              opacity: 0.72,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false
+            });
+            const aMesh = new THREE.Mesh(aGeo, aMat);
+            aMesh.rotation.set(a.tiltX, a.tiltY, 0);
+            aMesh.raycast = () => {};
+            mesh.add(aMesh);
           });
-          const lensRing = new THREE.Mesh(lensRingGeo, lensRingMat);
-          lensRing.raycast = () => {};
-          mesh.add(lensRing);
         } else if (item.id === "gn-z11") {
-          const redFlare = makeFractalNodeSprite('rgba(220, 38, 38, 0.85)', item.size * 5.2);
-          mesh.add(redFlare);
+          // JWST/Hubble morphology: compact, irregular, clumpy redshifted smudge with bright core
+          const core = makeFractalNodeSprite('rgba(255, 224, 218, 0.95)', item.size * 2.6);
+          core.position.set(item.size * 0.15, -item.size * 0.2, 0);
+          core.raycast = () => {};
+          mesh.add(core);
+
+          const clumps = [
+            { pos: [-0.35, 0.65, 0.1],  s: 2.8, col: 'rgba(205, 72, 72, 0.72)' },
+            { pos: [0.55, 0.25, -0.2],  s: 2.5, col: 'rgba(185, 58, 62, 0.68)' },
+            { pos: [-0.55, -0.45, 0.2], s: 2.3, col: 'rgba(165, 45, 52, 0.62)' },
+            { pos: [0.35, -0.65, -0.1], s: 2.2, col: 'rgba(195, 65, 65, 0.65)' },
+            { pos: [-0.1, 1.15, -0.15], s: 1.9, col: 'rgba(150, 38, 46, 0.52)' },
+            { pos: [0.85, -0.35, 0.15], s: 1.7, col: 'rgba(145, 35, 45, 0.48)' }
+          ];
+          clumps.forEach((c) => {
+            const sp = makeFractalNodeSprite(c.col, item.size * c.s);
+            sp.position.set(c.pos[0] * item.size, c.pos[1] * item.size, c.pos[2] * item.size);
+            sp.raycast = () => {};
+            mesh.add(sp);
+          });
         } else if (item.id === "shapley-supercluster") {
-          const shapleyGlow = makeFractalNodeSprite('rgba(56, 189, 248, 0.5)', item.size * 6.5);
-          mesh.add(shapleyGlow);
+          // Elongated multi-cluster concentration: 4 crimson-pink cores inside a diffuse teal-cyan halo
+          const subClusters = [
+            { pos: [1.6, 0.35, 0.1],   haloS: 5.2, coreS: 2.6 }, // Abell 3558 primary core
+            { pos: [0.35, 0.05, -0.2], haloS: 3.8, coreS: 1.4 },
+            { pos: [-0.75, -0.35, 0.2],haloS: 3.6, coreS: 1.2 },
+            { pos: [-2.1, -0.1, -0.1], haloS: 4.2, coreS: 1.8 }
+          ];
+          subClusters.forEach((sc) => {
+            const halo = makeFractalNodeSprite('rgba(34, 197, 212, 0.38)', item.size * sc.haloS);
+            halo.position.set(sc.pos[0] * item.size, sc.pos[1] * item.size, sc.pos[2] * item.size);
+            halo.raycast = () => {};
+            mesh.add(halo);
+
+            const core = makeFractalNodeSprite('rgba(244, 114, 140, 0.85)', item.size * sc.coreS);
+            core.position.set(sc.pos[0] * item.size, sc.pos[1] * item.size, sc.pos[2] * item.size);
+            core.raycast = () => {};
+            mesh.add(core);
+          });
+
+          const sCount = 260;
+          const sPos = new Float32Array(sCount * 3);
+          for (let k = 0; k < sCount; k++) {
+            const sc = subClusters[k % subClusters.length];
+            const spread = item.size * 1.7;
+            sPos[k * 3]     = sc.pos[0] * item.size + (Math.random() - 0.5) * spread * 1.4;
+            sPos[k * 3 + 1] = sc.pos[1] * item.size + (Math.random() - 0.5) * spread;
+            sPos[k * 3 + 2] = sc.pos[2] * item.size + (Math.random() - 0.5) * spread;
+          }
+          const sGeo = new THREE.BufferGeometry();
+          sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
+          const sPts = new THREE.Points(sGeo, new THREE.PointsMaterial({
+            color: 0xe0f2fe,
+            size: item.size * 0.22,
+            map: createRoundParticleTexture(),
+            transparent: true,
+            opacity: 0.85,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          }));
+          sPts.raycast = () => {};
+          mesh.add(sPts);
         } else if (item.id === "el-gordo") {
-          // X-Ray Blue Shock Plume + 3D Member Galaxy Swarm
-          const shockAura = makeFractalNodeSprite('rgba(37, 99, 235, 0.85)', item.size * 5.5);
-          mesh.add(shockAura);
-          const coreGlow = makeFractalNodeSprite('rgba(255, 255, 255, 0.9)', item.size * 2.2);
-          mesh.add(coreGlow);
+          // Colliding dual-core galaxy cluster merger + swept-back Chandra X-ray cyan-blue shock tail
+          const lobeA = makeFractalNodeSprite('rgba(255, 236, 179, 0.92)', item.size * 2.4);
+          lobeA.position.set(item.size * 1.1, item.size * 0.25, 0);
+          lobeA.raycast = () => {};
+          mesh.add(lobeA);
+
+          const lobeB = makeFractalNodeSprite('rgba(255, 224, 150, 0.85)', item.size * 2.0);
+          lobeB.position.set(-item.size * 0.9, -item.size * 0.2, item.size * 0.15);
+          lobeB.raycast = () => {};
+          mesh.add(lobeB);
+
+          // Swept-back X-ray shock plume
+          [
+            { x: 0.4, y: 0.1, s: 4.2, a: 0.65 },
+            { x: -1.1, y: -0.3, s: 4.8, a: 0.50 },
+            { x: -2.4, y: -0.65, s: 4.0, a: 0.32 }
+          ].forEach((p) => {
+            const plume = makeFractalNodeSprite(`rgba(37, 130, 246, ${p.a})`, item.size * p.s);
+            plume.position.set(p.x * item.size, p.y * item.size, 0);
+            plume.raycast = () => {};
+            mesh.add(plume);
+          });
 
           const gGeo = new THREE.BufferGeometry();
-          const gCount = 180;
+          const gCount = 220;
           const gPos = new Float32Array(gCount * 3);
           for (let k = 0; k < gCount; k++) {
-            gPos[k * 3] = (Math.random() - 0.5) * (item.size * 4.0);
-            gPos[k * 3 + 1] = (Math.random() - 0.5) * (item.size * 4.0);
-            gPos[k * 3 + 2] = (Math.random() - 0.5) * (item.size * 4.0);
+            const center = (k % 2 === 0) ? 1.0 : -0.9;
+            const spread = item.size * 2.1;
+            gPos[k * 3]     = center * item.size + (Math.random() - 0.5) * spread * 1.5;
+            gPos[k * 3 + 1] = (Math.random() - 0.5) * spread;
+            gPos[k * 3 + 2] = (Math.random() - 0.5) * spread;
           }
           gGeo.setAttribute('position', new THREE.BufferAttribute(gPos, 3));
           const gMat = new THREE.PointsMaterial({
             color: 0xfde047,
-            size: 0.38,
+            size: item.size * 0.24,
             map: createRoundParticleTexture(),
             transparent: true,
             opacity: 0.9,
+            blending: THREE.AdditiveBlending,
             depthWrite: false
           });
           const gPts = new THREE.Points(gGeo, gMat);
           gPts.raycast = () => {};
           mesh.add(gPts);
         } else if (item.id === "bootes-void") {
+          // Spherical supervoid: ~45 sparse, dim galaxies inside a vast empty volume
           const voidGalaxiesGeo = new THREE.BufferGeometry();
-          const voidGalaxiesCount = 6;
+          const voidGalaxiesCount = 45;
           const vPos = new Float32Array(voidGalaxiesCount * 3);
           for (let k = 0; k < voidGalaxiesCount; k++) {
-            vPos[k * 3] = (Math.random() - 0.5) * (item.size * 1.2);
-            vPos[k * 3 + 1] = (Math.random() - 0.5) * (item.size * 1.2);
-            vPos[k * 3 + 2] = (Math.random() - 0.5) * (item.size * 1.2);
+            const r = item.size * Math.cbrt(Math.random()) * 1.15;
+            const th = Math.random() * Math.PI * 2;
+            const ph = Math.acos(2 * Math.random() - 1);
+            vPos[k * 3]     = r * Math.sin(ph) * Math.cos(th);
+            vPos[k * 3 + 1] = r * Math.cos(ph);
+            vPos[k * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
           }
           voidGalaxiesGeo.setAttribute('position', new THREE.BufferAttribute(vPos, 3));
           const vMat = new THREE.PointsMaterial({
             color: 0x94a3b8,
-            size: 0.35,
+            size: item.size * 0.16,
             map: createRoundParticleTexture(),
             transparent: true,
-            opacity: 0.8,
+            opacity: 0.65,
             depthWrite: false
           });
           const vPts = new THREE.Points(voidGalaxiesGeo, vMat);
@@ -2504,51 +2805,32 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
               const r = Math.sqrt(r2);
               const idx = (py * 512 + px) * 4;
 
-              // Strictly transparent inside the black hole shadow so the 3D black sphere stays pure #000000
-              if (r < rHoriz * 0.965) {
+              // Strictly transparent inside the black hole shadow so the 3D void stays pure #000000
+              if (r < rHoriz * 0.992) {
                 continue;
               }
 
               const absSin = Math.abs(ny) / Math.max(0.0001, r);
               const isUpper = ny < 0; // Canvas ny < 0 is +Y (upper arch)
+              const angle = Math.atan2(ny, nx);
 
-              // Razor-sharp golden-white Photon Ring + inner blue-violet Doppler sheen (SS3, SS4, SS5)
-              const photonDist = (r - rHoriz * 1.012) / (rHoriz * 0.022);
-              const photonRing = Math.exp(-photonDist * photonDist);
-              const innerBlueDist = (r - rHoriz * 0.992) / (rHoriz * 0.032);
-              const innerBlueRim = Math.exp(-innerBlueDist * innerBlueDist) * (0.55 + 0.45 * absSin);
+              // Relativistic Doppler beaming: approaching side (nx < 0) is hotter & brighter; receding side is dim ember-red
+              const approach = Math.max(0.0, Math.min(1.0, 0.5 - 0.5 * (nx / Math.max(0.0001, r))));
+              const dopplerBoost = 0.22 + 1.12 * Math.pow(approach, 1.6);
 
-              // Gravitationally lensed upper and lower arches curving over and under the shadow (SS4, SS5)
-              const archReach = isUpper
-                ? rHoriz * (1.14 + 1.08 * Math.pow(absSin, 0.72))
-                : rHoriz * (1.12 + 0.86 * Math.pow(absSin, 0.82));
+              // 1. Hair-thin relativistic Photon Ring (n=1 caustic) right at the shadow edge
+              const photonDist = (r - rHoriz * 1.005) / (rHoriz * 0.0085);
+              const photonRing = Math.exp(-photonDist * photonDist) * (0.48 + 0.68 * approach);
 
-              let archIntensity = 0.0;
-              let archStreak = 0.0;
-              let uArch = 0.0;
-              if (r >= rHoriz * 0.985 && r <= archReach) {
-                uArch = (r - rHoriz * 0.985) / Math.max(0.001, archReach - rHoriz * 0.985);
-                // Smooth arch envelope peaking in the inner lensed zone and feathering outward
-                const radialEnv = Math.pow(Math.max(0, 1.0 - uArch), 1.45) * Math.pow(Math.min(1.0, uArch * 6.5), 0.55);
-                const polarEnv = Math.pow(absSin, 0.35);
-                // Concentric relativistic plasma striations in the lensed arches (SS4, SS5)
-                const angle = Math.atan2(ny, nx);
-                const s1 = Math.sin(uArch * 58.0 + Math.cos(angle * 3.0) * 1.4) * 0.5 + 0.5;
-                const s2 = Math.sin(uArch * 135.0 + Math.sin(angle * 5.0) * 1.8) * 0.5 + 0.5;
-                const s3 = Math.sin(uArch * 26.0) * 0.5 + 0.5;
-                archStreak = s1 * 0.48 + s2 * 0.32 + s3 * 0.20;
-                archIntensity = radialEnv * polarEnv * (0.42 + 0.72 * archStreak);
-              }
+              // 2. Subtle, organic EHT-style asymmetrical ember ring (no tall Interstellar arches)
+              const ringDist = (r - rHoriz * 1.06) / (rHoriz * 0.14);
+              const organicNoise = 0.55 + 0.45 * Math.sin(angle * 3.0 + 0.8) * Math.cos(angle * 5.0 - 0.4);
+              const emberRing = Math.exp(-ringDist * ringDist) * dopplerBoost * organicNoise * 0.52;
 
-              // Soft outer warm amber-violet atmospheric corona around the lensed structure
-              const corona = Math.exp(-Math.pow((r - rHoriz) / (rHoriz * 1.15), 2.0)) * 0.18 * Math.pow(absSin, 0.25);
-
-              // Combine colors: white-gold photon ring + golden-amber/rose-gold lensed arches + violet-blue inner rim
-              const heat = Math.max(0, 1.0 - uArch * 0.85);
-              let red   = photonRing * 255 + archIntensity * (255 * heat + 235 * (1 - heat)) + innerBlueRim * 135 + corona * 245;
-              let green = photonRing * 246 + archIntensity * (218 * Math.pow(heat, 1.2) + 125 * (1 - heat)) + innerBlueRim * 170 + corona * 155;
-              let blue  = photonRing * 220 + archIntensity * (165 * Math.pow(heat, 2.0) + 55 * (1 - heat)) + innerBlueRim * 255 + corona * 115;
-              let alpha = Math.min(1.0, photonRing * 0.98 + archIntensity * 0.92 + innerBlueRim * 0.72 + corona) * 255;
+              let red   = photonRing * 255 + emberRing * 235;
+              let green = photonRing * 195 + emberRing * 95;
+              let blue  = photonRing * 115 + emberRing * 28;
+              let alpha = Math.min(1.0, photonRing * 0.92 + emberRing * 0.82) * 255;
 
               lData[idx]     = Math.min(255, red | 0);
               lData[idx + 1] = Math.min(255, green | 0);
@@ -2577,6 +2859,41 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
           lensedHaloMesh.raycast = () => {};
           sagATiltGroup.add(lensedHaloMesh);
 
+          // Animated 3D S-Star Cluster & Gravitational Swirl orbiting Sagittarius A* (Keplerian acceleration near shadow)
+          const sagSwarmCount = 340;
+          const sagSwarmPos = new Float32Array(sagSwarmCount * 3);
+          const sagSwarmCol = new Float32Array(sagSwarmCount * 3);
+          const sagSwarmMeta = [];
+          for (let k = 0; k < sagSwarmCount; k++) {
+            const rNorm = 1.35 + Math.pow(Math.random(), 1.4) * 4.2;
+            const rad = R * rNorm;
+            const ang = Math.random() * Math.PI * 2;
+            const incl = (Math.random() - 0.5) * 1.45;
+            const speed = (0.025 / Math.pow(rNorm, 1.35)) * (0.8 + Math.random() * 0.4);
+            sagSwarmMeta.push({ rad, ang, incl, speed });
+            sagSwarmPos[k * 3]     = Math.cos(ang) * rad;
+            sagSwarmPos[k * 3 + 1] = Math.sin(ang) * rad * Math.sin(incl);
+            sagSwarmPos[k * 3 + 2] = Math.sin(ang) * rad * Math.cos(incl);
+            const c = (k % 4 === 0) ? new THREE.Color(0xbae6fd) : ((k % 3 === 0) ? new THREE.Color(0xfde68a) : new THREE.Color(0xf1f5f9));
+            sagSwarmCol[k * 3] = c.r; sagSwarmCol[k * 3 + 1] = c.g; sagSwarmCol[k * 3 + 2] = c.b;
+          }
+          const sagSwarmGeo = new THREE.BufferGeometry();
+          sagSwarmGeo.setAttribute('position', new THREE.BufferAttribute(sagSwarmPos, 3));
+          sagSwarmGeo.setAttribute('color', new THREE.BufferAttribute(sagSwarmCol, 3));
+          const sagSwarmPts = new THREE.Points(sagSwarmGeo, new THREE.PointsMaterial({
+            size: R * 0.11,
+            map: createRoundParticleTexture(),
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.76,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          }));
+          sagSwarmPts.userData.swarmMeta = sagSwarmMeta;
+          sagSwarmPts.raycast = () => {};
+          sagATiltGroup.add(sagSwarmPts);
+          window._sagASwarm = sagSwarmPts;
+
           // 3. 3D Relativistic Equatorial Accretion Disk with Multi-Band Plasma Streams (SS3, SS4, SS5)
           const diskCanvas = document.createElement("canvas");
           diskCanvas.width = 512;
@@ -2584,7 +2901,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
           const dCtx = diskCanvas.getContext("2d");
           const dImg = dCtx.createImageData(512, 512);
           const dData = dImg.data;
-          const rDiskInner = 0.192; // Matches event horizon radius R on a plane of width R * 10.6
+          const rDiskInner = 0.265; // Wide dark ISCO plunge gap around the stark event horizon shadow
           const rDiskOuter = 0.985;
 
           for (let py = 0; py < 512; py++) {
@@ -4472,8 +4789,8 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
         const objTier = (activeTargetMesh.userData && activeTargetMesh.userData.tier) ? activeTargetMesh.userData.tier : 1;
         const objSize = (activeTargetMesh.userData && activeTargetMesh.userData.size) ? Number(activeTargetMesh.userData.size) : 1.0;
         const maxCalloutDist = objTier === 1
-          ? Math.max(18, objSize * 14)
-          : Math.max(objTier === 2 ? 260 : (objTier === 3 ? 720 : 1800), objSize * 32);
+          ? Math.max(12, objSize * 10)
+          : Math.max(objTier === 2 ? 95 : (objTier === 3 ? 220 : 420), objSize * 14);
         if (distToTarget > maxCalloutDist) {
           window._isSpatialCalloutVisible = false;
           layer.classList.add('opacity-0');
@@ -5312,7 +5629,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
               const loader = window._novaTexLoader;
               const targetMat = obj.material;
 
-              loader.load(`textures/${kind}_albedo.jpg`, (tex) => {
+              loader.load(`textures/${kind}_albedo.jpg?v=2`, (tex) => {
                 tex.colorSpace = THREE.SRGBColorSpace;
                 tex.anisotropy = 8;
                 targetMat.map = tex;
@@ -5463,7 +5780,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
       }
 
       rotatableObjects.forEach(obj => {
-        obj.rotation.y += (obj === sunMeshRef) ? 0.0006 : 0.003;
+        if (obj.userData?.id !== 'earendel' && obj.name !== 'earendel') obj.rotation.y += (obj === sunMeshRef) ? 0.0006 : 0.003;
       });
 
       if (crabPulsarBeams) {
@@ -5478,7 +5795,27 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
         });
 
         if (ton618AccretionDisk) {
-          ton618AccretionDisk.rotation.z += 0.015;
+          ton618AccretionDisk.rotation.z += 0.018;
+          if (ton618AccretionDisk.children && ton618AccretionDisk.children[0]) {
+            ton618AccretionDisk.children[0].rotation.z -= 0.007; // Differential shear between inner & outer plasma layers
+          }
+        }
+        // Live Keplerian orbital acceleration for black hole gravitational star-swarms
+        [window._ton618Swarm, window._sagASwarm].forEach((swarm) => {
+          if (!swarm || !swarm.userData || !swarm.userData.swarmMeta) return;
+          const posAttr = swarm.geometry.attributes.position;
+          const arr = posAttr.array;
+          const meta = swarm.userData.swarmMeta;
+          for (let k = 0; k < meta.length; k++) {
+            const m = meta[k];
+            m.ang += m.speed;
+            arr[k * 3]     = Math.cos(m.ang) * m.rad;
+            arr[k * 3 + 1] = Math.sin(m.ang) * m.rad * Math.sin(m.incl);
+            arr[k * 3 + 2] = Math.sin(m.ang) * m.rad * Math.cos(m.incl);
+          }
+          posAttr.needsUpdate = true;
+        });
+        if (false) {
         }
         ton618PlasmaFlares.forEach(flare => {
           flare.angle += flare.speed;
