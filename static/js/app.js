@@ -5024,27 +5024,10 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
       const targetType = (activeTarget && activeTarget.type) ? activeTarget.type.toLowerCase() : '';
       const targetTier = (activeTarget && activeTarget.tier) ? activeTarget.tier : 1;
 
-      // Keep planets, moons, and compact stars at 3.2x, but pull back for large structures
-      let multiplier = 3.2;
-
-      if (targetId === 'sagittarius-a-star') {
-        multiplier = 6.2;
-      } else if (['milky-way', 'andromeda', 'sombrero-galaxy', 'ton-618', 'messier-87'].includes(targetId)) {
-        // Massive spiral disks, quasars & galactic cores (matches your 9.44.52 PM target screenshot)
-        multiplier = 13.5;
-      } else if (['eagle-nebula', 'orion-nebula', 'el-gordo', 'shapley-supercluster', 'great-attractor', 'bootes-void'].includes(targetId)) {
-        // Expansive volumetric nebulae & superclusters
-        multiplier = 9.5;
-      } else if (['centaurus-a', 'crab-nebula', 'lmc', 'smc', 'smacs-0723', 'gn-z11', 'triangulum', 'pillars-of-creation'].includes(targetId)) {
-        // Medium-large galaxies & supernova remnants
-        multiplier = 7.5;
-      } else if (targetType.includes('galaxy') || targetType.includes('cluster') || targetType.includes('nebula') || targetType.includes('quasar') || targetType.includes('void') || targetTier >= 3) {
-        // Catch-all for any other deep-space galaxy/cluster/nebula
-        multiplier = 9.0;
-      } else if (objRadius >= 3.0 && targetId !== 'sun') {
-        // Large supergiant stars or oversized bodies
-        multiplier = 6.0;
-      }
+      // Data-driven camera framing from catalog.json (R4)
+      const multiplier = (activeTarget && typeof activeTarget.cameraMultiplier === 'number')
+        ? activeTarget.cameraMultiplier
+        : (targetTier >= 3 ? 9.0 : 3.2);
 
       const baseDist = Math.max(objRadius * multiplier, 4.2);
       let offsetDist = baseDist;
@@ -5065,8 +5048,8 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
       if (viewDir.lengthSq() < 0.001) viewDir.set(0.6, 0.3, 0.8);
       viewDir.normalize();
 
-      // Balanced close-up elevation (head-on relativistic framing for Sagittarius A*)
-      const offsetVec = (targetId === 'sagittarius-a-star')
+      // Data-driven framing elevation (head-on relativistic framing when configured in catalog.json)
+      const offsetVec = (activeTarget && activeTarget.framingMode === 'head-on')
         ? new THREE.Vector3(0, offsetDist * 0.08, offsetDist)
         : new THREE.Vector3(
             viewDir.x * offsetDist,

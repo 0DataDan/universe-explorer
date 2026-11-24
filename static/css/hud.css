@@ -320,7 +320,7 @@
     font-size: 10px !important;
     letter-spacing: 0.1em !important;
     text-transform: uppercase !important;
-    color: rgba(148, 163, 184, 0.72) !important;
+    color: #9aa3b2 !important;
     border-bottom: 1px solid transparent !important;
     transition: color 180ms ease, border-color 180ms ease !important;
   }
@@ -432,7 +432,7 @@
     border-bottom-color: rgba(248, 250, 252, 0.88) !important;
   }
   #hud-right-controls button[data-nova-active="false"] {
-    color: rgba(148, 163, 184, 0.55) !important;
+    color: #9aa3b2 !important;
     border-bottom-color: transparent !important;
   }
 
@@ -641,7 +641,7 @@
     font-size: 9px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(148, 163, 184, 0.65);
+    color: #9aa3b2;
     cursor: pointer;
     user-select: none;
     line-height: 1.45;
@@ -1257,11 +1257,7 @@
     opacity: 0.45;
   }
 
-  #spatial-target-meta {
-    font-size: 10.5px !important;
-    color: rgba(203, 213, 225, 0.78) !important;
-    margin-top: 2px !important;
-  }
+  /* (Duplicate #spatial-target-meta removed so Phase 0 wrap & AA contrast rules apply) */
 
   /* Pure Narration Script Text */
   #spatial-target-summary {
@@ -1274,7 +1270,7 @@
 
   /* Subtle Fact-Cycle Indicator (only brightens on hover) */
   #spatial-deck-next-btn {
-    color: rgba(148, 163, 184, 0.65) !important;
+    color: #9aa3b2 !important;
     font-size: 9px !important;
   }
   #spatial-deck-next-btn:hover,
@@ -1371,3 +1367,25 @@
 body.nova-standby-hidden #nova-scale-chip-wrap {
     display: none !important;
   }
+
+/* === PHASE 1 (R3): KEYBOARD FOCUS RINGS & SR-ONLY LIVE REGION === */
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #67e8f9 !important;
+  outline-offset: 2px !important;
+  border-radius: 3px;
+}
+.nova-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

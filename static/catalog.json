@@ -16,7 +16,8 @@
     "summary": "The gravitational center of our planetary system, fusing 600 million tons of hydrogen into helium every second in its core.",
     "kind": "star",
     "imagery": "observed",
-    "haloMultiplier": 1.28
+    "haloMultiplier": 1.28,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "mercury",
@@ -32,10 +33,11 @@
     "type": "Terrestrial Planet",
     "distance": "1.04 AU",
     "scale_order": "10^10 m",
-    "summary": "The smallest planet and closest to the Sun, with a heavily cratered silicate crust and Caloris impact basin experiencing swings between 430°C and -180°C.",
+    "summary": "The smallest planet and closest to the Sun, with a heavily cratered silicate crust and Caloris impact basin experiencing swings between 430\u00b0C and -180\u00b0C.",
     "kind": "planet",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "venus",
@@ -54,7 +56,8 @@
     "summary": "A runaway greenhouse furnace veiled by super-rotating sulfuric acid cloud chevrons and a crushing carbon dioxide atmosphere.",
     "kind": "planet",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "earth",
@@ -73,7 +76,8 @@
     "summary": "The cradle of human civilization, featuring liquid water oceans, dynamic atmospheric cloud bands, and carbon-based life.",
     "kind": "planet",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "moon",
@@ -92,7 +96,8 @@
     "summary": "Earth's tidally locked natural satellite, scarred by dark basaltic lunar maria (Mare Imbrium, Oceanus Procellarum) and ancient anorthositic highland ray craters.",
     "kind": "moon",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "mars",
@@ -111,7 +116,8 @@
     "summary": "The iron oxide-rich Red Planet, home to Olympus Mons, the Valles Marineris canyon system, dark Syrtis Major basaltic plains, and polar ice caps.",
     "kind": "planet",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "ceres",
@@ -130,7 +136,8 @@
     "summary": "The largest body in the main asteroid belt, containing a third of its total mass and harboring bright sodium carbonate evaporite deposits in Occator Crater.",
     "kind": "dwarf-planet",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "jupiter",
@@ -149,7 +156,8 @@
     "summary": "A monumental gas giant banded by turbulent ammonia cloud belts, the Great Red Spot anticyclone, and 95 moons.",
     "kind": "planet",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "saturn",
@@ -168,7 +176,8 @@
     "summary": "Famous for its golden ammonia haze bands, north polar hexagon jet stream, and expansive icy ring system.",
     "kind": "planet",
     "imagery": "observed",
-    "haloMultiplier": 2.15
+    "haloMultiplier": 2.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "uranus",
@@ -187,7 +196,8 @@
     "summary": "An ice giant knocked onto its side with an axial tilt of 97.8 degrees, veiled in a cyan methane-rich atmosphere and faint vertical rings.",
     "kind": "planet",
     "imagery": "observed",
-    "haloMultiplier": 2.15
+    "haloMultiplier": 2.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "neptune",
@@ -206,7 +216,8 @@
     "summary": "The most distant major planet, featuring deep azure methane bands, bright high-altitude cirrus streaks, and supersonic 2,100 km/h winds.",
     "kind": "planet",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "oumuamua",
@@ -225,7 +236,8 @@
     "summary": "The first confirmed interstellar object detected visiting from beyond Sol, following an unbound hyperbolic trajectory with a cosmic-ray-reddened tholin crust.",
     "kind": "interstellar-object",
     "imagery": "illustrative",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "halley-comet",
@@ -241,10 +253,11 @@
     "type": "Periodic Comet",
     "distance": "17.8 AU (Mean)",
     "scale_order": "10^12 m",
-    "summary": "The premier short-period comet, returning every 75–76 years along a highly inclined, retrograde Keplerian ellipse.",
+    "summary": "The premier short-period comet, returning every 75\u201376 years along a highly inclined, retrograde Keplerian ellipse.",
     "kind": "comet",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "sedna",
@@ -263,7 +276,8 @@
     "summary": "An extremely distant minor planet coated in crimson methane and nitrogen tholin ices. Its 11,400-year orbit swings from ~76 AU at perihelion out past 900 AU, hinting at an unobserved outer perturber.",
     "kind": "tno",
     "imagery": "illustrative",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "alpha-centauri",
@@ -282,7 +296,8 @@
     "summary": "Our closest stellar neighbors, composed of solar-type binary pair Rigil Kentaurus (G2V) and Toliman (K1V), orbited by red dwarf flare star Proxima Centauri.",
     "kind": "star",
     "imagery": "illustrative",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "barnards-star",
@@ -301,7 +316,8 @@
     "summary": "A high-velocity low-mass red dwarf displaying the largest known proper motion of any star relative to Sol.",
     "kind": "star",
     "imagery": "illustrative",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "sirius",
@@ -320,7 +336,8 @@
     "summary": "The brightest apparent star in Earth's sky, dancing with degenerate carbon-oxygen white dwarf companion Sirius B (The Pup).",
     "kind": "star",
     "imagery": "illustrative",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "trappist-1",
@@ -339,7 +356,8 @@
     "summary": "A compact ultra-cool red dwarf hosting seven temperate terrestrial exoplanets, three orbiting inside the liquid-water habitable zone.",
     "kind": "star",
     "imagery": "illustrative",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "polaris",
@@ -358,7 +376,8 @@
     "summary": "Earth's north celestial pole star, a luminous yellow supergiant pulsating radially as a classic Cepheid standard candle.",
     "kind": "star",
     "imagery": "illustrative",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 3.2
   },
   {
     "id": "betelgeuse",
@@ -377,7 +396,8 @@
     "summary": "A semiregular pulsating red supergiant boiling with giant convection cells near core collapse, destined to end in a Type II supernova.",
     "kind": "star",
     "imagery": "illustrative",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 6.0
   },
   {
     "id": "crab-nebula",
@@ -396,7 +416,8 @@
     "summary": "The expanding filamentary wreckage of supernova SN 1054, powered by a central synchrotron neutron star spinning 30 times a second.",
     "kind": "nebula",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 7.5
   },
   {
     "id": "orion-nebula",
@@ -415,7 +436,8 @@
     "summary": "A massive H II stellar nursery visible to the naked eye, actively birthing protoplanetary disks inside the glowing Trapezium cluster.",
     "kind": "nebula",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 9.5
   },
   {
     "id": "eagle-nebula",
@@ -434,7 +456,8 @@
     "summary": "A prolific stellar nursery housing the towering 'Pillars of Creation', where ultraviolet radiation from young O-type stars sculpts cold molecular gas.",
     "kind": "nebula",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 9.5
   },
   {
     "id": "stephenson-2-18",
@@ -450,10 +473,11 @@
     "type": "Extreme Red Hypergiant (M6)",
     "distance": "18,900 ly",
     "scale_order": "10^20 m (~2,150 R_sun)",
-    "summary": "One of the largest known stars in the universe, an extreme red hypergiant with an estimated radius of 2,150 solar radii—large enough to engulf Saturn's orbit.",
+    "summary": "One of the largest known stars in the universe, an extreme red hypergiant with an estimated radius of 2,150 solar radii\u2014large enough to engulf Saturn's orbit.",
     "kind": "star",
     "imagery": "illustrative",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 6.0
   },
   {
     "id": "sagittarius-a-star",
@@ -472,7 +496,9 @@
     "summary": "The 4.15-million solar-mass gravitational anchor at the nucleus of the Milky Way, surrounded by relativistic Doppler-boosted accretion flares.",
     "kind": "black-hole",
     "imagery": "modeled",
-    "haloMultiplier": 2.65
+    "haloMultiplier": 2.65,
+    "cameraMultiplier": 6.2,
+    "framingMode": "head-on"
   },
   {
     "id": "lmc",
@@ -491,7 +517,8 @@
     "summary": "The most massive satellite galaxy of the Milky Way, featuring an off-center stellar bar and the glowing Tarantula Nebula starburst complex.",
     "kind": "galaxy",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 7.5
   },
   {
     "id": "smc",
@@ -510,7 +537,8 @@
     "summary": "A gas-rich dwarf irregular galaxy bound to the Milky Way, tidally stretched by past gravitational encounters with the LMC.",
     "kind": "galaxy",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 7.5
   },
   {
     "id": "andromeda",
@@ -529,7 +557,8 @@
     "summary": "The largest galaxy in the Local Group, heading toward the Milky Way on a blueshifted collision trajectory at 110 km/s.",
     "kind": "galaxy",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 13.5
   },
   {
     "id": "triangulum",
@@ -548,7 +577,8 @@
     "summary": "The third-largest member of the Local Group, displaying loosely wound spiral arms and prominent H II star-forming regions.",
     "kind": "galaxy",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 7.5
   },
   {
     "id": "sombrero-galaxy",
@@ -567,7 +597,8 @@
     "summary": "A magnificent lenticular galaxy distinguished by an extraordinarily luminous central bulge and a sharp, dark equatorial dust absorption lane.",
     "kind": "galaxy",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 13.5
   },
   {
     "id": "centaurus-a",
@@ -586,7 +617,8 @@
     "summary": "A giant peculiar elliptical galaxy bisected by a warped dark dust lane, launching relativistic synchrotron plasma jets from its central black hole.",
     "kind": "galaxy",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 7.5
   },
   {
     "id": "messier-87",
@@ -605,7 +637,8 @@
     "summary": "The dominant supergiant elliptical galaxy of the Virgo Cluster, hosting a 6.5-billion-solar-mass black hole launching a 5,000-light-year relativistic jet.",
     "kind": "galaxy",
     "imagery": "observed",
-    "haloMultiplier": 2.65
+    "haloMultiplier": 2.65,
+    "cameraMultiplier": 13.5
   },
   {
     "id": "great-attractor",
@@ -624,11 +657,12 @@
     "summary": "A massive gravitational focal point in the Zone of Avoidance drawing the Milky Way and hundreds of thousands of galaxies along the Laniakea Supercluster.",
     "kind": "cluster",
     "imagery": "modeled",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 9.5
   },
   {
     "id": "bootes-void",
-    "name": "Boötes Void (The Great Nothing)",
+    "name": "Bo\u00f6tes Void (The Great Nothing)",
     "tier": 4,
     "size": 9.5,
     "position": [
@@ -643,7 +677,8 @@
     "summary": "A gargantuan spherical cosmic desert spanning 330 million light-years across, containing only ~60 galaxies where 2,000 would normally form.",
     "kind": "void",
     "imagery": "modeled",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 9.5
   },
   {
     "id": "shapley-supercluster",
@@ -662,7 +697,8 @@
     "summary": "The largest concentration of gravitationally bound galaxies in the nearby universe, pulling the Laniakea Supercluster and Great Attractor toward its core.",
     "kind": "cluster",
     "imagery": "modeled",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 9.5
   },
   {
     "id": "el-gordo",
@@ -681,7 +717,8 @@
     "summary": "The most massive colliding galaxy cluster observed in the distant universe, glowing with shock-heated X-ray intracluster plasma across 3 quadrillion solar masses.",
     "kind": "galaxy",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 9.5
   },
   {
     "id": "smacs-0723",
@@ -700,7 +737,8 @@
     "summary": "A massive galaxy cluster bending spacetime into an Einstein gravitational lens, famous as the target of JWST's First Deep Field.",
     "kind": "cluster",
     "imagery": "observed",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 7.5
   },
   {
     "id": "ton-618",
@@ -719,7 +757,8 @@
     "summary": "The largest known ultramassive black hole (66 billion solar masses), featuring a 390-billion-kilometer (~2,600 AU) event horizon that dwarfs our entire Solar System, a relativistic quasar jet, and a golden-orange accretion disk shining with the power of 140 trillion Suns.",
     "kind": "black-hole",
     "imagery": "illustrative",
-    "haloMultiplier": 2.65
+    "haloMultiplier": 2.65,
+    "cameraMultiplier": 13.5
   },
   {
     "id": "earendel",
@@ -738,7 +777,8 @@
     "summary": "The most distant individual star ever detected, observed 900 million years after the Big Bang via gravitational lensing magnification.",
     "kind": "star",
     "imagery": "illustrative",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 9.0
   },
   {
     "id": "gn-z11",
@@ -757,6 +797,7 @@
     "summary": "An intensely star-forming primordial galaxy observed just 400 million years after the Big Bang, strongly redshifted into the infrared.",
     "kind": "galaxy",
     "imagery": "illustrative",
-    "haloMultiplier": 1.15
+    "haloMultiplier": 1.15,
+    "cameraMultiplier": 7.5
   }
 ]
