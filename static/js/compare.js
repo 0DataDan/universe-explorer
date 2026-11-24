@@ -93,6 +93,20 @@ function formatRatio(a, b) {
 function buildCleanBodyClone(sourceMesh, shapeMode) {
   const wrapper = new THREE.Group();
   const clone = sourceMesh.clone(true);
+  clone.traverse((child) => {
+    if (child.isMesh && child.material) {
+      child.material = Array.isArray(child.material)
+        ? child.material.map((m) => m.clone())
+        : child.material.clone();
+      const mats = Array.isArray(child.material) ? child.material : [child.material];
+      mats.forEach((m) => {
+        if (child.name === 'earth-clouds-nightlights' && m.uniforms && m.uniforms.uLightDir) {
+          m.uniforms.uLightDir = { value: new THREE.Vector3(8, 5, 10).normalize() };
+        }
+        m.needsUpdate = true;
+      });
+    }
+  });
   clone.position.set(0, 0, 0);
   clone.rotation.set(0, 0, 0);
   clone.scale.set(1, 1, 1);
@@ -443,12 +457,13 @@ export function initScaleCompare({ celestialObjects, getActiveTarget }) {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.005, 250);
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
-    const keyLight = new THREE.DirectionalLight(0xfff8ee, 1.85);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.72);
+    const hemi = new THREE.HemisphereLight(0xdbeafe, 0x1e293b, 0.55);
+    const keyLight = new THREE.DirectionalLight(0xfff8ee, 2.1);
     keyLight.position.set(8, 5, 10);
-    const rimLight = new THREE.DirectionalLight(0x66ccff, 0.45);
+    const rimLight = new THREE.DirectionalLight(0x66ccff, 0.55);
     rimLight.position.set(-8, -3, -6);
-    scene.add(ambient, keyLight, rimLight);
+    scene.add(ambient, hemi, keyLight, rimLight);
 
     const starCount = 450;
     const starPos = new Float32Array(starCount * 3);

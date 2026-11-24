@@ -1,9 +1,13 @@
-// NOVA Procedural Web Audio Engine (Zero-Asset Observatory Soundscape)
+// NOVA Procedural Web Audio Engine — Instrument-Grade Observatory Soundscape
 (function initNovaAudioEngine() {
   if (window.novaAudio) return;
 
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   if (!AudioCtx) return;
+
+  const ENGINE_BOOT_MS = performance.now();
+  const BOOT_SILENCE_MS = 3500;
+  const IDLE_FADE_MS = 25000;
 
   let ctx = null;
   let masterGain = null;
@@ -13,17 +17,92 @@
   let oscA = null;
   let oscB = null;
   let noiseGain = null;
+  let whiteNoiseBuffer = null;
   let pulsarTimer = null;
+  let bhNodes = null;
 
   let isMuted = false;
   let isUnlocked = false;
   let isDucked = false;
+  let isCurrentlyQuiet = false;
   let currentTier = 1;
   let activeObjectName = "";
   let lastInteractionTime = performance.now();
   let flightStartTime = 0;
   let flightDurationMs = 2200;
-  const IDLE_FADE_MS = 25000; // Fade to near-0 after 25s of inactivity
+  let lastResetSoundAt = 0;
+
+  const AMBIENT_NORMAL = 0.42;
+  const AMBIENT_DUCKED = 0.08;
+
+  const TIER_PROFILES = {
+    1: { fA: 55.0,  fB: 110.0, cutoff: 185, noise: 0.011 }, // Solar System (AU)
+    2: { fA: 65.41, fB: 98.0,  cutoff: 270, noise: 0.015 }, // Interstellar (ly)
+    3: { fA: 49.0,  fB: 73.42, cutoff: 220, noise: 0.020 }, // Galactic (kly/Mly)
+    4: { fA: 36.71, fB: 55.0,  cutoff: 155, noise: 0.025 }  // Cosmic Web (Mpc/Gly)
+  };
+
+  function buildBrownNoiseBuffer(audioCtx) {
+    const len = audioCtx.sampleRate * 3;
+    const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    let last = 0.0;
+    for (let i = 0; i < len; i++) {
+      const white = Math.random() * 2 - 1;
+      last = (last + 0.02 * white) / 1.02;
+      data[i] = last * 2.8;
+    }
+    return buf;
+  }
+
+  function buildWhiteNoiseBuffer(audioCtx) {
+    const len = audioCtx.sampleRate * 2;
+    const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    return buf;
+  }
+
+  function ensureContext() {
+    if (ctx) {
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      return true;
+    }
+    try {
+      ctx = new AudioCtx();
+    } catch (_) {
+      return false;
+    }
+
+    whiteNoiseBuffer = buildWhiteNoiseBuffer(ctx);
+
+    masterGain = ctx.createGain();
+    masterGain.gain.value = isMuted ? 0.0 : 0.85;
+    masterGain.connect(ctx.destination);
+
+    ambientGain = ctx.createGain();
+    ambientGain.gain.value = 0.0;
+    ambientGain.connect(masterGain);
+
+    sfxGain = ctx.createGain();
+    sfxGain.gain.value = 0.78;
+    sfxGain.connect(masterGain);
+
+    // Background drone disabled for clean vacuum telemetry; ambientGain reserved for Black Hole swell
+
+    const now = ctx.currentTime;
+    ambientGain.gain.setValueAtTime(0.0001, now);
+    ambientGain.gain.exponentialRampToValueAtTime(isDucked ? AMBIENT_DUCKED : AMBIENT_NORMAL, now + 1.8);
+
+    isUnlocked = true;
+    return true;
+  }
+
+  function isBootSilenced() {
+    return (performance.now() - ENGINE_BOOT_MS) < BOOT_SILENCE_MS;
+  }
 
   function getArrivalFactor() {
     if (!flightStartTime) return 1.0;
@@ -32,10 +111,13 @@
     const progress = Math.max(0, Math.min(1, elapsed / flightDurationMs));
     if (progress < 0.35) return 0.0;
     const ramp = (progress - 0.35) / 0.65;
-    return ramp * ramp; // Smooth quadratic swell as you arrive
+    return ramp * ramp;
   }
 
-  let isCurrentlyQuiet = false;
+  function isScaleModeActive() {
+    const txt = document.body ? document.body.innerText : "";
+    return txt.includes("TRUE-SCALE COMPARISON");
+  }
 
   function updateMasterEnvelope() {
     if (!ctx || !masterGain) return;
@@ -54,204 +136,314 @@
     masterGain.gain.setTargetAtTime(shouldQuiet ? 0.03 : 0.85, now, shouldQuiet ? 1.2 : 0.35);
   }
 
-  // Restrained levels to prevent ear fatigue or laptop speaker rumble
-  const AMBIENT_NORMAL = 0.42;
-  const AMBIENT_DUCKED = 0.08;
-
-  const TIER_PROFILES = {
-    1: { fA: 55.0,  fB: 110.0, cutoff: 185, noise: 0.011 }, // Solar System (AU)
-    2: { fA: 65.41, fB: 98.0,  cutoff: 270, noise: 0.015 }, // Interstellar (ly)
-    3: { fA: 49.0,  fB: 73.42, cutoff: 220, noise: 0.020 }, // Galactic (kly/Mly)
-    4: { fA: 36.71, fB: 55.0,  cutoff: 155, noise: 0.025 }  // Cosmic Web (Mpc/Gly)
-  };
-
-  function buildNoiseBuffer(audioCtx) {
-    const len = audioCtx.sampleRate * 3;
-    const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
-    const data = buf.getChannelData(0);
-    let last = 0.0;
-    for (let i = 0; i < len; i++) {
-      const white = Math.random() * 2 - 1;
-      last = (last + 0.02 * white) / 1.02;
-      data[i] = last * 2.8;
-    }
-    return buf;
-  }
-
-  function ensureContext() {
-    if (ctx) {
-      if (ctx.state === "suspended") ctx.resume().catch(() => {});
-      return true;
-    }
-    try {
-      ctx = new AudioCtx();
-    } catch (_) {
-      return false;
-    }
-
-    masterGain = ctx.createGain();
-    masterGain.gain.value = isMuted ? 0.0 : 0.85;
-    masterGain.connect(ctx.destination);
-
-    ambientGain = ctx.createGain();
-    ambientGain.gain.value = 0.0;
-    ambientGain.connect(masterGain);
-
-    sfxGain = ctx.createGain();
-    sfxGain.gain.value = 0.78;
-    sfxGain.connect(masterGain);
-
-    droneFilter = ctx.createBiquadFilter();
-    droneFilter.type = "lowpass";
-    droneFilter.frequency.value = TIER_PROFILES[1].cutoff;
-    droneFilter.Q.value = 0.9;
-    droneFilter.connect(ambientGain);
-
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    lfo.type = "sine";
-    lfo.frequency.value = 0.08;
-    lfoGain.gain.value = 22.0;
-    lfo.connect(lfoGain);
-    lfoGain.connect(droneFilter.frequency);
-    lfo.start();
-
-    oscA = ctx.createOscillator();
-    oscA.type = "sine";
-    oscA.frequency.value = TIER_PROFILES[1].fA;
-    const gainA = ctx.createGain();
-    gainA.gain.value = 0.065;
-    oscA.connect(gainA);
-    gainA.connect(droneFilter);
-    oscA.start();
-
-    oscB = ctx.createOscillator();
-    oscB.type = "triangle";
-    oscB.frequency.value = TIER_PROFILES[1].fB;
-    oscB.detune.value = 4.5;
-    const gainB = ctx.createGain();
-    gainB.gain.value = 0.022;
-    oscB.connect(gainB);
-    gainB.connect(droneFilter);
-    oscB.start();
-
-    const noiseSrc = ctx.createBufferSource();
-    noiseSrc.buffer = buildNoiseBuffer(ctx);
-    noiseSrc.loop = true;
-    const noiseFilter = ctx.createBiquadFilter();
-    noiseFilter.type = "bandpass";
-    noiseFilter.frequency.value = 160;
-    noiseFilter.Q.value = 0.7;
-    noiseGain = ctx.createGain();
-    noiseGain.gain.value = TIER_PROFILES[1].noise;
-    noiseSrc.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(ambientGain);
-    noiseSrc.start();
-
+  // 1. Relay-Switch HUD Toggle: 10ms band-passed noise transient (no musical pitch)
+  function playTick(centerFreq = 2200) {
+    if (isMuted || isBootSilenced() || !ensureContext() || !whiteNoiseBuffer) return;
     const now = ctx.currentTime;
-    ambientGain.gain.setValueAtTime(0.0001, now);
-    ambientGain.gain.exponentialRampToValueAtTime(isDucked ? AMBIENT_DUCKED : AMBIENT_NORMAL, now + 1.8);
+    const src = ctx.createBufferSource();
+    src.buffer = whiteNoiseBuffer;
 
-    isUnlocked = true;
-    return true;
-  }
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.setValueAtTime(centerFreq, now);
+    bp.Q.value = 3.2;
 
-  // Layer 1: Crisp, damped mechanical HUD tick (clears the low-frequency drone)
-  function playTick(pitch = 520) {
-    if (isMuted || !ensureContext()) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
     const g = ctx.createGain();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(pitch, now);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(120, pitch * 0.42), now + 0.024);
-    g.gain.setValueAtTime(0.14, now);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.028);
-    osc.connect(g);
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.linearRampToValueAtTime(0.18, now + 0.0015);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.011);
+
+    src.connect(bp);
+    bp.connect(g);
     g.connect(sfxGain);
-    osc.start(now);
-    osc.stop(now + 0.032);
+    src.start(now, Math.random() * 1.2, 0.016);
   }
 
-  // Layer 1: Crisp optical telescope lock-on ping
-  function playSelect() {
-    if (isMuted || !ensureContext()) return;
+  // 2. Ephemeris Time-Warp Detent: crisp mechanical watch-escapement double-click
+  function playTimeDetent(pitchScale = 1.0) {
+    if (isMuted || isBootSilenced() || !ensureContext() || !whiteNoiseBuffer) return;
     const now = ctx.currentTime;
-    const filter = ctx.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.value = 920;
-    filter.Q.value = 0.85;
-    filter.connect(sfxGain);
+    [0, 0.022].forEach((offset, idx) => {
+      const t0 = now + offset;
+      const src = ctx.createBufferSource();
+      src.buffer = whiteNoiseBuffer;
 
-    [659.25, 987.77].forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
+      const bp = ctx.createBiquadFilter();
+      bp.type = "bandpass";
+      bp.frequency.setValueAtTime((idx === 0 ? 3100 : 4200) * pitchScale, t0);
+      bp.Q.value = 5.5;
+
       const g = ctx.createGain();
-      osc.type = "sine";
-      const t0 = now + idx * 0.028;
-      osc.frequency.setValueAtTime(freq, t0);
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.linearRampToValueAtTime(idx === 0 ? 0.095 : 0.065, t0 + 0.008);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.19);
-      osc.connect(g);
-      g.connect(filter);
-      osc.start(t0);
-      osc.stop(t0 + 0.21);
+      g.gain.linearRampToValueAtTime(idx === 0 ? 0.14 : 0.09, t0 + 0.001);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.008);
+
+      src.connect(bp);
+      bp.connect(g);
+      g.connect(sfxGain);
+      src.start(t0, Math.random() * 1.2, 0.012);
     });
   }
 
-  // Layer 1: Distinct Reset sound (clean descending harmonic return)
-  let lastResetSoundAt = 0;
+  // 2B. Calibrated Scale/Range Slider Tick (pitch rises smoothly with slider value)
+  let lastSliderTickAt = 0;
+  function playSliderTick(normVal = 0.5) {
+    if (isMuted || isBootSilenced() || !ensureContext() || !whiteNoiseBuffer) return;
+    const tNow = performance.now();
+    if (tNow - lastSliderTickAt < 40) return;
+    lastSliderTickAt = tNow;
+
+    const now = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = whiteNoiseBuffer;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.setValueAtTime(1600 + Math.max(0, Math.min(1, normVal)) * 1600, now);
+    bp.Q.value = 6.0;
+
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.linearRampToValueAtTime(0.095, now + 0.001);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.009);
+
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(sfxGain);
+    src.start(now, Math.random() * 1.2, 0.014);
+  }
+
+  // 2C. Whisper-Quiet Map Rotation / Gimbal Micro-Detent (horological bearing feel)
+  let lastGimbalTickAt = 0;
+  function playGimbalTick() {
+    if (isMuted || isBootSilenced() || !ensureContext() || !whiteNoiseBuffer) return;
+    const tNow = performance.now();
+    if (tNow - lastGimbalTickAt < 55) return;
+    lastGimbalTickAt = tNow;
+
+    const now = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = whiteNoiseBuffer;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.setValueAtTime(1350 + Math.random() * 180, now);
+    bp.Q.value = 4.5;
+
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.linearRampToValueAtTime(0.032, now + 0.0015);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.008);
+
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(sfxGain);
+    src.start(now, Math.random() * 1.2, 0.012);
+  }
+
+  // 2D. Whisper-Quiet Directional Zoom Tick (wheel, trackpad pinch, touch pinch)
+  let lastZoomTickAt = 0;
+  function playZoomTick(zoomingIn = true) {
+    if (isMuted || isBootSilenced() || !ensureContext() || !whiteNoiseBuffer) return;
+    const tNow = performance.now();
+    if (tNow - lastZoomTickAt < 65) return;
+    lastZoomTickAt = tNow;
+
+    const now = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = whiteNoiseBuffer;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    const baseFreq = zoomingIn ? 1900 : 1200;
+    bp.frequency.setValueAtTime(baseFreq + (Math.random() - 0.5) * 140, now);
+    bp.Q.value = 5.2;
+
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.linearRampToValueAtTime(0.030, now + 0.0012);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.0085);
+
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(sfxGain);
+    src.start(now, Math.random() * 1.2, 0.013);
+  }
+
+  // 3. Object Select: Precision optical shutter / relay lock (unpitched, tactile)
+  function playSelect() {
+    if (isMuted || isBootSilenced() || !ensureContext() || !whiteNoiseBuffer) return;
+    const now = ctx.currentTime;
+
+    // Crisp mechanical shutter transient
+    const src = ctx.createBufferSource();
+    src.buffer = whiteNoiseBuffer;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.setValueAtTime(2850, now);
+    bp.Q.value = 2.6;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.0001, now);
+    ng.gain.linearRampToValueAtTime(0.22, now + 0.0015);
+    ng.gain.exponentialRampToValueAtTime(0.0001, now + 0.015);
+    src.connect(bp);
+    bp.connect(ng);
+    ng.connect(sfxGain);
+    src.start(now, Math.random() * 1.2, 0.022);
+
+    // Damped low-end mechanical thud for lock-in weight
+    const thud = ctx.createOscillator();
+    const tg = ctx.createGain();
+    thud.type = "sine";
+    thud.frequency.setValueAtTime(115, now);
+    thud.frequency.exponentialRampToValueAtTime(58, now + 0.028);
+    tg.gain.setValueAtTime(0.0001, now);
+    tg.gain.linearRampToValueAtTime(0.14, now + 0.002);
+    tg.gain.exponentialRampToValueAtTime(0.0001, now + 0.032);
+    thud.connect(tg);
+    tg.connect(sfxGain);
+    thud.start(now);
+    thud.stop(now + 0.038);
+  }
+
+  // 4. Doppler Fly-To Whoosh: velocity-shaped bandpass air sweep synced to camera transit
+  function playDopplerWhoosh(durationMs = 1800) {
+    if (isMuted || isBootSilenced() || !ensureContext() || !whiteNoiseBuffer) return;
+    const now = ctx.currentTime;
+    const dur = Math.max(0.75, Math.min(2.4, durationMs / 1000));
+    const src = ctx.createBufferSource();
+    src.buffer = whiteNoiseBuffer;
+    src.loop = true;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.Q.value = 2.4;
+    bp.frequency.setValueAtTime(160, now);
+    bp.frequency.exponentialRampToValueAtTime(540, now + dur * 0.36);
+    bp.frequency.exponentialRampToValueAtTime(135, now + dur);
+
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.linearRampToValueAtTime(0.055, now + dur * 0.30);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(sfxGain);
+    src.start(now);
+    src.stop(now + dur + 0.05);
+  }
+
+  // 5. Reset: Gimbal release double-detent + damped home-settle thump (unpitched)
   function playReset() {
-    if (isMuted || !ensureContext()) return;
+    if (isMuted || isBootSilenced() || !ensureContext() || !whiteNoiseBuffer) return;
     const tNow = performance.now();
     if (tNow - lastResetSoundAt < 150) return;
     lastResetSoundAt = tNow;
-    const now = ctx.currentTime;
-    const filter = ctx.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.value = 840;
-    filter.Q.value = 0.85;
-    filter.connect(sfxGain);
 
-    [783.99, 523.25].forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
+    const now = ctx.currentTime;
+
+    // Two-stage mechanical unlatch -> settle click
+    [
+      { offset: 0.0,   freq: 1950, q: 3.4, gain: 0.16, dur: 0.011 },
+      { offset: 0.038, freq: 1120, q: 2.8, gain: 0.20, dur: 0.016 }
+    ].forEach((step) => {
+      const t0 = now + step.offset;
+      const src = ctx.createBufferSource();
+      src.buffer = whiteNoiseBuffer;
+      const bp = ctx.createBiquadFilter();
+      bp.type = "bandpass";
+      bp.frequency.setValueAtTime(step.freq, t0);
+      bp.Q.value = step.q;
       const g = ctx.createGain();
-      osc.type = "sine";
-      const t0 = now + idx * 0.032;
-      osc.frequency.setValueAtTime(freq, t0);
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.linearRampToValueAtTime(idx === 0 ? 0.085 : 0.065, t0 + 0.008);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.19);
-      osc.connect(g);
-      g.connect(filter);
-      osc.start(t0);
-      osc.stop(t0 + 0.21);
+      g.gain.linearRampToValueAtTime(step.gain, t0 + 0.0015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + step.dur);
+      src.connect(bp);
+      bp.connect(g);
+      g.connect(sfxGain);
+      src.start(t0, Math.random() * 1.2, step.dur + 0.008);
     });
+
+    // Subtle damped body thump on the second detent
+    const t1 = now + 0.038;
+    const thump = ctx.createOscillator();
+    const tg = ctx.createGain();
+    thump.type = "sine";
+    thump.frequency.setValueAtTime(92, t1);
+    thump.frequency.exponentialRampToValueAtTime(52, t1 + 0.032);
+    tg.gain.setValueAtTime(0.0001, t1);
+    tg.gain.linearRampToValueAtTime(0.11, t1 + 0.002);
+    tg.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.036);
+    thump.connect(tg);
+    tg.connect(sfxGain);
+    thump.start(t1);
+    thump.stop(t1 + 0.042);
   }
 
-  // Layer 1: Distinct Tour Start sound (ascending 3-note observatory sequence)
-  function playTourStart() {
-    if (isMuted || !ensureContext()) return;
+  // 5B. Subtle CLI Terminal Key Clicks
+  function playCliKey(key) {
+    if (isMuted || isBootSilenced() || !ensureContext() || !whiteNoiseBuffer) return;
     const now = ctx.currentTime;
-    const filter = ctx.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.value = 880;
-    filter.connect(sfxGain);
-
-    [220.0, 329.63, 440.0].forEach((freq, idx) => {
+    if (key === "Enter") {
       const osc = ctx.createOscillator();
       const g = ctx.createGain();
       osc.type = "sine";
-      const t0 = now + idx * 0.085;
+      osc.frequency.setValueAtTime(1480, now);
+      osc.frequency.exponentialRampToValueAtTime(1960, now + 0.022);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.linearRampToValueAtTime(0.042, now + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.028);
+      osc.connect(g);
+      g.connect(sfxGain);
+      osc.start(now);
+      osc.stop(now + 0.032);
+      return;
+    }
+    if (key.length !== 1 && key !== "Backspace" && key !== "Tab") return;
+    const src = ctx.createBufferSource();
+    src.buffer = whiteNoiseBuffer;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    const base = key === "Backspace" ? 1650 : 2850;
+    bp.frequency.setValueAtTime(base + (Math.random() - 0.5) * 320, now);
+    bp.Q.value = 5.5;
+
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.linearRampToValueAtTime(0.042, now + 0.001);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.0065);
+
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(sfxGain);
+    src.start(now, Math.random() * 1.2, 0.01);
+  }
+
+  // 6. Tour Start Handshake: clean 3-pulse ascending observatory sequence
+  function playTourStart() {
+    if (isMuted || isBootSilenced() || !ensureContext()) return;
+    const now = ctx.currentTime;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 1200;
+    bp.Q.value = 1.1;
+    bp.connect(sfxGain);
+
+    [880, 1174.66, 1567.98].forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      const t0 = now + idx * 0.055;
+      osc.type = "sine";
       osc.frequency.setValueAtTime(freq, t0);
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.linearRampToValueAtTime(idx === 2 ? 0.065 : 0.05, t0 + 0.03);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.42);
+      g.gain.linearRampToValueAtTime(idx === 2 ? 0.06 : 0.048, t0 + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.09);
       osc.connect(g);
-      g.connect(filter);
+      g.connect(bp);
       osc.start(t0);
-      osc.stop(t0 + 0.45);
+      osc.stop(t0 + 0.10);
     });
   }
 
@@ -269,14 +461,14 @@
     noiseGain.gain.setTargetAtTime(p.noise, now, 1.2);
   }
 
-  // Layer 3A: Slow, meditative Crab Pulsar radio-telescope beacon (~1.1s cadence)
-  let bhNodes = null;
-
+  // Layer 3A: Slow Crab Pulsar radio-telescope beacon (~1.1s cadence) with proximity ramp
   function updatePulsarSonification() {
     const isPulsar = /crab/i.test(activeObjectName);
     if (isPulsar && !pulsarTimer) {
       pulsarTimer = setInterval(() => {
         if (isMuted || !isUnlocked || !ctx || ctx.state !== "running") return;
+        const arrival = getArrivalFactor();
+        if (arrival < 0.02) return;
         const now = ctx.currentTime;
         const filter = ctx.createBiquadFilter();
         filter.type = "lowpass";
@@ -289,8 +481,6 @@
         osc.frequency.setValueAtTime(215, now);
         osc.frequency.exponentialRampToValueAtTime(165, now + 0.14);
         g.gain.setValueAtTime(0.0001, now);
-        const arrival = getArrivalFactor();
-        if (arrival < 0.02) return;
         g.gain.linearRampToValueAtTime((isDucked ? 0.012 : 0.042) * arrival, now + 0.025);
         g.gain.exponentialRampToValueAtTime(0.0001, now + 0.24);
 
@@ -305,7 +495,7 @@
     }
   }
 
-  // Layer 3B: Deep gravitational harmonic swell for Black Holes (Sagittarius A*, TON 618, M87)
+  // Layer 3B: Deep gravitational harmonic swell for Black Holes with proximity ramp
   function updateBlackHoleSonification() {
     const isBlackHole = /sagittarius a|ton 618|m87/i.test(activeObjectName);
     if (!ctx || !ambientGain) return;
@@ -324,13 +514,13 @@
 
       const subOsc = ctx.createOscillator();
       subOsc.type = "sine";
-      subOsc.frequency.value = 38.89; // Deep Eb1 rumble
+      subOsc.frequency.value = 38.89;
       subOsc.connect(bhFilter);
       subOsc.start(now);
 
       const overtoneOsc = ctx.createOscillator();
       overtoneOsc.type = "sine";
-      overtoneOsc.frequency.value = 58.27; // Haunting Bb1 fifth
+      overtoneOsc.frequency.value = 58.27;
       const ovGain = ctx.createGain();
       ovGain.gain.value = 0.28;
       overtoneOsc.connect(ovGain);
@@ -351,11 +541,6 @@
         try { subOsc.stop(); overtoneOsc.stop(); } catch (_) {}
       }, 1500);
     }
-  }
-
-  function isScaleModeActive() {
-    const txt = document.body ? document.body.innerText : "";
-    return txt.includes("TRUE-SCALE COMPARISON");
   }
 
   function resolveActiveTargetName() {
@@ -410,13 +595,17 @@
     return origPlay.apply(this, args);
   };
 
-  function hookFlyToTarget() {
+  function hookEngineFunctions() {
     if (typeof window.smoothFlyToTarget === "function" && !window.smoothFlyToTarget.__novaAudioHooked) {
       const origFly = window.smoothFlyToTarget;
       window.smoothFlyToTarget = function (...args) {
         flightStartTime = performance.now();
         flightDurationMs = (typeof args[0] === "number" && args[0] > 0) ? args[0] : 2200;
-        if (!window.isScreensaverActive) playSelect();
+        const isBooting = document.documentElement && document.documentElement.classList.contains("is-booting");
+        if (!window.isScreensaverActive && !isBooting) {
+          playSelect();
+          playDopplerWhoosh(flightDurationMs);
+        }
         setTimeout(pollTelemetry, 120);
         return origFly.apply(this, args);
       };
@@ -431,8 +620,9 @@
       window.resetCameraToHome.__novaAudioHooked = true;
     }
   }
+
   const hookPoller = setInterval(() => {
-    hookFlyToTarget();
+    hookEngineFunctions();
     if (
       window.smoothFlyToTarget && window.smoothFlyToTarget.__novaAudioHooked &&
       window.resetCameraToHome && window.resetCameraToHome.__novaAudioHooked
@@ -441,6 +631,7 @@
     }
   }, 400);
 
+  // O(1) user activity tracker (zero DOM reflows on pointermove)
   function markUserActivity() {
     lastInteractionTime = performance.now();
     if (isCurrentlyQuiet && ctx && masterGain && !isMuted) {
@@ -449,26 +640,111 @@
     }
   }
 
-  ["pointermove", "wheel", "touchstart"].forEach(evt => {
-    window.addEventListener(evt, markUserActivity, { capture: true, passive: true });
-  });
+  let dragAccumPx = 0;
+  let lastDragX = null;
+  let lastDragY = null;
 
-  // Silent unlock on first gesture + distinct Reset / Tour / HUD ticks
+  window.addEventListener("pointermove", (e) => {
+    markUserActivity();
+    if (e.buttons === 1 && e.target && e.target.tagName === "CANVAS") {
+      if (lastDragX !== null) {
+        dragAccumPx += Math.hypot(e.clientX - lastDragX, e.clientY - lastDragY);
+        if (dragAccumPx >= 42) {
+          dragAccumPx = 0;
+          playGimbalTick();
+        }
+      }
+      lastDragX = e.clientX;
+      lastDragY = e.clientY;
+    } else {
+      lastDragX = null;
+      lastDragY = null;
+      dragAccumPx = 0;
+    }
+  }, { capture: true, passive: true });
+
+  let wheelAccum = 0;
+  window.addEventListener("wheel", (e) => {
+    markUserActivity();
+    if (!e.target || e.target.tagName !== "CANVAS") return;
+    const step = e.ctrlKey ? e.deltaY * 4.0 : e.deltaY;
+    if ((wheelAccum > 0 && step < 0) || (wheelAccum < 0 && step > 0)) {
+      wheelAccum = 0;
+    }
+    wheelAccum += step;
+    if (Math.abs(wheelAccum) >= 90) {
+      const zoomingIn = wheelAccum < 0;
+      wheelAccum = 0;
+      playZoomTick(zoomingIn);
+    }
+  }, { capture: true, passive: true });
+
+  let lastPinchDist = null;
+  let pinchAccum = 0;
+  window.addEventListener("touchstart", (e) => {
+    markUserActivity();
+    if (e.touches && e.touches.length === 2) {
+      lastPinchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      pinchAccum = 0;
+    } else {
+      lastPinchDist = null;
+    }
+  }, { capture: true, passive: true });
+
+  window.addEventListener("touchmove", (e) => {
+    markUserActivity();
+    if (e.touches && e.touches.length === 2 && e.target && e.target.tagName === "CANVAS") {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      if (lastPinchDist !== null) {
+        const delta = dist - lastPinchDist;
+        pinchAccum += delta;
+        if (Math.abs(pinchAccum) >= 28) {
+          const zoomingIn = pinchAccum > 0;
+          pinchAccum = 0;
+          playZoomTick(zoomingIn);
+        }
+      }
+      lastPinchDist = dist;
+    }
+  }, { capture: true, passive: true });
+
+  window.addEventListener("input", (e) => {
+    const el = e.target;
+    if (el && el.tagName === "INPUT" && el.type === "range") {
+      ensureContext();
+      markUserActivity();
+      const min = parseFloat(el.min || "0");
+      const max = parseFloat(el.max || "100");
+      const val = parseFloat(el.value || "0");
+      const norm = (max > min) ? (val - min) / (max - min) : 0.5;
+      playSliderTick(norm);
+    }
+  }, { capture: true, passive: true });
+
   window.addEventListener("pointerdown", (e) => {
     ensureContext();
     markUserActivity();
     const hit = e.target && e.target.closest
       ? e.target.closest("button, [role='button'], [id^='btn-'], [data-tip], .gimbal-sub, [id*='gimbal']")
       : null;
-    if (hit && hit.id !== "btn-nova-audio") {
+    const isBooting = document.documentElement && document.documentElement.classList.contains("is-booting");
+    if (!isBooting && hit && hit.id !== "btn-nova-audio") {
       const meta = ((hit.id || "") + " " + (hit.getAttribute("data-tip") || "") + " " + (hit.textContent || "")).toLowerCase();
-
       if (meta.includes("reset") || meta.includes("home [r]")) {
         playReset();
       } else if (meta.includes("tour") && !meta.includes("voice") && !meta.includes("stop") && !meta.includes("exit") && !meta.includes("next") && !meta.includes("prev")) {
         playTourStart();
+      } else if (/\b(now|1d\/s|1m\/s|1y\/s|j2000)\b/.test(meta) || meta.includes("speed") || meta.includes("time")) {
+        const scale = meta.includes("1y/s") ? 1.25 : meta.includes("1m/s") ? 1.12 : meta.includes("1d/s") ? 1.0 : 0.9;
+        playTimeDetent(scale);
       } else {
-        playTick(hit.id === "btn-cosmic-web" ? 580 : 490);
+        playTick(hit.id === "btn-cosmic-web" ? 2600 : 2100);
       }
     }
   }, { capture: true, passive: true });
@@ -477,8 +753,14 @@
     ensureContext();
     markUserActivity();
     const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
-    if (tag !== "input" && tag !== "textarea" && (e.key === "r" || e.key === "R")) {
+    if (tag === "input" || tag === "textarea") {
+      playCliKey(e.key);
+      return;
+    }
+    if (e.key === "r" || e.key === "R") {
       playReset();
+    } else if (["1", "2", "3", "4"].includes(e.key)) {
+      playTimeDetent(0.9 + Number(e.key) * 0.1);
     }
   }, { capture: true, passive: true });
 
@@ -501,11 +783,10 @@
     if (ctx && masterGain) {
       masterGain.gain.setTargetAtTime(isMuted ? 0.0 : 0.85, ctx.currentTime, 0.08);
     }
-    if (!isMuted) playTick(560);
+    if (!isMuted) playTick(2500);
     updateAudioButtonUI();
   }
 
-  // Place minimalist volume icon cleanly in the bottom-right corner
   function injectAudioToggle() {
     const existing = document.getElementById("btn-nova-audio");
     if (existing) existing.remove();
@@ -535,7 +816,12 @@
   window.novaAudio = {
     toggle: toggleMute,
     playTick,
+    playTimeDetent,
+    playSliderTick,
+    playGimbalTick,
+    playZoomTick,
     playSelect,
+    playDopplerWhoosh,
     playReset,
     playTourStart,
     setMuted: (m) => { if (Boolean(m) !== isMuted) toggleMute(); }

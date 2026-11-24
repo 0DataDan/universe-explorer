@@ -5633,7 +5633,13 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
                 tex.colorSpace = THREE.SRGBColorSpace;
                 tex.anisotropy = 8;
                 targetMat.map = tex;
-                targetMat.emissiveMap = tex;
+                if (kind === 'earth') {
+                  targetMat.emissiveMap = null;
+                  targetMat.emissive = new THREE.Color(0x060c18);
+                  targetMat.emissiveIntensity = 0.08;
+                } else {
+                  targetMat.emissiveMap = tex;
+                }
                 targetMat.needsUpdate = true;
               });
 
@@ -5642,7 +5648,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
                   ntex.anisotropy = 8;
                   const nStr = (kind === 'ceres' || kind === 'moon') ? 2.15
                              : (kind === 'mercury' || kind === 'mars') ? 1.85
-                             : (kind === 'earth') ? 1.15 : 0.45;
+                             : (kind === 'earth') ? 2.15 : 0.45;
                   targetMat.normalMap = ntex;
                   targetMat.normalScale = new THREE.Vector2(nStr, nStr);
                   targetMat.bumpMap = null;
@@ -5652,10 +5658,26 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
 
               if (kind === 'earth') {
                 loader.load('textures/earth_roughness.jpg', (rtex) => {
-                  rtex.anisotropy = 4;
-                  targetMat.roughnessMap = rtex;
+                  // Lift ocean roughness floor (~0.44) so sunlight creates a broad NASA glint instead of a plastic pinpoint
+                  const img = rtex.image;
+                  const c = document.createElement('canvas');
+                  c.width = img.width || 512;
+                  c.height = img.height || 256;
+                  const cctx = c.getContext('2d');
+                  cctx.drawImage(img, 0, 0, c.width, c.height);
+                  const idata = cctx.getImageData(0, 0, c.width, c.height);
+                  const d = idata.data;
+                  for (let i = 0; i < d.length; i += 4) {
+                    const v = d[i] / 255;
+                    const remapped = Math.round((0.44 + v * 0.52) * 255);
+                    d[i] = d[i + 1] = d[i + 2] = remapped;
+                  }
+                  cctx.putImageData(idata, 0, 0);
+                  const softRoughTex = new THREE.CanvasTexture(c);
+                  softRoughTex.anisotropy = 8;
+                  targetMat.roughnessMap = softRoughTex;
                   targetMat.roughness = 1.0;
-                  targetMat.metalness = 0.08;
+                  targetMat.metalness = 0.02;
                   targetMat.needsUpdate = true;
                 });
               }
@@ -5663,21 +5685,28 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
 
             // === NOVA UPGRADE: REAL 2K EARTH CLOUDS + BLACK MARBLE NIGHT LIGHTS ===
             if (isOceanWorld && !obj.getObjectByName("earth-clouds-nightlights")) {
-              const eRadius = (meta && meta.size) ? meta.size : 0.45;
-              const cloudGeo = new THREE.SphereGeometry(eRadius * 1.014, 64, 48);
+              const eRadius = (obj.geometry && obj.geometry.parameters && obj.geometry.parameters.radius)
+                ? obj.geometry.parameters.radius
+                : ((meta && meta.size) ? meta.size : 0.45);
+              const cloudGeo = new THREE.SphereGeometry(eRadius * 1.016, 64, 48);
               window._novaTexLoader = window._novaTexLoader || new THREE.TextureLoader();
               const eCloudsTex = window._novaTexLoader.load('textures/earth_clouds.jpg');
               const eNightTex  = window._novaTexLoader.load('textures/earth_night.jpg');
               eCloudsTex.wrapS = THREE.RepeatWrapping;
+              eCloudsTex.anisotropy = 8;
               eNightTex.colorSpace = THREE.SRGBColorSpace;
+              eNightTex.anisotropy = 8;
 
               const cloudMat = new THREE.ShaderMaterial({
                 uniforms: {
                   uTime: window.sunShaderUniforms ? window.sunShaderUniforms.uTime : { value: 0.0 },
                   uCloudsMap: { value: eCloudsTex },
-                  uNightMap:  { value: eNightTex }
+                  uNightMap:  { value: eNightTex },
+                  uLightDir:  { value: new THREE.Vector3(0, 0, 0) }
                 },
                 vertexShader: `
+                  #include <common>
+                  #include <logdepthbuf_pars_vertex>
                   varying vec2 vUv;
                   varying vec3 vWorldNormal;
                   varying vec3 vWorldPos;
@@ -5687,41 +5716,67 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
                     vWorldPos = wp.xyz;
                     vWorldNormal = normalize(mat3(modelMatrix) * normal);
                     gl_Position = projectionMatrix * viewMatrix * wp;
+                    #include <logdepthbuf_vertex>
                   }
                 `,
                 fragmentShader: `
+                  #include <common>
+                  #include <logdepthbuf_pars_fragment>
                   uniform float uTime;
                   uniform sampler2D uCloudsMap;
                   uniform sampler2D uNightMap;
+                  uniform vec3 uLightDir;
                   varying vec2 vUv;
                   varying vec3 vWorldNormal;
                   varying vec3 vWorldPos;
 
                   void main() {
                     vec3 N = normalize(vWorldNormal);
-                    vec3 L = normalize(-vWorldPos); // Sun at origin
+                    vec3 V = normalize(cameraPosition - vWorldPos);
+                    vec3 L = (length(uLightDir) > 0.001) ? normalize(uLightDir) : normalize(-vWorldPos);
                     float ndotl = dot(N, L);
+                    float ndotv = clamp(dot(N, V), 0.0, 1.0);
 
-                    // Slowly drifting real 2K cloud cover
-                    vec2 cloudUv = vec2(fract(vUv.x + uTime * 0.0025), vUv.y);
+                    // Slowly drifting 2K cloud cover + subtle relief/drop-shadow offset
+                    vec2 cloudUv = vec2(fract(vUv.x + uTime * 0.0022), vUv.y);
                     float clouds = texture2D(uCloudsMap, cloudUv).r;
-                    float dayMask = smoothstep(-0.12, 0.32, ndotl);
+                    float cloudOffset = texture2D(uCloudsMap, vec2(fract(cloudUv.x - 0.0022), clamp(cloudUv.y - 0.0014, 0.0, 1.0))).r;
+                    float cloudRelief = clamp((clouds - cloudOffset) * 1.85, -0.25, 0.35);
+                    float cloudShadow = clamp(cloudOffset - clouds * 0.65, 0.0, 1.0) * 0.38;
+
+                    float dayMask = smoothstep(-0.10, 0.28, ndotl);
 
                     // Warm Rayleigh sunset scatter along the twilight terminator
-                    float twilight = smoothstep(-0.18, 0.02, ndotl) * (1.0 - smoothstep(0.02, 0.24, ndotl));
-                    vec3 sunsetTint = vec3(1.0, 0.42, 0.12) * twilight * 0.72;
+                    float twilight = smoothstep(-0.16, 0.02, ndotl) * (1.0 - smoothstep(0.02, 0.22, ndotl));
+                    vec3 sunsetTint = vec3(1.0, 0.42, 0.12) * twilight * 0.68;
+
+                    // Tight NASA Blue Marble Rayleigh atmospheric limb scatter
+                    float fresnel = pow(1.0 - ndotv, 3.4);
+                    vec3 rayleighCol = mix(vec3(0.24, 0.52, 0.98), vec3(0.52, 0.76, 1.0), fresnel)
+                                     * fresnel * (0.14 + 0.86 * dayMask) * 0.85;
 
                     // Real NASA Black Marble city lights strictly on the night hemisphere
-                    float nightMask = smoothstep(0.04, -0.26, ndotl);
+                    float nightMask = smoothstep(0.04, -0.24, ndotl);
                     vec3 nightSample = texture2D(uNightMap, vUv).rgb;
-                    vec3 cityCol = nightSample * vec3(1.15, 0.92, 0.68) * nightMask * 1.45 * (1.0 - clouds * 0.55);
+                    vec3 cityCol = nightSample * vec3(1.15, 0.90, 0.62) * nightMask * 1.55 * (1.0 - clouds * 0.62);
 
-                    vec3 cloudCol = (vec3(0.96, 0.98, 1.0) * (0.03 + 0.97 * dayMask)) + sunsetTint;
-                    float cloudAlpha = clouds * (0.05 + 0.85 * dayMask);
+                    // Shape cloud contrast for sporadic, crisp NASA-style formations over clear oceans
+                    float shapedClouds = smoothstep(0.08, 0.82, clouds);
+                    vec3 cloudBase = vec3(0.96, 0.98, 1.0) * (0.03 + 0.97 * dayMask) * (1.0 + cloudRelief * dayMask);
+                    vec3 cloudCol = cloudBase + sunsetTint * 0.75;
+                    float cloudAlpha = clamp(shapedClouds * (0.06 + 0.92 * dayMask), 0.0, 0.95);
+
+                    float shadowAlpha = cloudShadow * dayMask * (1.0 - cloudAlpha);
                     float cityLum = max(cityCol.r, max(cityCol.g, cityCol.b));
-                    float alpha = clamp(cloudAlpha + twilight * 0.18 + cityLum * 0.9, 0.0, 0.96);
+                    float rayLum = max(rayleighCol.r, max(rayleighCol.g, rayleighCol.b));
+                    float alpha = clamp(cloudAlpha + shadowAlpha + rayLum * 0.85 + twilight * 0.12 + cityLum * 0.92, 0.0, 0.97);
 
-                    gl_FragColor = vec4(cloudCol * clouds + sunsetTint * 0.28 + cityCol, alpha);
+                    // Un-premultiplied blend so clouds stay bright white instead of dimming over dark oceans
+                    vec3 finalRgb = mix(vec3(0.01, 0.02, 0.05), cloudCol, clamp(cloudAlpha / max(alpha, 0.001), 0.0, 1.0))
+                                  + rayleighCol + sunsetTint * 0.18 + cityCol;
+
+                    #include <logdepthbuf_fragment>
+                    gl_FragColor = vec4(finalRgb, alpha);
                   }
                 `,
                 transparent: true,
@@ -5729,6 +5784,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
               });
               const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
               cloudMesh.name = "earth-clouds-nightlights";
+              cloudMesh.renderOrder = 2;
               cloudMesh.raycast = () => {};
               obj.add(cloudMesh);
             }
