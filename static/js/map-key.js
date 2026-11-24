@@ -635,6 +635,9 @@
         if (typeof window._flushNovaCatalogNodes === "function") window._flushNovaCatalogNodes();
 
         // Hide cursor & strip any blue selection state immediately during travel
+        if (window.novaAudio && typeof window.novaAudio.playPortalEnter === "function") {
+          window.novaAudio.playPortalEnter();
+        }
         document.body.classList.add("nova-traveling");
         document.body.classList.remove("nova-portal-o-active", "nova-cursor-hover");
         document.documentElement.classList.add("is-wormhole-zooming");

@@ -271,6 +271,45 @@
   }
 
   // 3. Object Select: Precision optical shutter / relay lock (unpitched, tactile)
+  function playPortalEnter() {
+    if (isMuted || !ensureContext()) return;
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+    const now = ctx.currentTime;
+    const out = typeof sfxGain !== "undefined" && sfxGain ? sfxGain : ctx.destination;
+
+    // 1. Subtle tactile click (18ms)
+    const clickOsc = ctx.createOscillator();
+    const clickGain = ctx.createGain();
+    clickOsc.type = "sine";
+    clickOsc.frequency.setValueAtTime(1100, now);
+    clickOsc.frequency.exponentialRampToValueAtTime(350, now + 0.018);
+    clickGain.gain.setValueAtTime(0.0001, now);
+    clickGain.gain.linearRampToValueAtTime(0.08, now + 0.002);
+    clickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
+    clickOsc.connect(clickGain);
+    clickGain.connect(out);
+    clickOsc.start(now);
+    clickOsc.stop(now + 0.024);
+
+    // 2. Low, soft resonant pulse (700ms tail)
+    const pulseOsc = ctx.createOscillator();
+    const pulseFilter = ctx.createBiquadFilter();
+    const pulseGain = ctx.createGain();
+    pulseOsc.type = "sine";
+    pulseOsc.frequency.setValueAtTime(92, now);
+    pulseOsc.frequency.exponentialRampToValueAtTime(46, now + 0.85);
+    pulseFilter.type = "lowpass";
+    pulseFilter.frequency.setValueAtTime(220, now);
+    pulseGain.gain.setValueAtTime(0.0001, now);
+    pulseGain.gain.linearRampToValueAtTime(0.36, now + 0.025);
+    pulseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.88);
+    pulseOsc.connect(pulseFilter);
+    pulseFilter.connect(pulseGain);
+    pulseGain.connect(out);
+    pulseOsc.start(now);
+    pulseOsc.stop(now + 0.92);
+  }
+
   function playSelect() {
     if (isMuted || isBootSilenced() || !ensureContext() || !whiteNoiseBuffer) return;
     const now = ctx.currentTime;
@@ -821,6 +860,7 @@
     playGimbalTick,
     playZoomTick,
     playSelect,
+    playPortalEnter,
     playDopplerWhoosh,
     playReset,
     playTourStart,
