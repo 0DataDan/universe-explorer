@@ -124,7 +124,8 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
           document.documentElement.classList.add("is-preloading-fadeout");
           setTimeout(() => {
             document.documentElement.classList.remove("is-preloading", "is-preloading-fadeout");
-          }, 480);
+            if (document.documentElement.classList.contains("is-booting")) document.documentElement.classList.add("nova-reveal-wordmark");
+          }, 600);
         }, 350);
       });
     };

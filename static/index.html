@@ -34,22 +34,27 @@
     <canvas id="nova-warp-canvas" class="pointer-events-none absolute inset-0 z-10 opacity-100"></canvas>
 
     <style>
-      html.is-preloading #nova-boot-center-container,
-      html.is-preloading #nova-boot-svg,
-      html.is-preloading #nova-base-wordmark,
-      html.is-preloading #nova-portal-o {
-        opacity: 0 !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
+      html.is-preloading #nova-boot-center-container {
+        display: none !important;
+      }
+      html.is-preloading #nova-preloader {
+        background: #02040a;
+      }
+      html:not(.is-preloading) #nova-preloader {
+        display: none !important;
       }
       html.is-preloading-fadeout #nova-preloader {
         opacity: 0 !important;
       }
-      #nova-boot-center-container {
-        transition: opacity 0.75s ease !important;
+      html.nova-reveal-wordmark #nova-boot-center-container {
+        animation: novaWordmarkReveal 0.75s ease forwards;
+      }
+      @keyframes novaWordmarkReveal {
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
     </style>
-    <script>if(document.documentElement.classList.contains('is-booting')&&localStorage.getItem('hasBootedSession')!=='true'){document.documentElement.classList.add('is-preloading');window._novaPreloadStart=performance.now();}</script>
+    <script>document.documentElement.classList.add('is-preloading');window._novaPreloadStart=performance.now();</script>
 
     <!-- Seamless Pre-Boot Loader (Monochrome, Compositor-Only) -->
     <div id="nova-preloader" aria-live="polite">
@@ -475,7 +480,7 @@
     </div>
   </footer>
 
-    <script type="module" src="./js/app.js?v=28"></script>
+    <script type="module" src="./js/app.js?v=31"></script>
 
 
 
