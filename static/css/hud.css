@@ -1395,3 +1395,54 @@ select:focus-visible {
   outline: none !important;
   box-shadow: none !important;
 }
+
+/* === SEAMLESS PRE-BOOT LOADER (NO BOXES, PILLS, OR COLORS) === */
+#nova-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+
+html.is-preloading #nova-preloader {
+  opacity: 1;
+}
+
+#nova-boot-center-container {
+  transition: opacity 0.75s ease 0.15s;
+}
+
+html.is-preloading #nova-boot-center-container {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.nova-preloader-ring {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top-color: rgba(255, 255, 255, 0.72);
+  will-change: transform;
+  animation: novaPreloaderSpin 0.9s linear infinite;
+}
+
+.nova-preloader-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.38em;
+  text-indent: 0.38em;
+  color: rgba(255, 255, 255, 0.48);
+  user-select: none;
+}
+
+@keyframes novaPreloaderSpin {
+  to { transform: rotate(360deg); }
+}

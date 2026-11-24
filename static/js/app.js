@@ -116,6 +116,19 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
     const odoDist = document.getElementById('odo-dist');
     const odoTier = document.getElementById('odo-tier');
 
+    window._finishNovaPreloader = () => {
+      if (!document.documentElement.classList.contains("is-preloading") || window._novaPreloadFinishing) return;
+      window._novaPreloadFinishing = true;
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          document.documentElement.classList.add("is-preloading-fadeout");
+          setTimeout(() => {
+            document.documentElement.classList.remove("is-preloading", "is-preloading-fadeout");
+          }, 480);
+        }, 350);
+      });
+    };
+
     if (document.documentElement.classList.contains("is-booting") && localStorage.getItem("hasBootedSession") !== "true") {
       const startDeferred3D = () => {
         if (window._nova3DInitialized) return;
@@ -124,7 +137,10 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
         fetchCatalog();
       };
       window._ensureNova3DInit = startDeferred3D;
-      requestAnimationFrame(() => setTimeout(startDeferred3D, 1200));
+      // Start immediately after first paint while preloader is visible
+      requestAnimationFrame(() => setTimeout(startDeferred3D, 30));
+      // Safety fallback so preloader can never hang
+      setTimeout(() => { if (window._finishNovaPreloader) window._finishNovaPreloader(); }, 4500);
     } else {
       window._nova3DInitialized = true;
       init();
@@ -5480,7 +5496,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
       let texturedCount = 0;
 
       function processTextureBatch() {
-        const isBooting = document.documentElement.classList.contains("is-booting");
+        const isBooting = document.documentElement.classList.contains("is-booting") && !document.documentElement.classList.contains("is-preloading");
         const startT = performance.now();
         let processedThisFrame = 0;
         while (qIdx < meshQueue.length && (isBooting ? processedThisFrame < 1 : (performance.now() - startT) < 8)) {
@@ -5790,7 +5806,20 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
           window._isApplyingTextures = false;
           window._texturesInitialized = true;
           console.log(`[NOVA] Applied 3D fBm & PBR materials to ${texturedCount} celestial bodies.`);
-          requestAnimationFrame(() => buildVolumetricCelestialStructures(celestialObjects));
+          requestAnimationFrame(() => {
+            buildVolumetricCelestialStructures(celestialObjects);
+            if (document.documentElement.classList.contains("is-preloading")) {
+              if (typeof window._flushNova3DBuilders === "function") window._flushNova3DBuilders();
+              if (typeof window._flushNovaCatalogNodes === "function") window._flushNovaCatalogNodes();
+              try {
+                renderer.compile(scene, camera);
+                renderer.render(scene, camera);
+              } catch (_) {}
+              requestAnimationFrame(() => {
+                if (window._finishNovaPreloader) window._finishNovaPreloader();
+              });
+            }
+          });
         }
       }
 
