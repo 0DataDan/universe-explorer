@@ -1084,6 +1084,14 @@
       mouse.y = e.clientY;
       dot.style.left = `${mouse.x}px`;
       dot.style.top = `${mouse.y}px`;
+      if (document.documentElement.classList.contains('is-booting')) {
+        haloPos.x = mouse.x;
+        haloPos.y = mouse.y;
+        if (halo) {
+          halo.style.left = `${haloPos.x}px`;
+          halo.style.top = `${haloPos.y}px`;
+        }
+      }
 
       isPointerMoving = true;
       if (pointerStopTimer) clearTimeout(pointerStopTimer);
@@ -1135,8 +1143,9 @@
         document.body.classList.contains('nova-portal-o-active') ||
         document.body.classList.contains('nova-orb-locked');
 
-      // Longer trail behind cursor while moving (0.065); rapid snap to cursor when stopped or highlighted (0.42)
-      const haloLerp = isHighlighted ? 0.11 : (!isPointerMoving ? 0.085 : 0.028);
+      // Lock 1:1 on boot screen; crisp, responsive trail in map explorer
+      const isBooting = document.documentElement.classList.contains('is-booting');
+      const haloLerp = isBooting ? 1.0 : (isHighlighted ? 0.32 : (!isPointerMoving ? 0.24 : 0.18));
       haloPos.x += (mouse.x - haloPos.x) * haloLerp;
       haloPos.y += (mouse.y - haloPos.y) * haloLerp;
 

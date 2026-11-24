@@ -952,7 +952,7 @@
     color: #e2e8f0;
     font-size: 12.5px;
     letter-spacing: 0.04em;
-    caret-color: #f59e0b;
+    caret-color: #7dd3fc;
   }
   #nova-cmd-input::placeholder {
     color: rgba(100, 116, 139, 0.65);
@@ -992,8 +992,8 @@
   .nova-cmd-item:last-child { border-bottom: none; }
   .nova-cmd-item:hover,
   .nova-cmd-item.selected {
-    background: rgba(245, 158, 11, 0.10);
-    border-left-color: #f59e0b;
+    background: transparent;
+    border-left-color: #7dd3fc;
     color: #f8fafc;
   }
   .nova-cmd-meta {
@@ -1003,7 +1003,7 @@
     letter-spacing: 0.08em;
   }
   .nova-cmd-item.selected .nova-cmd-meta {
-    color: rgba(245, 158, 11, 0.85);
+    color: #7dd3fc;
   }
   #nova-cmd-status {
     margin-top: 5px;
@@ -1388,4 +1388,10 @@ select:focus-visible {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+#nova-cmd-input:focus,
+#nova-cmd-input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }

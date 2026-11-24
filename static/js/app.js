@@ -5480,8 +5480,11 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
       let texturedCount = 0;
 
       function processTextureBatch() {
+        const isBooting = document.documentElement.classList.contains("is-booting");
         const startT = performance.now();
-        while (qIdx < meshQueue.length && (performance.now() - startT) < 8) {
+        let processedThisFrame = 0;
+        while (qIdx < meshQueue.length && (isBooting ? processedThisFrame < 1 : (performance.now() - startT) < 8)) {
+          processedThisFrame++;
           const { obj, meta, kind } = meshQueue[qIdx++];
           if (obj.userData._nasaTextured) continue;
 
@@ -5778,12 +5781,16 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
         }
 
         if (qIdx < meshQueue.length) {
-          setTimeout(processTextureBatch, 0);
+          if (isBooting) {
+            requestAnimationFrame(processTextureBatch);
+          } else {
+            setTimeout(processTextureBatch, 0);
+          }
         } else {
           window._isApplyingTextures = false;
           window._texturesInitialized = true;
           console.log(`[NOVA] Applied 3D fBm & PBR materials to ${texturedCount} celestial bodies.`);
-          buildVolumetricCelestialStructures(celestialObjects);
+          requestAnimationFrame(() => buildVolumetricCelestialStructures(celestialObjects));
         }
       }
 
