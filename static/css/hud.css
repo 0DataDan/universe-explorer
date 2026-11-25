@@ -1787,3 +1787,19 @@ html:not(.screensaver-active):not(.is-booting):not(.nova-mobile-zen):fullscreen 
 html:not(.screensaver-active):not(.is-booting):not(.nova-mobile-zen):-webkit-full-screen header.hidden {
   display: flex !important;
 }
+
+/* === MAP KEY / VOLUME ICON SEPARATION === */
+#map-key-drawer,
+#map-key-summon-btn {
+  bottom: 68px !important;
+}
+
+/* === HIDE TOP BAR HUD & VOLUME BUTTON IN GUIDED TOUR & STANDBY === */
+html.nova-tour-active header,
+html.screensaver-active header,
+html.nova-tour-active #btn-nova-audio,
+html.screensaver-active #btn-nova-audio {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}

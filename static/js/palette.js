@@ -983,3 +983,132 @@
     requestAnimationFrame(tickTelemetry);
   })();
 })();
+
+/* === NOVA AUDIO POLISH & TOUR SCALE LOCKOUT === */
+(function () {
+  "use strict";
+
+  // 1. Lower Guided Tour narration volume (~ -9 dB / 0.35) on desktop so 100% system volume stays comfortable
+  const DESKTOP_TOUR_VOL = 0.35;
+  function capAudioVol(el) {
+    if (!(el instanceof HTMLAudioElement)) return;
+    try {
+      if (el.volume > DESKTOP_TOUR_VOL) el.volume = DESKTOP_TOUR_VOL;
+    } catch (_) {}
+  }
+  const origPlay = HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play = function (...args) {
+    capAudioVol(this);
+    if (this instanceof HTMLAudioElement && !this.dataset.novaVolHooked) {
+      this.dataset.novaVolHooked = "1";
+      this.addEventListener("playing", () => capAudioVol(this));
+      this.addEventListener("volumechange", () => capAudioVol(this));
+    }
+    return origPlay.apply(this, args);
+  };
+
+  // 2. Shared subtle system SFX helper (respects #btn-nova-audio mute state)
+  let sfxCtx = null;
+  function isAudioMuted() {
+    const btn = document.getElementById("btn-nova-audio");
+    if (!btn) return false;
+    const label = (btn.getAttribute("aria-label") || "").toLowerCase();
+    return label.includes("unmute");
+  }
+
+  window.novaPlaySpatialSfx = function (type) {
+    if (isAudioMuted()) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!sfxCtx) sfxCtx = new AC();
+      if (sfxCtx.state === "suspended") sfxCtx.resume().catch(() => {});
+
+      const now = sfxCtx.currentTime;
+      const playTone = (freq, dur, gainPeak, wave, delay) => {
+        const osc = sfxCtx.createOscillator();
+        const g = sfxCtx.createGain();
+        osc.type = wave || "sine";
+        osc.frequency.setValueAtTime(freq, now + (delay || 0));
+        g.gain.setValueAtTime(0.0001, now + (delay || 0));
+        g.gain.exponentialRampToValueAtTime(gainPeak, now + (delay || 0) + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + (delay || 0) + dur);
+        osc.connect(g);
+        g.connect(sfxCtx.destination);
+        osc.start(now + (delay || 0));
+        osc.stop(now + (delay || 0) + dur + 0.02);
+      };
+
+      if (type === "click") {
+        playTone(640, 0.055, 0.045, "triangle", 0);
+      } else if (type === "toggle-on") {
+        playTone(440, 0.09, 0.05, "sine", 0);
+        playTone(660, 0.14, 0.05, "sine", 0.06);
+      } else if (type === "toggle-off") {
+        playTone(540, 0.08, 0.045, "sine", 0);
+        playTone(360, 0.12, 0.04, "sine", 0.05);
+      } else if (type === "snap") {
+        playTone(880, 0.045, 0.032, "sine", 0);
+      } else if (type === "lock") {
+        playTone(587.33, 0.11, 0.055, "sine", 0);
+        playTone(880, 0.18, 0.055, "sine", 0.07);
+      } else if (type === "brake") {
+        playTone(190, 0.09, 0.045, "triangle", 0);
+      } else if (type === "reset") {
+        playTone(523.25, 0.10, 0.05, "sine", 0);
+        playTone(392.0, 0.16, 0.05, "sine", 0.08);
+      }
+    } catch (_) {}
+  };
+
+  // 3. System click sounds inside SCALE mode (#nova-compare-overlay)
+  document.addEventListener("click", (e) => {
+    const target = e.target && e.target.closest ? e.target.closest("#nova-compare-overlay button, #nova-compare-overlay select, #nova-compare-overlay [role='button']") : null;
+    if (target) {
+      window.novaPlaySpatialSfx("click");
+    }
+  }, true);
+
+  // 4. Disable SCALE button & close SCALE overlay during Guided Tour
+  function syncScaleTourLock() {
+    const tourBtn = document.getElementById("btn-cosmic-tour");
+    const tourBadge = document.getElementById("tour-step-badge");
+    const tourActive =
+      (tourBtn && tourBtn.getAttribute("data-nova-active") === "true") ||
+      Boolean(tourBadge && tourBadge.offsetParent !== null);
+    document.documentElement.classList.toggle("nova-tour-active", tourActive);
+
+    const scaleBtn = Array.from(document.querySelectorAll("button")).find(
+      (b) => (b.textContent || "").trim().toUpperCase() === "SCALE"
+    );
+    if (scaleBtn) {
+      scaleBtn.style.opacity = tourActive ? "0.35" : "";
+      scaleBtn.style.pointerEvents = tourActive ? "none" : "";
+      scaleBtn.setAttribute("aria-disabled", tourActive ? "true" : "false");
+    }
+    if (tourActive) {
+      const cmp = document.getElementById("nova-compare-overlay");
+      if (cmp && !cmp.classList.contains("hidden") && cmp.style.display !== "none") {
+        const closeBtn = cmp.querySelector("button[aria-label*='Close' i], #nova-compare-close");
+        if (closeBtn) closeBtn.click();
+        else cmp.style.display = "none";
+      }
+    }
+  }
+
+  const initLockObserver = () => {
+    const tourBtn = document.getElementById("btn-cosmic-tour");
+    if (tourBtn) {
+      const obs = new MutationObserver(syncScaleTourLock);
+      obs.observe(tourBtn, { attributes: true, attributeFilter: ["data-nova-active"] });
+      tourBtn.addEventListener("click", () => setTimeout(syncScaleTourLock, 80));
+    }
+    setInterval(syncScaleTourLock, 600);
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initLockObserver);
+  } else {
+    initLockObserver();
+  }
+})();
