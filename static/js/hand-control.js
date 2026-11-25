@@ -26,7 +26,6 @@
   let loading = false;
   let spatialBtnRef = null;
   let resetHoldStart = 0;
-    zoomClickAccum = 0;
   let resetCooldownUntil = 0;
   let handLandmarker = null;
   let stream = null;
