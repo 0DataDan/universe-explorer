@@ -1582,8 +1582,6 @@ html.nova-mobile-zen #btn-fullscreen-zen::before {
 }
 
 /* === NOVA HAND-TRACKING CONTROL (DESKTOP ONLY) === */
-#btn-hand-control::before { content: "SPATIAL"; }
-
 #nova-hand-pip {
   position: fixed;
   top: 64px;
