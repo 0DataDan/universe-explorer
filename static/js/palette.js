@@ -1066,7 +1066,7 @@
             window.novaAudio.zoomTick ||
             window.novaAudio.playClick;
           if (typeof fn === "function") {
-            fn(type === "zoom-in" ? -1 : 1);
+            fn(type === "zoom-in");
             return;
           }
         }

@@ -1749,9 +1749,6 @@ html.nova-mobile-zen #btn-fullscreen-zen::before {
   cursor: pointer;
   transition: color 180ms ease, border-color 180ms ease, opacity 180ms ease;
 }
-#btn-hand-control.nova-spatial-mode-btn::before {
-  content: "SPATIAL";
-}
 #btn-hand-control.nova-spatial-mode-btn:hover {
   color: rgba(248, 250, 252, 0.96);
 }
@@ -1809,6 +1806,24 @@ html.nova-tour-active #nova-ephemeris-hud,
 html.screensaver-active #nova-ephemeris-hud,
 html.nova-tour-active #nova-ephemeris-slider,
 html.screensaver-active #nova-ephemeris-slider {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* === HIDE EXACT INFO CALLOUT CARD IN SPATIAL MODE (v18) === */
+html.nova-spatial-active #spatial-callout,
+html.nova-spatial-active div:has(#spatial-target-meta).fixed,
+html.nova-spatial-active aside:has(#spatial-target-meta) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* === HIDE SPATIAL TELEMETRY CALLOUT LAYER IN SPATIAL MODE === */
+html.nova-spatial-active #spatial-telemetry-layer,
+html.nova-spatial-active #spatial-callout-card {
+  display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
   visibility: hidden !important;
