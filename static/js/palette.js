@@ -24,18 +24,30 @@
     };
   }
 
-  // 3. Sync FULL active state with browser Fullscreen API
+  // 3. Sync FULL active state with browser Fullscreen API (+ Mobile Zen fallback when unsupported on iOS)
   const fullBtn = document.getElementById("btn-fullscreen-zen");
+  const canNativeFullscreen = Boolean(document.fullscreenEnabled || document.webkitFullscreenEnabled);
   function syncFullBtn() {
     if (!fullBtn) return;
-    const isFull = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    const isFull = canNativeFullscreen
+      ? Boolean(document.fullscreenElement || document.webkitFullscreenElement)
+      : document.documentElement.classList.contains("nova-mobile-zen");
     fullBtn.setAttribute("data-nova-active", isFull ? "true" : "false");
   }
   if (fullBtn) {
     syncFullBtn();
-    document.addEventListener("fullscreenchange", syncFullBtn);
-    document.addEventListener("webkitfullscreenchange", syncFullBtn);
-    fullBtn.addEventListener("click", () => setTimeout(syncFullBtn, 120));
+    if (canNativeFullscreen) {
+      document.addEventListener("fullscreenchange", syncFullBtn);
+      document.addEventListener("webkitfullscreenchange", syncFullBtn);
+      fullBtn.addEventListener("click", () => setTimeout(syncFullBtn, 120));
+    } else {
+      fullBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        document.documentElement.classList.toggle("nova-mobile-zen");
+        syncFullBtn();
+      }, true);
+    }
   }
 
   // 4. Initialize INFO button state to match actual isPlanetOverviewEnabled

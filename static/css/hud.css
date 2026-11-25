@@ -1446,3 +1446,109 @@ html.is-preloading #nova-boot-center-container {
 @keyframes novaPreloaderSpin {
   to { transform: rotate(360deg); }
 }
+
+/* === MOBILE-ONLY HUD & ZEN MODE (ZERO DESKTOP IMPACT) === */
+@media (pointer: coarse) and (max-width: 960px), (hover: none) and (max-width: 960px) {
+  /* Prevent idle fade from hiding touch controls on mobile */
+  html:not(.is-booting).nova-hud-idle #bottom-hud {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  /* Move Attitude Gimbal above the bottom bar and hide wide telemetry readout */
+  body > #hud-center-gimbal {
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 10px !important;
+    transform: scale(0.68) !important;
+    transform-origin: bottom left !important;
+  }
+  #odometer-group {
+    display: none !important;
+  }
+
+  /* Full-width frosted mobile control rail with safe-area padding */
+  #bottom-hud {
+    left: 8px !important;
+    right: 8px !important;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+    transform: none !important;
+    width: auto !important;
+    max-width: calc(100vw - 16px) !important;
+    padding: 4px 10px !important;
+    gap: 8px !important;
+    justify-content: safe center !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    background: rgba(2, 6, 23, 0.78) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 9999px !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+  #bottom-hud::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide desktop zoom slider on touchscreens (pinch-to-zoom is native) */
+  #bottom-hud div:has(> input[type="range"]):not(:has(#btn-cosmic-tour)),
+  #bottom-hud input[type="range"],
+  #bottom-hud #zoom-anchor-left,
+  #bottom-hud #zoom-anchor-right {
+    display: none !important;
+  }
+
+  /* Tighten inner groups so all 7 toggles stay accessible */
+  #bottom-hud #hud-left-controls,
+  #bottom-hud #hud-right-section,
+  #bottom-hud #hud-toggle-group,
+  #bottom-hud #hud-right-controls {
+    margin: 0 !important;
+    padding-left: 0 !important;
+    gap: 10px !important;
+    flex-shrink: 0 !important;
+  }
+  #bottom-hud #hud-left-controls > * {
+    margin-left: 0 !important;
+  }
+  #bottom-hud #hud-right-controls {
+    padding-left: 10px !important;
+    margin-left: 2px !important;
+  }
+
+  /* Comfortable touch targets and unmistakable TOUR button */
+  #btn-cosmic-tour,
+  #hud-toggle-group button,
+  #hud-right-controls button {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    min-height: 34px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 4px 6px !important;
+    font-size: 10.5px !important;
+    letter-spacing: 0.08em !important;
+  }
+  #btn-cosmic-tour {
+    color: #fbbf24 !important;
+    background: rgba(251, 191, 36, 0.14) !important;
+    border: 1px solid rgba(251, 191, 36, 0.45) !important;
+    border-radius: 9999px !important;
+    padding: 4px 11px !important;
+  }
+}
+
+/* Mobile Zen Mode (activated by FULL button on iOS/browsers without native Fullscreen API) */
+html.nova-mobile-zen header,
+html.nova-mobile-zen #header-nova-pill,
+html.nova-mobile-zen #nova-ephemeris-hud,
+html.nova-mobile-zen body > #hud-center-gimbal,
+html.nova-mobile-zen #odometer-group,
+html.nova-mobile-zen #map-key-summon-btn {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+html.nova-mobile-zen #btn-fullscreen-zen::before {
+  content: "EXIT";
+}
