@@ -366,6 +366,59 @@
     );
   }
 
+  function getProportionalMinDistance(ctrl) {
+    let floor = Math.max(ctrl.minDistance || 0.6, 0.6);
+    if (typeof window.novaGetCatalog !== "function") return floor;
+
+    const catalog = window.novaGetCatalog();
+    if (!catalog || !catalog.length) return floor;
+
+    const worldPos = ctrl.target.clone();
+    let bestMesh = null;
+    let bestDist = Infinity;
+
+    for (let i = 0; i < catalog.length; i++) {
+      const entry = catalog[i];
+      const mesh = (entry && entry.isObject3D) ? entry : (entry && entry.mesh ? entry.mesh : null);
+      if (!mesh) continue;
+      if (typeof mesh.getWorldPosition === "function") mesh.getWorldPosition(worldPos);
+      else if (mesh.position) worldPos.copy(mesh.position);
+      else continue;
+
+      const d = worldPos.distanceTo(ctrl.target);
+      if (d < bestDist) {
+        bestDist = d;
+        bestMesh = mesh;
+      }
+    }
+
+    if (bestMesh && bestDist < 12) {
+      let objRadius = 0;
+      if (bestMesh.geometry) {
+        if (!bestMesh.geometry.boundingSphere && typeof bestMesh.geometry.computeBoundingSphere === "function") {
+          bestMesh.geometry.computeBoundingSphere();
+        }
+        const geomR =
+          (bestMesh.geometry.boundingSphere && bestMesh.geometry.boundingSphere.radius) ||
+          (bestMesh.geometry.parameters && bestMesh.geometry.parameters.radius) ||
+          0;
+        const maxScale = bestMesh.scale
+          ? Math.max(bestMesh.scale.x || 1, bestMesh.scale.y || 1, bestMesh.scale.z || 1)
+          : 1;
+        objRadius = geomR * maxScale;
+      }
+      if (!objRadius && bestMesh.userData && typeof bestMesh.userData.radius === "number") {
+        objRadius = bestMesh.userData.radius;
+      }
+      if (objRadius > 0) {
+        // Proportional close-up: ~2.35x object radius keeps surface & atmosphere cleanly framed
+        floor = Math.max(floor, objRadius * 2.35);
+      }
+    }
+
+    return floor;
+  }
+
   function applyDeltaToCamera(dTheta, dPhi, dZoom) {
     if (isCameraTraveling()) {
       coastTheta = coastPhi = coastZoom = 0; pendingTheta = pendingPhi = 0;
@@ -388,8 +441,7 @@
     let phi = Math.acos(clamp(dy / radius, -1, 1)) - dPhi;
     phi = clamp(phi, 0.08, Math.PI - 0.08);
 
-    const baseMin = Math.max(ctrl.minDistance || 0.25, 0.25);
-    const minD = Math.max(baseMin * 0.72, 0.18);
+    const minD = getProportionalMinDistance(ctrl);
     const maxD = Math.min(ctrl.maxDistance || 85000, 85000);
     radius = clamp(radius * Math.exp(dZoom), minD, maxD);
 
