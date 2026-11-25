@@ -26,6 +26,7 @@
   let loading = false;
   let spatialBtnRef = null;
   let resetHoldStart = 0;
+    zoomClickAccum = 0;
   let resetCooldownUntil = 0;
   let handLandmarker = null;
   let stream = null;
@@ -58,6 +59,7 @@
   let pendingPhi = 0;
   let lastRafTime = 0;
   let lastZoomSfxAt = 0;
+  let zoomClickAccum = 0;
   let lastOrbitSfxAt = 0;
 
   // Phase 2 Point-to-Lock state
@@ -441,9 +443,28 @@
     let phi = Math.acos(clamp(dy / radius, -1, 1)) - dPhi;
     phi = clamp(phi, 0.08, Math.PI - 0.08);
 
+    const prevRadius = radius;
     const minD = getProportionalMinDistance(ctrl);
     const maxD = Math.min(ctrl.maxDistance || 85000, 85000);
     radius = clamp(radius * Math.exp(dZoom), minD, maxD);
+
+    if (dZoom !== 0) {
+      const actualLogDelta = Math.log(radius / prevRadius);
+      if (Math.abs(actualLogDelta) > 1e-4) {
+        zoomClickAccum += actualLogDelta;
+        const nowSfx = performance.now();
+        if (Math.abs(zoomClickAccum) >= 0.095 && nowSfx - lastZoomSfxAt > 65) {
+          const dir = zoomClickAccum < 0 ? "zoom-in" : "zoom-out";
+          zoomClickAccum = 0;
+          lastZoomSfxAt = nowSfx;
+          if (typeof window.novaPlaySpatialSfx === "function") {
+            window.novaPlaySpatialSfx(dir);
+          }
+        }
+      } else {
+        zoomClickAccum = 0;
+      }
+    }
 
     const sinPhi = Math.sin(phi);
     cam.position.set(
@@ -636,13 +657,7 @@
         if (stepZoom !== 0) {
           applyDeltaToCamera(0, 0, stepZoom);
           coastZoom = stepZoom * 0.42;
-          const nowSfx = performance.now();
-          if (Math.abs(stepZoom) > 0.018 && nowSfx - lastZoomSfxAt > 75) {
-            lastZoomSfxAt = nowSfx;
-            if (typeof window.novaPlaySpatialSfx === "function") {
-              window.novaPlaySpatialSfx(stepZoom < 0 ? "zoom-in" : "zoom-out");
-            }
-          }
+
         }
       }
 
