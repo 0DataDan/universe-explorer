@@ -24,30 +24,134 @@
     };
   }
 
-  // 3. Sync FULL active state with browser Fullscreen API (+ Mobile Zen fallback when unsupported on iOS)
+  // 3. Sync FULL active state (Desktop native fullscreen untouched; Mobile gets Zen/FS + quieter tour audio)
   const fullBtn = document.getElementById("btn-fullscreen-zen");
-  const canNativeFullscreen = Boolean(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+  const isMobileTouch = window.matchMedia(
+    "(pointer: coarse) and (max-width: 960px), (hover: none) and (max-width: 960px)"
+  ).matches;
+
   function syncFullBtn() {
     if (!fullBtn) return;
-    const isFull = canNativeFullscreen
-      ? Boolean(document.fullscreenElement || document.webkitFullscreenElement)
-      : document.documentElement.classList.contains("nova-mobile-zen");
+    const isNativeFull = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    const isMobileZen = document.documentElement.classList.contains("nova-mobile-zen");
+    const isFull = isMobileTouch ? (isMobileZen || isNativeFull) : isNativeFull;
     fullBtn.setAttribute("data-nova-active", isFull ? "true" : "false");
   }
-  if (fullBtn) {
-    syncFullBtn();
-    if (canNativeFullscreen) {
+
+  if (!isMobileTouch) {
+    if (fullBtn) {
+      syncFullBtn();
       document.addEventListener("fullscreenchange", syncFullBtn);
       document.addEventListener("webkitfullscreenchange", syncFullBtn);
       fullBtn.addEventListener("click", () => setTimeout(syncFullBtn, 120));
-    } else {
-      fullBtn.addEventListener("click", (e) => {
+    }
+  } else {
+    function setMobileZen(enable, tryNativeFs) {
+      document.documentElement.classList.toggle("nova-mobile-zen", enable);
+      syncFullBtn();
+      if (!tryNativeFs) return;
+      try {
+        if (enable) {
+          const el = document.documentElement;
+          const req = el.requestFullscreen || el.webkitRequestFullscreen;
+          if (req) {
+            const p = req.call(el);
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          }
+        } else if (document.fullscreenElement || document.webkitFullscreenElement) {
+          const exit = document.exitFullscreen || document.webkitExitFullscreen;
+          if (exit) {
+            const p = exit.call(document);
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          }
+        }
+      } catch (_) {}
+    }
+
+    syncFullBtn();
+
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement && document.documentElement.classList.contains("nova-mobile-zen")) {
+        document.documentElement.classList.remove("nova-mobile-zen");
+      }
+      syncFullBtn();
+    });
+
+    // Capture-phase handler beats earlier button listeners on #btn-fullscreen-zen
+    document.addEventListener("click", (e) => {
+      const target = e.target;
+      if (!target || typeof target.closest !== "function") return;
+
+      const fsHit = target.closest("#btn-fullscreen-zen");
+      if (fsHit) {
         e.preventDefault();
         e.stopImmediatePropagation();
-        document.documentElement.classList.toggle("nova-mobile-zen");
-        syncFullBtn();
-      }, true);
+        const next = !document.documentElement.classList.contains("nova-mobile-zen");
+        setMobileZen(next, true);
+        return;
+      }
+
+      const tourHit = target.closest("#btn-cosmic-tour");
+      if (tourHit) {
+        const badge = document.getElementById("tour-step-badge");
+        const tourRunning =
+          tourHit.getAttribute("data-nova-active") === "true" ||
+          Boolean(badge && badge.offsetParent);
+        setMobileZen(!tourRunning, true);
+      }
+    }, true);
+
+    // Lower default tour narration volume on mobile (GainNode for iOS + .volume for Android)
+    const MOBILE_TOUR_GAIN = 0.32;
+    let mobileAudioCtx = null;
+    let mobileGainNode = null;
+    let hasMobileGesture = false;
+    const routedAudios = new WeakSet();
+
+    function unlockMobileAudio() {
+      hasMobileGesture = true;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!mobileAudioCtx) {
+        mobileAudioCtx = new AC();
+        mobileGainNode = mobileAudioCtx.createGain();
+        mobileGainNode.gain.value = MOBILE_TOUR_GAIN;
+        mobileGainNode.connect(mobileAudioCtx.destination);
+      }
+      if (mobileAudioCtx.state === "suspended") {
+        mobileAudioCtx.resume().catch(() => {});
+      }
+      return mobileAudioCtx;
     }
+
+    window.addEventListener("touchstart", unlockMobileAudio, { passive: true });
+    window.addEventListener("pointerdown", unlockMobileAudio, { passive: true });
+
+    const origPlay = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function (...args) {
+      if (this instanceof HTMLAudioElement) {
+        try { this.volume = MOBILE_TOUR_GAIN; } catch (_) {}
+        try {
+          if (hasMobileGesture) {
+            const ctx = unlockMobileAudio();
+            if (ctx && mobileGainNode && !routedAudios.has(this)) {
+              const srcUrl = this.currentSrc || this.src || "";
+              const isSameOrigin =
+                !srcUrl ||
+                srcUrl.startsWith("/") ||
+                srcUrl.startsWith("./") ||
+                srcUrl.startsWith(window.location.origin);
+              if (isSameOrigin) {
+                const source = ctx.createMediaElementSource(this);
+                source.connect(mobileGainNode);
+                routedAudios.add(this);
+              }
+            }
+          }
+        } catch (_) {}
+      }
+      return origPlay.apply(this, args);
+    };
   }
 
   // 4. Initialize INFO button state to match actual isPlanetOverviewEnabled
