@@ -1,194 +1,194 @@
 [
   {
     "filename": "intro.mp3",
-    "text": "Welcome to the Navigational Observatory and Visual Academy. I'm Nova, your guide through the grand architecture of the cosmos. Prepare to traverse the scales of reality—from the heart of our solar system out to the furthest horizons of the cosmic web."
+    "text": "Welcome. I'm Nova, your guide through the grand architecture of the cosmos. Prepare to traverse the scales of reality—from the heart of our solar system out to the furthest horizons of the cosmic web, and the edges of the observable universe."
   },
   {
     "filename": "tier-1.mp3",
-    "text": "The Solar System. Our cosmic voyage begins inside the Sun's gravitational and magnetic domain. Within the Heliosphere orbit the four rocky terrestrial planets, the dwarf planet Ceres, our moon, the four giant planets, periodic comets, and detached outer trans-Neptunian worlds."
+    "text": "Our journey begins close to home, inside the Solar System. Everything within this domain is bound by the Sun's gravity and shielded by its magnetic heliosphere—from the four rocky inner worlds and the asteroid belt, out past the gas and ice giants, to wandering comets and distant icy frontiers."
   },
   {
     "filename": "sun.mp3",
-    "text": "The Sun, also known as Sol. The gravitational center of our planetary system, fusing 600 million tons of hydrogen into helium every second in its core."
+    "text": "At the very heart of it all burns the Sun, also known as Sol. Anchoring every orbit around us, this nuclear furnace fuses 600 million tons of hydrogen into helium every single second."
   },
   {
     "filename": "mercury.mp3",
-    "text": "Mercury. The smallest planet and closest to the Sun, with a heavily cratered silicate crust and Caloris impact basin experiencing swings between 430°C and -180°C."
+    "text": "A short leap outward brings us to Mercury, the smallest and innermost planet. Its heavily cratered silicate crust—scarred by the immense Caloris impact basin—endures brutal swings from 430 degrees Celsius in daylight down to minus 180 at night."
   },
   {
     "filename": "venus.mp3",
-    "text": "Venus. A runaway greenhouse furnace veiled by super-rotating sulfuric acid cloud chevrons and a crushing carbon dioxide atmosphere."
+    "text": "Continuing outward, conditions grow even more extreme on Venus. Veiled beneath super-rotating sulfuric acid clouds and a crushing carbon dioxide atmosphere, this world is trapped in a runaway greenhouse furnace."
   },
   {
     "filename": "earth.mp3",
-    "text": "Earth. The cradle of human civilization, featuring liquid water oceans, dynamic atmospheric cloud bands, and carbon-based life. Our Home Planet."
+    "text": "Yet just one orbit farther lies a remarkable oasis: Earth. Crowned by liquid oceans, shifting cloud bands, and thriving carbon-based life, this fragile blue world is our home."
   },
   {
     "filename": "moon.mp3",
-    "text": "The Moon, also known as Luna. Earth's tidally locked natural satellite, scarred by dark basaltic lunar maria (Mare Imbrium, Oceanus Procellarum) and ancient anorthositic highland ray craters."
+    "text": "Locked in a quiet gravitational embrace beside Earth orbits the Moon, or Luna. Its ancient face tells the violent story of the early Solar System, etched with dark basaltic plains like Mare Imbrium and bright highland impact craters."
   },
   {
     "filename": "mars.mp3",
-    "text": "Mars. The iron oxide-rich Red Planet, home to Olympus Mons, the Valles Marineris canyon system, dark Syrtis Major basaltic plains, and polar ice caps."
+    "text": "Leaving the Earth-Moon system behind, we reach the iron-oxide deserts of Mars. Here rises the tallest volcano in the Solar System, Olympus Mons, alongside the vast Valles Marineris canyon, dark basaltic plains, and gleaming polar ice caps."
   },
   {
     "filename": "ceres.mp3",
-    "text": "1 Ceres. The largest body in the main asteroid belt, containing a third of its total mass and harboring bright sodium carbonate evaporite deposits in Occator Crater."
+    "text": "Venturing past Mars into the main asteroid belt, we encounter Ceres. Accounting for a third of the belt's entire mass, this dwarf planet hides bright sodium carbonate salt deposits gleaming inside Occator Crater."
   },
   {
     "filename": "jupiter.mp3",
-    "text": "Jupiter. A monumental gas giant banded by turbulent ammonia cloud belts, the Great Red Spot anticyclone, and 95 moons."
+    "text": "Beyond the rocky belt, the scale shifts dramatically as we arrive at Jupiter. This monumental gas giant is striped with turbulent ammonia clouds, swept by the centuries-old Great Red Spot, and escorted by 95 known moons."
   },
   {
     "filename": "saturn.mp3",
-    "text": "Saturn. Famous for its golden ammonia haze bands, north polar hexagon jet stream, and expansive icy ring system."
+    "text": "Farther out drifts Jupiter's ringed counterpart, Saturn. Cloaked in golden ammonia haze, it is crowned by a bizarre hexagonal jet stream at its north pole and encircled by the most expansive icy ring system in our neighborhood."
   },
   {
     "filename": "uranus.mp3",
-    "text": "Uranus. An ice giant knocked onto its side with an axial tilt of 97.8 degrees, veiled in a cyan methane-rich atmosphere and faint vertical rings."
+    "text": "Crossing into the cold realm of the ice giants, we meet Uranus—a world knocked completely onto its side at a 97.8-degree tilt, wrapped in pale cyan methane skies and delicate vertical rings."
   },
   {
     "filename": "neptune.mp3",
-    "text": "Neptune. The most distant major planet, featuring deep azure methane bands, bright high-altitude cirrus streaks, and supersonic 2,100 km/h winds."
+    "text": "At the outer edge of the major planets awaits Neptune. Colored a deep azure by atmospheric methane, this distant giant is streaked with high-altitude cirrus clouds and lashed by supersonic winds reaching 2,100 kilometers per hour."
   },
   {
     "filename": "halley-comet.mp3",
-    "text": "1P/Halley, also known as Halley's Comet. The premier short-period comet, returning every 75–76 years along a highly inclined, retrograde Keplerian ellipse."
+    "text": "Weaving across these planetary orbits every 75 to 76 years is Halley's Comet—our most famous short-period visitor, tracing a steep, retrograde ellipse that carries it from the outer dark back into the warmth of the Sun."
   },
   {
     "filename": "oumuamua.mp3",
-    "text": "1I/'Oumuamua. The first confirmed interstellar object detected visiting from beyond Sol, following an unbound hyperbolic trajectory with a cosmic-ray-reddened tholin crust."
+    "text": "Not every traveler here belongs to the Sun, however. 'Oumuamua was the first confirmed interstellar visitor ever spotted passing through our system—a wanderer reddened by cosmic rays, following an unbound trajectory back into deep space."
   },
   {
     "filename": "sedna.mp3",
-    "text": "90377 Sedna. An extremely distant minor planet coated in crimson methane/nitrogen tholin ices whose eccentric 11,400-year orbit hints at an unobserved outer perturber."
+    "text": "And far out on the frozen fringe orbits Sedna, a crimson minor planet coated in methane and nitrogen ices. Its wildly elongated 11,400-year orbit reaches so deep into the dark that it hints at an unseen outer world still waiting to be discovered."
   },
   {
     "filename": "tier-2.mp3",
-    "text": "The Stellar Neighborhood. Crossing the heliopause into interstellar space, distances leap by five orders of magnitude. Here in the Orion–Cygnus spiral arm and inward toward the Galactic Center dwell red and yellow dwarfs, binary white dwarfs, multi-planet systems, H II stellar nurseries, red hypergiants, pulsar wind nebulae, and our galaxy's central supermassive black hole."
+    "text": "Now we cross the heliopause and leave the Sun's protective bubble behind, stepping into the Stellar Neighborhood. Out here in the Orion–Cygnus spiral arm, distances jump by five orders of magnitude—revealing binary suns, dense white dwarfs, glowing stellar nurseries, towering hypergiants, and the supermassive heart of the Milky Way."
   },
   {
     "filename": "toliman.mp3",
-    "text": "Toliman, also known as Alpha Centauri B. The secondary star of the binary pair, orbiting Rigil Kentaurus every 79.9 years at an average distance of 23 AU."
+    "text": "Our first destination beyond the Solar System is Alpha Centauri, beginning with Toliman, or Alpha Centauri B. This warm orange star orbits its companion every 79.9 years at an average separation of 23 astronomical units."
   },
   {
     "filename": "rigil-kentaurus.mp3",
-    "text": "Rigil Kentaurus, also known as Alpha Centauri A. The primary star of the Alpha Centauri system, possessing 1.10 solar masses and 1.52 times the Sun's luminosity."
+    "text": "Locked in that gravitational dance is its brighter partner, Rigil Kentaurus—Alpha Centauri A. Slightly heavier than our own Sun at 1.1 solar masses, it shines more than one and a half times as brightly."
   },
   {
     "filename": "proxima-centauri.mp3",
-    "text": "Proxima Centauri, also known as Alpha Centauri C. The closest individual star to our Solar System, slowly looping the central A/B binary pair on a massive 550,000-year orbit."
+    "text": "Circling far around that central pair on a slow 550,000-year path is Proxima Centauri. Though faint, this modest red dwarf holds a special title: the closest individual star to our Solar System."
   },
   {
     "filename": "sirius-b.mp3",
-    "text": "Sirius B, also known as The Pup. A degenerate carbon-oxygen white dwarf companion packed with 1.02 solar masses into a radius smaller than Earth, orbiting Sirius A every 50.1 years."
+    "text": "Moving deeper into nearby interstellar space, we find a far more extreme stellar remnant—Sirius B, nicknamed the Pup. This ultra-dense white dwarf packs slightly more than the mass of our Sun into a carbon-oxygen core smaller than Earth, looping its partner every 50.1 years."
   },
   {
     "filename": "sirius.mp3",
-    "text": "Sirius, also known as The Dog Star. The brightest apparent star in Earth's sky, dancing with degenerate carbon-oxygen white dwarf companion Sirius B (The Pup)."
+    "text": "Dominating that binary pair is Sirius itself, the Dog Star. Brilliantly luminous and close enough to command our night skies, it shines as the brightest star visible from Earth."
   },
   {
     "filename": "sagittarius-a-star.mp3",
-    "text": "Sagittarius A. The 4.15-million solar-mass gravitational anchor at the nucleus of the Milky Way, surrounded by relativistic Doppler-boosted accretion flares."
+    "text": "Turning our gaze inward toward the very core of the Milky Way, we confront a gravitational titan: Sagittarius A-star. Weighing 4.15 million solar masses, this supermassive black hole anchors our entire galaxy amid relativistic flares of superheated matter."
   },
   {
     "filename": "barnards-star.mp3",
-    "text": "Barnard's Star. A high-velocity low-mass red dwarf displaying the largest known proper motion of any star relative to Sol."
+    "text": "Returning to the local stars racing through our neighborhood, we pass Barnard's Star—a swift, low-mass red dwarf hurtling across the sky with the fastest known proper motion of any star relative to our Sun."
   },
   {
     "filename": "trappist-1.mp3",
-    "text": "TRAPPIST-1. A compact ultra-cool red dwarf hosting seven temperate terrestrial exoplanets, three orbiting inside the liquid-water habitable zone."
+    "text": "Nearby glows an intriguing planetary sanctuary: TRAPPIST-1. This compact, ultra-cool red dwarf cradles seven temperate rocky worlds—three of them orbiting right inside the habitable zone where liquid water could endure."
   },
   {
     "filename": "polaris.mp3",
-    "text": "Polaris, also known as North Star. Earth's north celestial pole star, a luminous yellow supergiant pulsating radially as a classic Cepheid standard candle."
+    "text": "Looking north along Earth's axis leads us to Polaris, the North Star. Far more than a navigational beacon, it is a luminous yellow supergiant that pulses rhythmically as a classic Cepheid standard candle, helping astronomers measure cosmic distances."
   },
   {
     "filename": "betelgeuse.mp3",
-    "text": "Betelgeuse, also known as Alpha Orionis. A semiregular pulsating red supergiant boiling with giant convection cells near core collapse, destined to end in a Type II supernova."
+    "text": "Even grander in scale is Betelgeuse, the fiery shoulder of Orion. This unstable red supergiant boils with giant convection cells as it nears core collapse, destined to detonate in a dazzling Type 2 supernova."
   },
   {
     "filename": "stephenson-2-18.mp3",
-    "text": "Stephenson 2-18. One of the largest known stars in the universe, an extreme red hypergiant with an estimated radius of 2,150 solar radii—large enough to engulf Saturn's orbit."
+    "text": "Yet even Betelgeuse shrinks beside Stephenson 2-18, one of the largest stars ever discovered. Stretching to roughly 2,150 times the radius of our Sun, this colossal red hypergiant is vast enough to engulf Saturn's entire orbit."
   },
   {
     "filename": "crab-nebula.mp3",
-    "text": "Crab Nebula & Pulsar, also known as M1. The expanding filamentary wreckage of supernova SN 1054, powered by a central synchrotron neutron star spinning 30 times a second."
+    "text": "To see what remains after a massive star dies, we arrive at the Crab Nebula. This expanding web of glowing filaments is the wreckage of a supernova witnessed in the year 1054, still energized from within by a neutron star spinning 30 times every second."
   },
   {
     "filename": "eagle-nebula.mp3",
-    "text": "Eagle Nebula, also known as M16 / Pillars of Creation. A prolific stellar nursery housing the towering 'Pillars of Creation', where ultraviolet radiation from young O-type stars sculpts cold molecular gas."
+    "text": "Where dying stars scatter their ashes, new generations ignite—nowhere more dramatically than in the Eagle Nebula. Here, fierce ultraviolet radiation from newborn stars carves cold molecular gas into the towering Pillars of Creation."
   },
   {
     "filename": "orion-nebula.mp3",
-    "text": "Orion Nebula, also known as M42. A massive H II stellar nursery visible to the naked eye, actively birthing protoplanetary disks inside the glowing Trapezium cluster."
+    "text": "Closer to home, that same cycle of creation unfolds before the naked eye in the Orion Nebula. Inside its glowing Trapezium cluster, dense clouds of ionized hydrogen are actively forging newborn stars and protoplanetary disks."
   },
   {
     "filename": "tier-3.mp3",
-    "text": "Galaxies & The Local Group. Pulling beyond the Milky Way's luminous disk, entire island universes populate the Local Group and the surrounding Virgo and Laniakea superclusters. Here gravitational interactions drive satellite dwarf streams, spiral galaxy collisions, AGN radio jets, and bulk supercluster flows."
+    "text": "As we pull far beyond the Milky Way's luminous disk, individual stars dissolve into entire island universes, bringing us into the realm of Galaxies and the Local Group. Across this vast expanse, gravity orchestrates satellite streams, slow-motion galactic collisions, relativistic jets, and immense supercluster currents."
   },
   {
     "filename": "smc.mp3",
-    "text": "Small Magellanic Cloud. A gas-rich dwarf irregular galaxy bound to the Milky Way, tidally stretched by past gravitational encounters with the LMC."
+    "text": "Just outside our galaxy's borders drifts the Small Magellanic Cloud. This gas-rich dwarf irregular galaxy is gravitationally bound to the Milky Way and visibly stretched by tidal encounters with its larger neighbor."
   },
   {
     "filename": "lmc.mp3",
-    "text": "Large Magellanic Cloud. The most massive satellite galaxy of the Milky Way, featuring an off-center stellar bar and the glowing Tarantula Nebula starburst complex."
+    "text": "Beside it shines that larger companion, the Large Magellanic Cloud—our galaxy's most massive satellite. Marked by an off-center stellar bar, it blazes with intense star formation inside the sprawling Tarantula Nebula."
   },
   {
     "filename": "andromeda.mp3",
-    "text": "Andromeda Galaxy, also known as M31. The largest galaxy in the Local Group, heading toward the Milky Way on a blueshifted collision trajectory at 110 km/s."
+    "text": "Looking across intergalactic space, we meet our greatest neighbor and future partner: the Andromeda Galaxy. The largest member of the Local Group, it is racing toward the Milky Way at 110 kilometers per second on a cosmic collision course."
   },
   {
     "filename": "sombrero-galaxy.mp3",
-    "text": "Sombrero Galaxy, also known as M104. A magnificent lenticular galaxy distinguished by an extraordinarily luminous central bulge and a sharp, dark equatorial dust absorption lane."
+    "text": "Beyond our immediate group floats one of the most sculptural sights in the heavens—the Sombrero Galaxy. This striking lenticular system pairs an extraordinarily bright central bulge with a razor-sharp ring of dark equatorial dust."
   },
   {
     "filename": "triangulum.mp3",
-    "text": "Triangulum Galaxy, also known as M33. The third-largest member of the Local Group, displaying loosely wound spiral arms and prominent H II star-forming regions."
+    "text": "Rounding out the trio of Local Group spirals is the Triangulum Galaxy. Though it is smaller than Andromeda and the Milky Way, its loosely wound spiral arms burst with luminous star-forming regions."
   },
   {
     "filename": "centaurus-a.mp3",
-    "text": "Centaurus A, also known as NGC 5128. A giant peculiar elliptical galaxy bisected by a warped dark dust lane, launching relativistic synchrotron plasma jets from its central black hole."
+    "text": "Venturing farther into nearby extragalactic space, we encounter the turbulent beauty of Centaurus A. Bisected by a warped dark dust lane, this giant elliptical galaxy fires twin relativistic plasma jets from its central black hole."
   },
   {
     "filename": "messier-87.mp3",
-    "text": "Messier 87, also known as Virgo A / M87. The dominant supergiant elliptical galaxy of the Virgo Cluster, hosting a 6.5-billion-solar-mass black hole launching a 5,000-light-year relativistic jet."
+    "text": "That violent power scales up even further in Messier 87, the reigning supergiant elliptical of the Virgo Cluster. At its core lurks a 6.5-billion-solar-mass black hole launching a collimated relativistic jet 5,000 light-years into space."
   },
   {
     "filename": "great-attractor.mp3",
-    "text": "The Great Attractor. A massive gravitational focal point in the Zone of Avoidance drawing the Milky Way and hundreds of thousands of galaxies along the Laniakea Supercluster."
+    "text": "Guiding the motion of our entire cosmic region is the Great Attractor—a hidden gravitational focal point in the Zone of Avoidance, drawing our galaxy and hundreds of thousands of others along the Laniakea Supercluster."
   },
   {
     "filename": "tier-4.mp3",
-    "text": "Deep Space & Observable Horizon. At the grandest scale of physical reality, matter is woven into a vast fractal Cosmic Web of dark-matter filaments, dense supercluster nodes, and cavernous cosmic voids. Looking outward is looking backward in cosmic time—past colliding clusters and hyperluminous quasars to the first stars, primordial galaxies, and the surface of last scattering."
+    "text": "At last, we ascend to the grandest scale of physical reality: Deep Space and the Observable Horizon. Here, galaxies trace a vast fractal Cosmic Web of dark-matter filaments, towering supercluster nodes, and cavernous voids—where looking farther outward means looking billions of years back in time."
   },
   {
     "filename": "bootes-void.mp3",
-    "text": "Boötes Void, also known as The Great Nothing. A gargantuan spherical cosmic desert spanning 330 million light-years across, containing only ~60 galaxies where 2,000 would normally form."
+    "text": "Amid this cosmic architecture yawns the Boötes Void, aptly called the Great Nothing. Spanning 330 million light-years, this eerie spherical desert holds only about 60 galaxies where 2,000 would normally form."
   },
   {
     "filename": "shapley-supercluster.mp3",
-    "text": "Shapley Supercluster. The largest concentration of gravitationally bound galaxies in the nearby universe, pulling the Laniakea Supercluster and Great Attractor toward its core."
+    "text": "At the opposite extreme stands the Shapley Supercluster—the largest concentration of gravitationally bound galaxies in the nearby universe, pulling both the Great Attractor and our own Laniakea Supercluster toward its core."
   },
   {
     "filename": "el-gordo.mp3",
-    "text": "El Gordo, also known as ACT-CL J0102-4915. The most massive colliding galaxy cluster observed in the distant universe, glowing with shock-heated X-ray intracluster plasma across 3 quadrillion solar masses."
+    "text": "Traveling billions of light-years farther out, we witness a titanic collision in progress: El Gordo. Weighing in at three quadrillion solar masses, it is the most massive colliding galaxy cluster observed in the distant universe, glowing fiercely with shock-heated X-ray plasma."
   },
   {
     "filename": "smacs-0723.mp3",
-    "text": "SMACS J0723.3-7327. A massive galaxy cluster bending spacetime into an Einstein gravitational lens, famous as the target of JWST's First Deep Field."
+    "text": "Mass on this scale does more than pull matter—it warps spacetime itself. In galaxy cluster SMACS 0723, made iconic by the James Webb Space Telescope's first deep field, gravity acts as a natural Einstein lens, magnifying ancient galaxies hidden far behind it."
   },
   {
     "filename": "ton-618.mp3",
-    "text": "TON 618. The largest known ultramassive black hole (66 billion solar masses), featuring a 390-billion-kilometer (~2,600 AU) event horizon that dwarfs our entire Solar System, a relativistic quasar jet, and a golden-orange accretion disk shining with the power of 140 trillion Suns."
+    "text": "Blazing out of the distant past is TON 618, home to the largest known ultramassive black hole at 66 billion solar masses. Its event horizon spans roughly 2,600 astronomical units—dwarfing our entire Solar System—while its golden accretion disk shines with the power of 140 trillion suns."
   },
   {
     "filename": "gn-z11.mp3",
-    "text": "GN-z11. An intensely star-forming primordial galaxy observed just 400 million years after the Big Bang, strongly redshifted into the infrared."
+    "text": "Pushing almost to the dawn of cosmic history, we reach GN-z11. With its light stretched deeply into the infrared by the expansion of space, this fiercely star-forming primordial galaxy appears to us as it was just 400 million years after the Big Bang."
   },
   {
     "filename": "earendel.mp3",
-    "text": "Earendel, also known as WHL0137-LS. The most distant individual star ever detected, observed 900 million years after the Big Bang via gravitational lensing magnification."
+    "text": "Our voyage concludes at the edge of stellar visibility with Earendel—the most distant individual star ever detected. Its ancient starlight, magnified by gravitational lensing from a time just 900 million years after the Big Bang, completes our passage from our own Sun to the very frontier of the observable universe."
   }
 ]
