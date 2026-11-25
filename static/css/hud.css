@@ -1803,3 +1803,13 @@ html.screensaver-active #btn-nova-audio {
   pointer-events: none !important;
   visibility: hidden !important;
 }
+
+/* === HIDE TOP-RIGHT TIME BAR IN GUIDED TOUR & STANDBY === */
+html.nova-tour-active #nova-ephemeris-hud,
+html.screensaver-active #nova-ephemeris-hud,
+html.nova-tour-active #nova-ephemeris-slider,
+html.screensaver-active #nova-ephemeris-slider {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
