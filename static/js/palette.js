@@ -1057,6 +1057,34 @@
       } else if (type === "reset") {
         playTone(523.25, 0.10, 0.05, "sine", 0);
         playTone(392.0, 0.16, 0.05, "sine", 0.08);
+      } else if (type === "zoom-in" || type === "zoom-out") {
+        if (window.novaAudio) {
+          const fn =
+            window.novaAudio.playZoomTick ||
+            window.novaAudio.playWheelTick ||
+            window.novaAudio.playTick ||
+            window.novaAudio.zoomTick ||
+            window.novaAudio.playClick;
+          if (typeof fn === "function") {
+            fn(type === "zoom-in" ? -1 : 1);
+            return;
+          }
+        }
+        // Crisp observatory wheel-click fallback
+        playTone(type === "zoom-in" ? 1320 : 1080, 0.016, 0.038, "triangle", 0);
+      } else if (type === "orbit") {
+        const osc = sfxCtx.createOscillator();
+        const g = sfxCtx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(165, now);
+        osc.frequency.exponentialRampToValueAtTime(210, now + 0.09);
+        g.gain.setValueAtTime(0.0001, now);
+        g.gain.exponentialRampToValueAtTime(0.022, now + 0.018);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.10);
+        osc.connect(g);
+        g.connect(sfxCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.11);
       }
     } catch (_) {}
   };

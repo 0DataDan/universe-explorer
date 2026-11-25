@@ -57,6 +57,8 @@
   let pendingTheta = 0;
   let pendingPhi = 0;
   let lastRafTime = 0;
+  let lastZoomSfxAt = 0;
+  let lastOrbitSfxAt = 0;
 
   // Phase 2 Point-to-Lock state
   let cursorX = window.innerWidth * 0.5;
@@ -89,9 +91,21 @@
     return dist2D(lm[4], lm[8]) / palmSize;
   }
 
+  function isClosedFist(lm) {
+    const midCurled = dist2D(lm[0], lm[12]) < dist2D(lm[0], lm[10]) * 1.08;
+    const ringCurled = dist2D(lm[0], lm[16]) < dist2D(lm[0], lm[14]) * 1.08;
+    const pinkyCurled = dist2D(lm[0], lm[20]) < dist2D(lm[0], lm[18]) * 1.08;
+    const indexTucked = dist2D(lm[0], lm[8]) < dist2D(lm[0], lm[5]) * 1.18;
+    return midCurled && ringCurled && pinkyCurled && indexTucked;
+  }
+
   function isPinching(lm) {
     const ratio = getPinchRatio(lm);
-    return lockedGesture === "orbit" ? ratio < 0.52 : ratio < 0.36;
+    if (lockedGesture === "orbit") {
+      return ratio < 0.56;
+    }
+    if (isClosedFist(lm)) return false;
+    return ratio < 0.35;
   }
 
   function isOpenPalm(lm) {
@@ -279,6 +293,7 @@
         if (dwellMesh !== hit.mesh) {
           dwellMesh = hit.mesh;
           dwellStart = now;
+          if (typeof window.novaPlaySpatialSfx === "function") window.novaPlaySpatialSfx("snap");
         }
         const progress = clamp((now - dwellStart) / DWELL_MS, 0, 1);
         if (reticleRingEl) {
@@ -297,6 +312,7 @@
           dwellMesh = null;
           dwellStart = 0;
           reticleEl.classList.add("is-locked");
+          if (typeof window.novaPlaySpatialSfx === "function") window.novaPlaySpatialSfx("lock");
           if (reticleLabelEl) reticleLabelEl.textContent = `LOCKED // ${hit.label}`;
           setTimeout(() => {
             if (reticleEl) reticleEl.classList.remove("is-locked");
@@ -568,6 +584,13 @@
         if (stepZoom !== 0) {
           applyDeltaToCamera(0, 0, stepZoom);
           coastZoom = stepZoom * 0.42;
+          const nowSfx = performance.now();
+          if (Math.abs(stepZoom) > 0.018 && nowSfx - lastZoomSfxAt > 75) {
+            lastZoomSfxAt = nowSfx;
+            if (typeof window.novaPlaySpatialSfx === "function") {
+              window.novaPlaySpatialSfx(stepZoom < 0 ? "zoom-in" : "zoom-out");
+            }
+          }
         }
       }
 
@@ -619,6 +642,13 @@
         if (Math.abs(dy) > 0.0012) {
           pendingPhi = clamp(pendingPhi + clamp(dy * 3.0, -0.10, 0.10), -0.25, 0.25);
         }
+        const nowSfx = performance.now();
+        if (Math.hypot(dx, dy) > 0.006 && nowSfx - lastOrbitSfxAt > 220) {
+          lastOrbitSfxAt = nowSfx;
+          if (typeof window.novaPlaySpatialSfx === "function") {
+            window.novaPlaySpatialSfx("orbit");
+          }
+        }
       }
 
       setStatus("ORBIT [PINCH]", "active");
@@ -640,6 +670,7 @@
         setStatus(`RESET ${pct}%`, "active");
         if (now - resetHoldStart >= RESET_HOLD_MS) {
           performSpatialReset();
+          if (typeof window.novaPlaySpatialSfx === "function") window.novaPlaySpatialSfx("reset");
           resetHoldStart = 0;
           resetCooldownUntil = now + RESET_COOLDOWN_MS;
           setStatus("RESET HOME", "brake");
@@ -697,7 +728,7 @@
     lastRafTime = nowRaf;
 
     // Smooth exponential ease on every display frame (decouples 30fps webcam from 60/120fps render)
-    const ease = 1 - Math.exp(-13 * dt);
+    const ease = 1 - Math.exp(-9 * dt);
     const frameTheta = pendingTheta * ease;
     const framePhi = pendingPhi * ease;
     pendingTheta -= frameTheta;
@@ -763,6 +794,7 @@
         window.dismissSpatialCallout();
       }
       btn.setAttribute("data-nova-active", "true");
+      if (typeof window.novaPlaySpatialSfx === "function") window.novaPlaySpatialSfx("toggle-on");
       setStatus("READY", "idle");
       rafId = requestAnimationFrame(loop);
     } catch (err) {
@@ -795,6 +827,7 @@
     if (pipEl) pipEl.classList.remove("is-visible");
     if (ctx2d && canvasEl) ctx2d.clearRect(0, 0, canvasEl.width, canvasEl.height);
     if (btn) btn.setAttribute("data-nova-active", "false");
+    if (typeof window.novaPlaySpatialSfx === "function") window.novaPlaySpatialSfx("toggle-off");
   }
 
   function mountSpatialButton() {
