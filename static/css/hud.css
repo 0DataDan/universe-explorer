@@ -1580,3 +1580,210 @@ html.nova-mobile-zen #bottom-hud {
 html.nova-mobile-zen #btn-fullscreen-zen::before {
   content: "EXIT";
 }
+
+/* === NOVA HAND-TRACKING CONTROL (DESKTOP ONLY) === */
+#btn-hand-control::before { content: "SPATIAL"; }
+
+#nova-hand-pip {
+  position: fixed;
+  top: 64px;
+  right: 24px;
+  z-index: 35;
+  width: 176px;
+  padding: 6px 8px 4px;
+  background: rgba(2, 6, 23, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 220ms ease, transform 220ms ease, border-color 180ms ease;
+}
+#nova-hand-pip.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+#nova-hand-pip[data-state="active"] {
+  border-color: rgba(251, 191, 36, 0.55);
+}
+#nova-hand-pip .hand-pip-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: #cbd5e1;
+  margin-bottom: 4px;
+}
+#nova-hand-pip .hand-pip-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: #94a3b8;
+}
+#nova-hand-pip[data-state="active"] .hand-pip-dot {
+  background: #fbbf24;
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.85);
+}
+#nova-hand-pip[data-state="brake"] .hand-pip-dot {
+  background: #f8fafc;
+}
+#nova-hand-canvas {
+  display: block;
+  width: 160px;
+  height: 100px;
+}
+
+@media (pointer: coarse) and (max-width: 960px), (hover: none) and (max-width: 960px) {
+  #btn-hand-control,
+  #nova-hand-pip {
+    display: none !important;
+  }
+}
+
+/* === NOVA HAND TARGETING RETICLE (PHASE 2) === */
+#nova-hand-reticle {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  margin-left: -22px;
+  margin-top: -22px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+#nova-hand-reticle.is-visible {
+  opacity: 1;
+}
+#nova-hand-reticle svg {
+  display: block;
+  transform: rotate(-90deg);
+}
+#nova-hand-reticle .reticle-track {
+  fill: none;
+  stroke: rgba(248, 250, 252, 0.28);
+  stroke-width: 1.25;
+}
+#nova-hand-reticle .reticle-progress {
+  fill: none;
+  stroke: #fbbf24;
+  stroke-width: 2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.7));
+}
+#nova-hand-reticle .reticle-dot {
+  fill: #f8fafc;
+}
+#nova-hand-reticle.is-snapped .reticle-track {
+  stroke: rgba(251, 191, 36, 0.45);
+}
+#nova-hand-reticle.is-snapped .reticle-dot {
+  fill: #fbbf24;
+}
+#nova-hand-reticle.is-locked .reticle-progress {
+  stroke: #f8fafc;
+}
+#nova-hand-reticle .reticle-label {
+  position: absolute;
+  top: 46px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: #fbbf24;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+@media (pointer: coarse) and (max-width: 960px), (hover: none) and (max-width: 960px) {
+  #nova-hand-reticle {
+    display: none !important;
+  }
+}
+
+#nova-hand-pip .hand-pip-legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 8px;
+  margin-top: 5px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 7.5px;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  opacity: 0.85;
+  transition: opacity 220ms ease;
+}
+#nova-hand-pip[data-state="active"] .hand-pip-legend {
+  opacity: 0.35;
+}
+#nova-hand-pip .hand-pip-legend > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+#nova-hand-pip .hand-pip-legend > div span:first-child {
+  color: #e2e8f0;
+}
+
+/* === SPATIAL TOP-LEFT MODE BUTTON & CALLOUT SUPPRESSION (v9) === */
+#btn-hand-control.nova-spatial-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 10px;
+  padding: 2px 6px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9aa3b2;
+  cursor: pointer;
+  transition: color 180ms ease, border-color 180ms ease, opacity 180ms ease;
+}
+#btn-hand-control.nova-spatial-mode-btn::before {
+  content: "SPATIAL";
+}
+#btn-hand-control.nova-spatial-mode-btn:hover {
+  color: rgba(248, 250, 252, 0.96);
+}
+#btn-hand-control.nova-spatial-mode-btn[data-nova-active="true"] {
+  color: #fbbf24;
+  border-bottom-color: #fbbf24;
+}
+#btn-hand-control .spatial-new-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: #fbbf24;
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.85);
+  animation: spatialDotPulse 2.2s ease-in-out infinite;
+}
+@keyframes spatialDotPulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* Deactivate INFO callout cards & inspector while SPATIAL mode is active */
+html.nova-spatial-active #inspector,
+html.nova-spatial-active #spatial-target-callout,
+html.nova-spatial-active [id*="target-callout"],
+html.nova-spatial-active #screensaver-hud-badge {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* Keep NOVA | SCALE | SPATIAL visible in desktop Fullscreen (still hidden in Standby/Boot/Mobile Zen) */
+html:not(.screensaver-active):not(.is-booting):not(.nova-mobile-zen):fullscreen header.hidden,
+html:not(.screensaver-active):not(.is-booting):not(.nova-mobile-zen):-webkit-full-screen header.hidden {
+  display: flex !important;
+}

@@ -209,6 +209,7 @@
     <div class="flex flex-col space-y-1.5 text-[10px] tracking-[0.08em] uppercase text-slate-300">
       <div class="text-[9px] text-amber-400/90 tracking-[0.16em] pb-1 mb-0.5 border-b border-white/10">OBSERVATORY KEYS</div>
       <div class="flex items-center justify-between"><span class="text-slate-400">Cosmic Web</span><kbd class="nova-kbd">N</kbd></div>
+      <div class="flex items-center justify-between"><span class="text-slate-400">Spatial</span><kbd class="nova-kbd">SHIFT</kbd></div>
       <div class="flex items-center justify-between"><span class="text-slate-400">Orbital Paths</span><kbd class="nova-kbd">O</kbd></div>
       <div class="flex items-center justify-between"><span class="text-slate-400">Labels</span><kbd class="nova-kbd">V</kbd></div>
       <div class="flex items-center justify-between"><span class="text-slate-400">Scale Tiers</span><kbd class="nova-kbd">A</kbd></div>
@@ -446,8 +447,7 @@
             <rect id="sb-inner-bar" x="12.8" y="8.2" width="2.3" height="15.6" rx="0.6" fill="#22d3ee" style="opacity: 0; transform: translateX(6px) scaleY(0.75); transform-origin: 14px 16px; filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.8)); transition: opacity 2300ms ease, transform 2900ms cubic-bezier(0.16, 1, 0.3, 1);" />
           </svg>
         </button>
-
-        <!-- Fullscreen Toggle (32x32px) -->
+<!-- Fullscreen Toggle (32x32px) -->
         <button id="btn-fullscreen-zen" data-tip="Fullscreen" onclick="toggleFullscreenZen()"
           style="width: 32px !important; height: 32px !important;"
           class="relative w-8 h-8 rounded-full flex items-center justify-center transition duration-300 transform hover:scale-110 shrink-0 cursor-pointer p-0 bg-transparent border-0">
@@ -488,7 +488,7 @@
 
 
 
-  <link rel="stylesheet" href="./css/hud.css?v=104">
+  <link rel="stylesheet" href="./css/hud.css?v=109">
 
 <div id="nova-cursor-dot" style="pointer-events: none !important;"></div>
 <div id="nova-cursor-halo" style="pointer-events: none !important;"></div>
@@ -589,5 +589,6 @@
 
   <script src="./js/hud-enhancements.js"></script>
   <script src="./js/audio-engine.js?v=18"></script>
+  <script src="./js/hand-control.js?v=11"></script>
 </body>
 </html>
