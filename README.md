@@ -51,6 +51,30 @@ python3 scripts/fetch_nasa_textures.py
 python3 scripts/sync_nova_audio.py
 ```
 
+## Performance & Asset Profile
+
+Measured in Chrome (Incognito, extensions disabled) over **300 consecutive `requestAnimationFrame` samples** on an **Apple M1 (macOS)** at `548×678` CSS (`1096×1356` physical px @ DPR 2):
+
+| Metric | Measured Value |
+| :--- | :--- |
+| Median frame time | **16.70 ms** (59.9 FPS) |
+| p95 frame time | **16.80 ms** (59.5 FPS) |
+| WebGL draw calls | **44** (max 45) |
+| Rendered geometry | **176,106 triangles** · **31,540 points** · **2,167 lines** |
+| GPU memory objects | **86 geometries** · **81 textures** |
+
+### Deployed Runtime Footprint (`static/`)
+
+| Asset Category | Files | Size |
+| :--- | ---: | ---: |
+| JavaScript (ES6 modules) | 19 | 716.3 KB |
+| HTML & CSS | 3 | 121.0 KB |
+| Catalog & JSON data | 1 | 21.7 KB |
+| Planetary textures & images | 23 | 12.48 MB |
+| Guided tour audio (on-demand) | 48 | 4.38 MB |
+| Other static assets | 1 | 235.9 KB |
+| **Total (`static/`)** | **95** | **17.93 MB** (859.0 KB code + catalog) |
+
 ## What I learned
 
 - **World vs. local coordinates:** Early on, the camera would miss planets during the tour because they were nested inside orbiting groups. Switching to `getWorldPosition()` fixed the alignment.

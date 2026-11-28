@@ -409,6 +409,7 @@ import { buildVolumetricOortCloud, buildNASAHubbleCosmicWeb, buildDelicateAurora
       controls.zoomSpeed = -1.15;
       window.camera = camera;
       window.controls = controls;
+      window.renderer = renderer;
 
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
