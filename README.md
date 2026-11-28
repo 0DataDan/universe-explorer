@@ -67,4 +67,4 @@ python3 scripts/sync_nova_audio.py
 
 - **Planetary Textures & Astronomical Data:** Planetary surface maps and reference parameters are sourced from NASA / JPL / ESA public-domain datasets (fetched and normal-mapped via `scripts/fetch_nasa_textures.py`).
 - **Tour Narration:** Guided tour audio files are synthetically generated using [`edge-tts`](https://github.com/rany2/edge-tts) for consistent voice output across stops. Please review `edge-tts` / Microsoft Edge TTS terms before commercial redistribution.
-- **License:** Released under the [MIT License](LICENSE).
+- **License:** Copyright (c) 2026 Daniel Perez. All rights reserved. See [LICENSE](LICENSE).
