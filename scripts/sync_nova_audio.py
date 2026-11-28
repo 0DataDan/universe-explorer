@@ -5,7 +5,9 @@ import edge_tts
 
 VOICE = "en-GB-SoniaNeural"
 RATE = "-5%"
-AUDIO_DIR = "static/audio/tour"
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+AUDIO_DIR = os.path.join(REPO_ROOT, "static", "audio", "tour")
+TOUR_SCRIPTS_PATH = os.path.join(REPO_ROOT, "tour_scripts.json")
 
 def strip_distance(text):
     parts = [s.strip() for s in text.split(". ") if s.strip()]
@@ -21,13 +23,13 @@ def strip_distance(text):
 
 async def main():
     os.makedirs(AUDIO_DIR, exist_ok=True)
-    with open("tour_scripts.json", "r", encoding="utf-8") as f:
+    with open(TOUR_SCRIPTS_PATH, "r", encoding="utf-8") as f:
         stops = json.load(f)
 
     for stop in stops:
         stop["text"] = strip_distance(stop["text"])
 
-    with open("tour_scripts.json", "w", encoding="utf-8") as f:
+    with open(TOUR_SCRIPTS_PATH, "w", encoding="utf-8") as f:
         json.dump(stops, f, indent=2, ensure_ascii=False)
     print("Cleaned all Average distance lines from tour_scripts.json\n")
 

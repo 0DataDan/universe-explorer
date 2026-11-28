@@ -4,7 +4,8 @@ import urllib.request
 import numpy as np
 from PIL import Image
 
-OUT_DIR = "static/textures"
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT_DIR = os.path.join(REPO_ROOT, "static", "textures")
 os.makedirs(OUT_DIR, exist_ok=True)
 
 BASE_URL = "https://www.solarsystemscope.com/textures/download/"
